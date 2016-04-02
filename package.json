@@ -1,0 +1,15 @@
+{
+  "name": "ash",
+  "version": "1.0.0",
+  "description": "A syntaxtic editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "elm make src/Ash.elm"
+  },
+  "author": "Christian Gram Kalhauge",
+  "license": "MIT",
+  "devDependencies": {
+    "elm": "^0.16.0"
+  }
+}
