@@ -10,8 +10,10 @@
   "author": "Christian Gram Kalhauge",
   "license": "MIT",
   "devDependencies": {
+    "browser-sync": "^2.11.2",
     "elm": "^0.16.0",
     "gulp": "^3.9.1",
-    "gulp-elm": "^0.4.1"
+    "gulp-elm": "^0.4.1",
+    "gulp-plumber": "^1.1.0"
   }
 }
