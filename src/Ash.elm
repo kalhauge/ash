@@ -81,7 +81,11 @@ model =
     { selected = True } 
     [ number' [ "4", "2" ] 
     , Leaf "+"
-    , number' [ "2", "3", "6", "2"] 
+    , node "AddExpr"
+        [ number' [ "2", "3", "6"] 
+        , Leaf "-"
+        , number' [ "3", "2", "1"]
+        ]
     ]
 
 type Action 
@@ -102,31 +106,85 @@ keyHandle keyCode =
     'h' -> Left
     _ -> NoOp
 
+tryPrepend : a -> Maybe (List a) -> Maybe (List a)
+tryPrepend a rest = 
+  rest `andThen` (\as' -> Just (a :: as'))
+
 focusFirst ss = 
   case ss of
     s :: ss' -> 
       case s of
-        Leaf _ ->
-          focusFirst ss' `andThen` (\ss'' -> Just (s :: ss''))
         Node n meta ss'' ->
           Just ( (Node n { meta | selected = True } ss'') :: ss')
+        _ ->
+          tryPrepend s (focusFirst ss')
     [] -> 
       Nothing
+
+
+focusNext ss =
+  case ss of 
+    s :: ss' -> 
+      case s of 
+        Node n meta ss'' -> 
+          if meta.selected then
+            tryPrepend 
+              (Node n {meta | selected = False } ss'')
+              (focusFirst ss')
+          else 
+            tryPrepend s (focusNext ss')
+        Leaf _ -> 
+          tryPrepend s (focusNext ss')
+    [] ->
+      Nothing
+
+
+focusPrev ss =
+  case ss of 
+    s :: ss' -> 
+      case s of 
+        Node n meta myss -> 
+          case getFirstFocus ss' of
+            Just ss'' -> 
+              let node = Node n {meta | selected = True } myss
+              in Just ( node :: Maybe.withDefault ss'' (focusPrev ss''))
+            Nothing ->
+              tryPrepend s (focusPrev ss')
+        Leaf _ -> 
+          tryPrepend s (focusPrev ss')
+    [] ->
+      Nothing
+
+getFirstFocus ss = 
+  case ss of
+    s :: ss' -> 
+      case s of
+        Node n meta myss ->
+          if meta.selected then
+            Just ( (Node n { meta | selected = False } myss) :: ss')
+          else
+            Nothing 
+        _ -> 
+          tryPrepend s (getFirstFocus ss')
+    [] -> 
+      Nothing
+
 
 getFocus ss = 
   case ss of
     s :: ss' -> 
       case s of
-        Leaf _ ->
-          getFocus ss' `andThen` (\ss'' -> Just (s :: ss''))
         Node n meta myss ->
           if meta.selected then
             let ss'' = Maybe.withDefault ss' (getFocus ss')
             in Just ( (Node n { meta | selected = False } myss) :: ss'')
           else
-            getFocus ss' `andThen` (\ss'' -> Just (s :: ss''))
+            tryPrepend s (getFocus ss')
+        _ -> 
+          tryPrepend s (getFocus ss')
     [] -> 
       Nothing
+
 
 moveUp : SyntaxTree -> SyntaxTree
 moveUp st =
@@ -140,6 +198,7 @@ moveUp st =
           Node n 
             {meta | selected = True} 
             (List.map moveUp ss')
+
 
 moveDown : SyntaxTree -> SyntaxTree
 moveDown st = 
@@ -156,42 +215,61 @@ moveDown st =
       else 
         Node n meta ss' 
 
--- moveRight : SyntaxTree -> SyntaxTree
---   case st of
---     Leaf _ -> st
---     Node n meta ss -> 
---       let ss' = (List.map moveRight ss)
---       in 
+
+moveRight : SyntaxTree -> SyntaxTree
+moveRight st = 
+  case st of
+    Leaf _ -> st
+    Node n meta ss -> 
+      let ss' = (List.map moveRight ss)
+      in Node n meta (Maybe.withDefault ss' (focusNext ss'))
+
+
+moveLeft : SyntaxTree -> SyntaxTree
+moveLeft st = 
+  case st of
+    Leaf _ -> st
+    Node n meta ss -> 
+      let ss' = (List.map moveLeft ss)
+      in Node n meta (Maybe.withDefault ss' (focusPrev ss'))
 
 update action model = 
   let model' = case action of
-      NoOp -> model
-      Up -> moveUp model
-      Down -> moveDown model
-      _ -> model
+      NoOp -> 
+        model
+
+      Up -> 
+        moveUp model
+
+      Down -> 
+        moveDown model
+
+      Right -> 
+        moveRight model
+
+      Left -> 
+        moveLeft model
   in (model', Effects.none)
 
 startingUpper str =
   let first = String.left 1 str
   in String.toUpper first == first
 
-pprint : SyntaxTree -> Html
-pprint tree = 
+dpprint : SyntaxTree -> Html
+dpprint tree = 
   case tree of
     Node rulename meta terms ->
-      let dist = if startingUpper rulename then "2px" else "0px" 
-      in div 
+      div 
         [ style (
            [ ("display", "inline-block")
-           , ("margin", "2px 2px")
+           , ("margin", "2px 2px 0px 2px")
            , ("text-align", "center")
            ] ++ if meta.selected 
                then [ ("background", "lightgray") ]
                else []
            )
         ]
-        ( [ 
-            div 
+        ( [ div 
               [ style (
                 [ ("background", "lightblue")
                 , ("font-size", "6pt")
@@ -203,26 +281,45 @@ pprint tree =
                 )
               ] 
               [ text rulename ] 
-            ]
-           ++ (List.map pprint terms) 
+          ] ++ (List.map dpprint terms) 
          )
     Leaf string ->
       div 
         [ style 
-            [ ("display", "inline-block") 
+            [ ("display", "inline") 
             ]
         ] 
         [text string ]
+
+
+pprint tree =
+  case tree of
+    Node rulename meta terms ->
+      div
+        [ style (
+            [ ("display", "inline")
+            ] 
+            ++ if meta.selected then 
+                    [ ("background", "lightgray") ]
+                else []
+          )
+        ]
+        (List.map pprint terms)
+    Leaf string ->
+      text string
 
 view address model = 
   div 
     [ style 
        [ ("margin", "100px auto")
-       , ("width", "400px")
+       , ("width", "500px")
+       , ("font-family", "monospace")
        --, ("text-align", "center")
        ]
     ] 
-    [ pprint model ]
+    [ dpprint model 
+    , pprint model
+    ]
 
 main = ( start { init = (model, Effects.none)
              , view = view
