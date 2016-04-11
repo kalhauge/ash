@@ -35,6 +35,30 @@ type SyntaxTree
       , focus : Bool
       }
 
+getType : SyntaxTree -> (ClauseId, AlternativeId) 
+getType (SyntaxTree {name, alt}) =
+  (name, alt)
+
+
+setTerms : List SyntaxTree -> SyntaxTree -> SyntaxTree
+setTerms terms (SyntaxTree inner) =
+  SyntaxTree { inner | terms = terms }
+
+updateTerms : 
+  (List SyntaxTree -> List SyntaxTree) 
+  -> SyntaxTree 
+  -> SyntaxTree
+updateTerms fn (SyntaxTree inner) =
+  SyntaxTree { inner | terms = fn inner.terms }
+
+setFocus : Bool -> SyntaxTree -> SyntaxTree
+setFocus focus (SyntaxTree inner) = 
+  SyntaxTree { inner | focus = focus }
+
+hasFocus : SyntaxTree -> Bool
+hasFocus (SyntaxTree inner) =
+  inner.focus
+
 syntax : 
   ClauseId 
   -> AlternativeId
@@ -53,6 +77,7 @@ syntax name alt focus terms =
 tryPrepend : a -> Maybe (List a) -> Maybe (List a)
 tryPrepend a ls = 
   ls `Maybe.andThen` (\ls' -> Just <| a :: ls')
+
 
 match : Alternative
   -> List SyntaxTree 
@@ -73,6 +98,7 @@ match ts sts f g =
     _ ->
       Nothing
 
+
 translate : 
   Grammar 
   -> SyntaxTree 
@@ -82,9 +108,11 @@ translate :
 translate grammar (SyntaxTree {terms} as st) f g =
   getSyntax st grammar `Maybe.andThen` (\alt -> match alt terms f g)
 
+
 get : ClauseId -> AlternativeId -> Grammar -> Maybe Alternative
 get clauseId altId grammar = 
   Dict.get clauseId grammar `Maybe.andThen` Array.get altId 
+
 
 getSyntax : SyntaxTree -> Grammar -> Maybe Alternative
 getSyntax (SyntaxTree tree) =
@@ -98,38 +126,3 @@ tryUpdate al f =
     Just _ -> Just <| List.map2 Maybe.withDefault al al'
     Nothing -> Nothing
 
-
-removeFocus : SyntaxTree -> Maybe SyntaxTree
-removeFocus (SyntaxTree inner) = 
-  if inner.focus then
-    Just <| SyntaxTree { inner | focus = False }
-  else 
-    Nothing
-
-
-focusOut : SyntaxTree -> SyntaxTree
-focusOut (SyntaxTree inner as st) = 
-  case tryUpdate inner.terms removeFocus of
-    Just terms -> 
-      SyntaxTree 
-        { inner | focus = True, terms = List.map focusOut terms }
-    Nothing -> 
-      SyntaxTree
-        { inner | terms = List.map focusOut inner.terms }
-
-
-focusIn : SyntaxTree -> SyntaxTree
-focusIn (SyntaxTree inner as st)  = 
-  case List.map focusIn inner.terms of 
-    SyntaxTree term :: rest -> 
-      SyntaxTree 
-        { inner 
-        | focus = False
-        , terms = 
-          SyntaxTree 
-            { term 
-            | focus = term.focus || inner.focus 
-            } :: rest
-        }
-    [] ->
-      st

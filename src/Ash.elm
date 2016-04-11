@@ -10,7 +10,22 @@ import Maybe exposing (Maybe, andThen)
 import String
 
 import AST exposing (..)
+import Command exposing (..)
 import Arithmetic 
+
+type alias Model = SyntaxTree
+
+model : Model
+model = 
+  let lang = Arithmetic.lang 
+  in 
+    syntax "AddExp" 1 True 
+      [ syntax "AddExp" 0 False
+        [ number [1, 2, 3]
+        , number [4, 2]
+        ] 
+      , number [2, 3]
+      ]
 
 number numbers =
   case numbers of
@@ -23,22 +38,13 @@ number numbers =
         ]
     [] -> Debug.crash "Bad use!"
 
-type alias Model = SyntaxTree
-
-model : Model
-model = 
-  let lang = Arithmetic.lang 
-  in syntax "AddExp" 0 True 
-    [ number [1, 2, 3]
-    , number [4, 2]
-    ] 
-
 type Action 
   = NoOp
   | FocusOut 
   | FocusIn 
-  | Right
-  | Left
+  | FocusNext
+  | FocusPrev
+  | DeleteFocus
 
 inputs = 
     [ Signal.map keyHandle Keyboard.presses 
@@ -48,8 +54,9 @@ keyHandle keyCode =
   case (Char.fromCode keyCode) of
     'j' -> FocusIn
     'k' -> FocusOut
-    --'l' -> Right
-    --'h' -> Left
+    'l' -> FocusNext
+    'h' -> FocusPrev
+    'd' -> DeleteFocus
     _ -> NoOp
 
 update action model = 
@@ -63,7 +70,17 @@ update action model =
       FocusIn -> 
         focusIn model
 
-      _ -> model 
+      FocusNext ->
+        focusSmartNext model
+
+      FocusPrev -> 
+        focusPrev model
+
+      DeleteFocus ->
+        deleteFocus model
+         |> Maybe.withDefault (syntax "Empty" 0 True [])
+          
+
   in (model', Effects.none)
 
 dpprint : Grammar -> SyntaxTree -> Html
@@ -122,7 +139,11 @@ view address model =
     [ tr [] 
       <| List.map 
         (\f -> 
-          td [] [ f Arithmetic.lang model ]
+          td [ style 
+               [ ("vertical-align", "bottom")
+               , ("text-align", "center")
+               ]
+            ] [ f Arithmetic.lang model ]
         ) 
         [ dpprint 
         , pprint 
