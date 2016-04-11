@@ -10,129 +10,92 @@ import Maybe exposing (Maybe, andThen)
 import String
 
 import AST exposing (..)
-
-exprLang = 
-  grammar 
-    [ ( "Exp"
-      , rule 
-        [[ Ref "AddExp" ]]
-      )
-    , ( "AddExp"
-      , rule 
-        [ [ Ref "AddExp", Lex "+", Ref "number" ]
-        , [ Ref "AddExp", Lex "-", Ref "number" ]
-        , [ Ref "number" ]
-        ]
-      )
-    , ( "number"
-      , rule 
-        [ [ Ref "digit" ] 
-        , [ Ref "digit", Ref "number" ]
-        ]
-      )
-    , ( "digit"
-      , oneOf "0123456789" 
-      )
-    ]
+import Arithmetic 
 
 number numbers =
   case numbers of
     [n] -> 
-      syntax ("number", 0) False 
-        [ syntax ("digit", n) False [] 
-        ]
+      syntax "digit" n False [] 
     n :: ns -> 
-      syntax ("number", 1) False 
-        [ syntax ("digit", n) False [] 
+      syntax "number" 1 False 
+        [ syntax "digit" n False [] 
         , number ns 
         ]
     [] -> Debug.crash "Bad use!"
 
 type alias Model = SyntaxTree
 
+model : Model
 model = 
-  syntax ("AddExp", 0) True 
-    [ syntax ("AddExp", 2) False 
-        [ number [1, 2, 3] ]
-    , number [4, 3]
+  let lang = Arithmetic.lang 
+  in syntax "AddExp" 0 True 
+    [ number [1, 2, 3]
+    , number [4, 2]
     ] 
 
 type Action 
   = NoOp
-  | Up
-  | Down 
+  | FocusOut 
+  | FocusIn 
   | Right
   | Left
 
 inputs = 
-    [ Signal.map keyHandle Keyboard.presses ]
+    [ Signal.map keyHandle Keyboard.presses 
+    ]
 
 keyHandle keyCode = 
   case (Char.fromCode keyCode) of
-    'j' -> Down
-    'k' -> Up
-    'l' -> Right
-    'h' -> Left
+    'j' -> FocusIn
+    'k' -> FocusOut
+    --'l' -> Right
+    --'h' -> Left
     _ -> NoOp
 
-update action model = (model, Effects.none)
---   let model' = case action of
---       NoOp -> 
---         model
--- 
---       Up -> 
---         moveUp model
--- 
---       Down -> 
---         moveDown model
--- 
---       Right -> 
---         moveRight model
--- 
---       Left -> 
---         moveLeft model
---   in (model', Effects.none)
--- 
--- startingUpper str =
---   let first = String.left 1 str
---   in String.toUpper first == first
--- 
--- dpprint : SyntaxTree -> Html
--- dpprint tree = 
---   case tree of
---     Node rulename meta terms ->
---       div 
---         [ style (
---            [ ("display", "inline-block")
---            , ("margin", "2px 2px 0px 2px")
---            , ("text-align", "center")
---            ] ++ if meta.selected 
---                then [ ("background", "lightgray") ]
---                else []
---            )
---         ]
---         ( [ div 
---               [ style (
---                 [ ("background", "lightblue")
---                 , ("font-size", "6pt")
---                 ] ++ if meta.selected 
---                 then [ ("background", "black") 
---                      , ("color", "lightblue") 
---                      ]
---                 else []
---                 )
---               ] 
---               [ text rulename ] 
---           ] ++ (List.map dpprint terms) 
---          )
---     Leaf string ->
---       div 
---         [ style 
---             [ ("display", "inline") 
---             ]
---         ] 
---         [text string ]
+update action model = 
+  let model' = case action of
+      NoOp -> 
+        model
 
+      FocusOut -> 
+        focusOut model
+
+      FocusIn -> 
+        focusIn model
+
+      _ -> model 
+  in (model', Effects.none)
+
+dpprint : Grammar -> SyntaxTree -> Html
+dpprint grammar (SyntaxTree tree as st) = 
+  let background = 
+        if tree.focus then 
+           [ ("background", "lightgray") ]
+        else []
+  in div 
+    [ style <|
+      [ ("display", "inline-block")
+      , ("margin", "2px 2px 0px 2px")
+      , ("text-align", "center")
+      ] ++ if tree.focus then 
+        [ ("background", "lightgray") ]
+      else []
+    ]
+    <| [ div 
+      [ style <|
+        [ ("font-size", "6pt") ] ++ 
+        if tree.focus then 
+          [ ("background", "black") 
+          , ("color", "lightblue") 
+          ]
+        else 
+          [("background", "lightblue")]
+      ] 
+      [ text tree.name ] 
+    ] ++ (
+      Maybe.withDefault [ text "?" ] 
+        <| translate grammar st (dpprint grammar) text
+    )
 
 pprint : Grammar -> SyntaxTree -> Html
 pprint grammar (SyntaxTree tree as st) =
@@ -141,7 +104,7 @@ pprint grammar (SyntaxTree tree as st) =
            [ ("background", "lightgray") ]
         else []
       terms = Maybe.withDefault [ text "?" ] 
-        <| runs grammar st (pprint grammar) text
+        <| translate grammar st (pprint grammar) text
   in div
     [ style <| 
         [ ("display", "inline")
@@ -150,14 +113,22 @@ pprint grammar (SyntaxTree tree as st) =
     terms
 
 view address model = 
-  div 
-    [ style 
-       [ ("margin", "100px auto")
-       , ("width", "500px")
-       , ("font-family", "monospace")
-       ]
-    ] 
-    [ pprint exprLang model ]
+  table 
+    [ style
+        [ ("width", "400px")
+        , ("margin", "100px auto")
+        ]
+    ]
+    [ tr [] 
+      <| List.map 
+        (\f -> 
+          td [] [ f Arithmetic.lang model ]
+        ) 
+        [ dpprint 
+        , pprint 
+        ]
+    ]
+
 
 main = 
   start 
