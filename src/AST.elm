@@ -5,6 +5,8 @@ import Dict
 import Maybe
 import String
 
+import Utils exposing (..)
+
 type alias Grammar     = Dict.Dict String Rule
 type alias Rule        = Array.Array Alternative
 type alias Alternative = List Term
@@ -40,9 +42,13 @@ getType (SyntaxTree {name, alt}) =
   (name, alt)
 
 
+getTerms : SyntaxTree -> List SyntaxTree 
+getTerms (SyntaxTree {terms}) = terms
+
 setTerms : List SyntaxTree -> SyntaxTree -> SyntaxTree
 setTerms terms (SyntaxTree inner) =
   SyntaxTree { inner | terms = terms }
+
 
 updateTerms : 
   (List SyntaxTree -> List SyntaxTree) 
@@ -51,13 +57,16 @@ updateTerms :
 updateTerms fn (SyntaxTree inner) =
   SyntaxTree { inner | terms = fn inner.terms }
 
+
 setFocus : Bool -> SyntaxTree -> SyntaxTree
 setFocus focus (SyntaxTree inner) = 
   SyntaxTree { inner | focus = focus }
 
+
 hasFocus : SyntaxTree -> Bool
 hasFocus (SyntaxTree inner) =
   inner.focus
+
 
 syntax : 
   ClauseId 
@@ -73,26 +82,19 @@ syntax name alt focus terms =
     , focus = focus
     }
 
-
-tryPrepend : a -> Maybe (List a) -> Maybe (List a)
-tryPrepend a ls = 
-  ls `Maybe.andThen` (\ls' -> Just <| a :: ls')
-
+-- Special functions from here
 
 match : Alternative
   -> List SyntaxTree 
   -> (SyntaxTree -> a)
   -> (String -> a)
   -> Maybe (List a)
-match ts sts f g =
-  case (ts, sts) of
-    (Ref name :: ts', (SyntaxTree st as st') :: sts') ->
-      --if name == st.name then
-        tryPrepend (f st') <| match ts' sts' f g
-      --else 
-      --  Nothing
-    (Lex str :: ts', _) ->
-      tryPrepend (g str) <| match ts' sts f g
+match template terms f g =
+  case (template, terms) of
+    (Ref name :: template', term:: terms') ->
+      tryPrepend (f term) <| match template' terms' f g
+    (Lex str :: template', _) ->
+      tryPrepend (g str) <| match template' terms f g
     ([], []) ->
       Just []
     _ ->
@@ -117,12 +119,4 @@ get clauseId altId grammar =
 getSyntax : SyntaxTree -> Grammar -> Maybe Alternative
 getSyntax (SyntaxTree tree) =
   get tree.name tree.alt 
-
-
-tryUpdate : List a -> (a -> Maybe a) -> Maybe (List a)
-tryUpdate al f = 
-  let al' = List.map f al
-  in case Maybe.oneOf al' of 
-    Just _ -> Just <| List.map2 Maybe.withDefault al al'
-    Nothing -> Nothing
 

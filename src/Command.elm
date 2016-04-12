@@ -1,11 +1,15 @@
 module Command where
 
 import AST exposing (..)
+import Utils exposing (..)
+
+
+
 
 removeFocus : SyntaxTree -> Maybe SyntaxTree
-removeFocus (SyntaxTree inner) = 
-  if inner.focus then
-    Just <| SyntaxTree { inner | focus = False }
+removeFocus tree = 
+  if hasFocus tree then
+    Just <| setFocus False tree
   else 
     Nothing
 
@@ -56,17 +60,18 @@ focusNext tree =
   in updateTerms (List.map focusNext >> moveNext) tree
 
 
--- focusSmartNext: 
--- FocusSmartNext tries to fix the problem of navigating in list of
--- similiar data. There are two possible problems eigther left 
--- leaning or right leaning.
--- Right example:  
---   1| :: (2 :: 3)
---   move right and move down, if the second terms type is equal to
---   the parent.
--- Left example
---   (1 + 2|) + 3
---   if end of list and parrent has same type as granparrent
+{- focusSmartNext: 
+ FocusSmartNext tries to fix the problem of navigating in list of
+ similiar data. There are two possible problems eigther left 
+ leaning or right leaning.
+ Right example:  
+   1| :: (2 :: 3)
+   move right and move down, if the second terms type is equal to
+   the parent.
+ Left example
+   (1 + 2|) + 3
+   if end of list and parrent has same type as granparrent
+-}
 focusSmartNext : SyntaxTree -> SyntaxTree
 focusSmartNext tree = 
   let 
@@ -102,32 +107,6 @@ focusPrev tree =
         _ -> terms
   in updateTerms (movePrev >> List.map focusPrev) tree
 
-
-allOf : List (Maybe a) -> Maybe (List a)
-allOf maybes = 
-  case maybes of
-    [] ->
-      Just []
-
-    Just a :: rest -> 
-      Maybe.map (\rest -> a :: rest) <| allOf rest 
-
-    Nothing :: rest -> 
-      Nothing
-
-onlyOne : List (Maybe a) -> Maybe a
-onlyOne list = 
-  case list of
-    [] -> 
-      Nothing
-
-    Just a :: rest ->
-      case Maybe.oneOf rest of 
-        Just _ -> Nothing
-        Nothing -> Just a
-
-    Nothing :: rest ->
-      onlyOne rest
 
 deleteFocus : SyntaxTree -> Maybe SyntaxTree
 deleteFocus (SyntaxTree inner as tree) = 
