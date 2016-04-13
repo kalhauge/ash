@@ -2,7 +2,7 @@
 -- https://github.com/cdglabs/ohm/blob/master/examples/math/index.html
 module Arithmetic where
 
-import AST exposing (..)
+import Grammar exposing (..)
 
 lang = 
   grammar 

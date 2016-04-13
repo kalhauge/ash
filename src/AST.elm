@@ -1,88 +1,105 @@
 module AST where
 
-import Array
-import Dict
-import Maybe
-import String
+import List exposing (sum, map)
 
+import Grammar exposing (..)
 import Utils exposing (..)
 
-type alias Grammar     = Dict.Dict String Rule
-type alias Rule        = Array.Array Alternative
-type alias Alternative = List Term
-type Term
-  = Lex String
-  | Ref String
 
-grammar : List (String, Rule) -> Grammar
-grammar = Dict.fromList
+type alias SNode a
+  = { name : ClauseId
+    , alt : AlternativeId 
+    , terms : a
+    , size : Int
+    }
 
-rule : List Alternative -> Rule
-rule = Array.fromList
+-- Recusive type to please the TypeChecker 
+type SFix = SFix (List (SNode SFix))
 
-oneOf : String -> Rule
-oneOf str = 
-  String.toList str
-  |> List.map (String.fromChar >> \x -> [ Lex x ])
-  |> rule
+unFix : SFix -> List (SNode SFix)
+unFix (SFix a) = a
 
-type alias ClauseId      = String
-type alias AlternativeId = Int
-
-type SyntaxTree 
-  = SyntaxTree
-      { name : ClauseId
-      , alt : AlternativeId 
-      , terms : List SyntaxTree
-      , focus : Bool
-      }
-
-getType : SyntaxTree -> (ClauseId, AlternativeId) 
-getType (SyntaxTree {name, alt}) =
-  (name, alt)
-
+type alias SyntaxTree = SNode SFix
 
 getTerms : SyntaxTree -> List SyntaxTree 
-getTerms (SyntaxTree {terms}) = terms
+getTerms {terms} = 
+  unFix terms
+
 
 setTerms : List SyntaxTree -> SyntaxTree -> SyntaxTree
-setTerms terms (SyntaxTree inner) =
-  SyntaxTree { inner | terms = terms }
+setTerms terms inner =
+  { inner | terms = SFix terms }
 
 
 updateTerms : 
   (List SyntaxTree -> List SyntaxTree) 
   -> SyntaxTree 
   -> SyntaxTree
-updateTerms fn (SyntaxTree inner) =
-  SyntaxTree { inner | terms = fn inner.terms }
+updateTerms fn tree =
+  getTerms tree
+    |> fn
+    |> flip setTerms tree
 
 
-setFocus : Bool -> SyntaxTree -> SyntaxTree
-setFocus focus (SyntaxTree inner) = 
-  SyntaxTree { inner | focus = focus }
-
-
-hasFocus : SyntaxTree -> Bool
-hasFocus (SyntaxTree inner) =
-  inner.focus
+getType : SNode a -> (ClauseId, AlternativeId) 
+getType {name, alt} =
+  (name, alt)
 
 
 syntax : 
   ClauseId 
   -> AlternativeId
-  -> Bool 
   -> List SyntaxTree 
   -> SyntaxTree
-syntax name alt focus terms =
-  SyntaxTree
-    { name = name
-    , alt = alt
-    , terms = terms
-    , focus = focus
-    }
+syntax name alt terms =
+  { name = name
+  , alt = alt
+  , terms = SFix terms
+  -- Also calculate the size
+  , size = sum (map .size terms)
+  }
 
 -- Special functions from here
+
+get : Int -> SyntaxTree -> Maybe SyntaxTree
+get i tree =
+  case compare i tree.size of
+    LT -> getFromTerms i(getTerms tree)
+    EQ -> Just tree
+    GT -> Nothing
+
+
+getFromTerms : Int -> List SyntaxTree -> Maybe SyntaxTree
+getFromTerms i terms =
+  case terms of 
+    [] ->
+      Nothing
+    term :: rest ->
+      case get i term of
+        Nothing -> getFromTerms (i - term.size) rest
+        a -> a 
+
+
+updateFromTerms :
+  Int 
+  -> (SyntaxTree -> SyntaxTree) 
+  -> List SyntaxTree 
+  -> List SyntaxTree
+updateFromTerms i fn terms =
+  case terms of 
+    [] ->
+      [] 
+    term :: rest ->
+      update i fn term :: updateFromTerms (i - term.size) fn rest
+
+
+update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
+update i fn tree =
+  case compare i tree.size of
+    LT -> updateTerms (updateFromTerms i fn) tree
+    EQ -> fn tree
+    GT -> tree
+
 
 match : Alternative
   -> List SyntaxTree 
@@ -94,14 +111,16 @@ match template terms f g =
     (Ref name :: template', term:: terms') ->
         match template' terms' f g
          |> tryPrepend (f term) 
+    
     (Lex str :: template', _) ->
         match template' terms f g
          |> tryPrepend (g str) 
+    
     ([], []) ->
       Just []
+    
     _ ->
       Nothing
-
 
 translate : 
   Grammar 
@@ -109,16 +128,6 @@ translate :
   -> (SyntaxTree -> a)
   -> (String -> a)
   -> Maybe (List a)
-translate grammar (SyntaxTree {terms} as st) f g =
-  getSyntax st grammar `Maybe.andThen` (\alt -> match alt terms f g)
-
-
-get : ClauseId -> AlternativeId -> Grammar -> Maybe Alternative
-get clauseId altId grammar = 
-  Dict.get clauseId grammar `Maybe.andThen` Array.get altId 
-
-
-getSyntax : SyntaxTree -> Grammar -> Maybe Alternative
-getSyntax (SyntaxTree tree) =
-  get tree.name tree.alt 
+translate grammar {name, alt, terms} f g =
+  Grammar.get name alt grammar `Maybe.andThen` (\alt -> match alt (unFix terms) f g)
 

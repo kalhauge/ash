@@ -5,7 +5,6 @@ import List exposing (map, any)
 import AST exposing (..)
 import Utils exposing (..)
 
-
 focusOut : SyntaxTree -> SyntaxTree
 focusOut tree = 
   if any hasFocus <| getTerms tree then
