@@ -92,9 +92,11 @@ match : Alternative
 match template terms f g =
   case (template, terms) of
     (Ref name :: template', term:: terms') ->
-      tryPrepend (f term) <| match template' terms' f g
+        match template' terms' f g
+         |> tryPrepend (f term) 
     (Lex str :: template', _) ->
-      tryPrepend (g str) <| match template' terms f g
+        match template' terms f g
+         |> tryPrepend (g str) 
     ([], []) ->
       Just []
     _ ->

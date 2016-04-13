@@ -32,7 +32,7 @@ number numbers =
     [n] -> 
       syntax "digit" n False [] 
     n :: ns -> 
-      syntax "number" 1 False 
+      syntax "number" 0 False 
         [ syntax "digit" n False [] 
         , number ns 
         ]

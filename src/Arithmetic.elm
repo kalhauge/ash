@@ -49,8 +49,8 @@ lang =
       )
     , ( "number"
       , rule 
-        [ [ Ref "digit" ] 
-        , [ Ref "digit", Ref "number" ]
+        [ [ Ref "digit", Ref "number" ]
+        , [ Ref "digit" ] 
         ]
       )
     , ( "digit"

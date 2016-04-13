@@ -1,27 +1,23 @@
 module Command where
 
+import List exposing (map, any)
+
 import AST exposing (..)
 import Utils exposing (..)
 
 
-
-
-removeFocus : SyntaxTree -> Maybe SyntaxTree
-removeFocus tree = 
-  if hasFocus tree then
-    Just <| setFocus False tree
-  else 
-    Nothing
-
-
 focusOut : SyntaxTree -> SyntaxTree
-focusOut (SyntaxTree inner as st) = 
-  case tryUpdate inner.terms removeFocus of
-    Just terms -> 
-      SyntaxTree 
-        { inner | focus = True, terms = List.map focusOut terms }
-    Nothing -> 
-      updateTerms (List.map focusOut) st
+focusOut tree = 
+  if any hasFocus <| getTerms tree then
+    setFocus True tree
+  else 
+    tree
+  |> setTerms 
+    ( map 
+       ( setFocus False >> focusOut ) 
+       ( getTerms tree )
+    )
+
 
 focusIn' : SyntaxTree -> SyntaxTree
 focusIn' (SyntaxTree inner as st) = 
