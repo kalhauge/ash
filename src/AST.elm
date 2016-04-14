@@ -9,29 +9,31 @@ import Utils exposing (..)
 type alias SNode a
   = { name : ClauseId
     , alt : AlternativeId 
-    , terms : a
+    , terms : List a
     , size : Int
     }
 
 -- Recusive type to please the TypeChecker 
-type SFix = SFix (List (SNode SFix))
+type SubTree = SubTree (SNode SubTree)
 
-unFix : SFix -> List (SNode SFix)
-unFix (SFix a) = a
+type alias SyntaxTree = SNode SubTree
 
-type alias SyntaxTree = SNode SFix
+unfix : SubTree -> SyntaxTree 
+unfix (SubTree a) = a
 
 map : (a -> b) -> SNode a -> SNode b
 map fn a = 
-  { a | terms = fn a.terms }
+  { a | terms = List.map fn a.terms }
 
-mapS : (List SyntaxTree -> b) -> SyntaxTree -> SNode b
-mapS fn a =
-  map (unFix >> fn) a
 
 getTerms : SyntaxTree -> List SyntaxTree 
 getTerms {terms} = 
-  unFix terms
+  List.map unfix terms
+
+
+mapS : (List SyntaxTree -> List b) -> SyntaxTree -> SNode b
+mapS fn a =
+  { a | terms = fn (getTerms a) }
 
 
 setTerms : List SyntaxTree -> SyntaxTree -> SyntaxTree
@@ -39,14 +41,14 @@ setTerms terms inner =
   syntax (inner.name) (inner.alt) terms
 
 
-updateTerms : 
-  (List SyntaxTree -> List SyntaxTree) 
-  -> SyntaxTree 
-  -> SyntaxTree
-updateTerms fn tree =
-  getTerms tree
-    |> fn
-    |> flip setTerms tree
+-- updateTerms : 
+--   (List SyntaxTree -> List SyntaxTree) 
+--   -> SyntaxTree 
+--   -> SyntaxTree
+-- updateTerms fn tree =
+--   getTerms tree
+--     |> fn
+--     |> flip setTerms tree
 
 
 getType : SNode a -> (ClauseId, AlternativeId) 
@@ -62,7 +64,7 @@ syntax :
 syntax name alt terms =
   { name = name
   , alt = alt
-  , terms = SFix terms
+  , terms = List.map SubTree terms
   , size = sum (List.map .size terms) + 1
   }
 
@@ -109,7 +111,7 @@ first itr =
   in 
     iterate 0 
 
-type alias TreeCollector a = Int -> SNode (List a) -> a 
+type alias TreeCollector a = Int -> SNode a -> a 
 
 collect : TreeCollector a -> SyntaxTree -> a
 collect clt =
@@ -124,8 +126,10 @@ collect clt =
       clt (i + tree.size) (mapS (step i) tree)
   in 
     iterate 0 
-  
 
+collectS : (Int -> SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
+collectS clt tree = 
+  unfix <| collect (\i t -> SubTree <| clt i t) tree
 
 {-
 Will iterate directly towards a index, and will return the first
@@ -149,14 +153,14 @@ get id =
   )
 
 
--- update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
--- update id fn tree =
---   collect (\i tree ->
---     if id == i then
---       fn tree
---     else 
---       tree
---   )
+update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
+update id fn =
+  collectS (\i tree ->
+    if id == i then
+      fn tree
+    else 
+      tree
+  )
 
 -- Should be put some where else.
 
@@ -183,7 +187,7 @@ match template terms f =
 
 translate : 
   Grammar 
-  -> SNode (List a) 
+  -> SNode a 
   -> (String -> a)
   -> Maybe (List a)
 translate grammar {name, alt, terms} f =
