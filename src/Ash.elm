@@ -11,29 +11,38 @@ import String
 
 import AST exposing (..)
 import Command exposing (..)
+import Grammar exposing (..)
 import Arithmetic 
 
-type alias Model = SyntaxTree
+type alias Model = 
+  { tree : SyntaxTree
+  , focus : Int
+  , lang : Grammar
+  }
 
 model : Model
 model = 
-  let lang = Arithmetic.lang 
-  in 
-    syntax "AddExp" 1 True 
-      [ syntax "AddExp" 0 False
-        [ number [1, 2, 3]
-        , number [4, 2]
-        ] 
-      , number [2, 3]
-      ]
+  let 
+    tree =
+      syntax "AddExp" 1
+        [ syntax "AddExp" 0
+          [ number [1, 2, 3]
+          , number [4, 2]
+          ] 
+        , number [2, 3]
+        ]
+  in { tree = tree
+     , focus = tree.size 
+     , lang = Arithmetic.lang
+     }
 
 number numbers =
   case numbers of
     [n] -> 
-      syntax "digit" n False [] 
+      syntax "digit" n [] 
     n :: ns -> 
-      syntax "number" 0 False 
-        [ syntax "digit" n False [] 
+      syntax "number" 0
+        [ syntax "digit" n [] 
         , number ns 
         ]
     [] -> Debug.crash "Bad use!"
@@ -59,75 +68,77 @@ keyHandle keyCode =
     'd' -> DeleteFocus
     _ -> NoOp
 
+update : Action -> Model -> (Model, Effects.Effects Action)
 update action model = 
   let model' = case action of
-      NoOp -> 
-        model
-
       FocusOut -> 
-        focusOut model
+        { model | focus = Debug.log "FocusOut" (parrent model.tree model.focus)} 
 
       FocusIn -> 
-        focusIn model
+        { model | focus = Debug.log "FocusIn" (child model.tree model.focus)}
+      
+      _ -> 
+        model
 
-      FocusNext ->
-        focusSmartNext model
 
-      FocusPrev -> 
-        focusPrev model
+      -- FocusNext ->
+      --   focusSmartNext model
 
-      DeleteFocus ->
-        deleteFocus model
-         |> Maybe.withDefault (syntax "Empty" 0 True [])
+      -- FocusPrev -> 
+      --   focusPrev model
+
+      -- DeleteFocus ->
+      --   deleteFocus model
+      --    |> Maybe.withDefault (syntax "Empty" 0 True [])
           
-
   in (model', Effects.none)
 
-dpprint : Grammar -> SyntaxTree -> Html
-dpprint grammar (SyntaxTree tree as st) = 
-  let background = 
-        if tree.focus then 
-           [ ("background", "lightgray") ]
-        else []
-  in div 
-    [ style <|
-      [ ("display", "inline-block")
-      , ("margin", "2px 2px 0px 2px")
-      , ("text-align", "center")
-      ] ++ if tree.focus then 
-        [ ("background", "lightgray") ]
-      else []
-    ]
-    <| [ div 
-      [ style <|
-        [ ("font-size", "6pt") ] ++ 
-        if tree.focus then 
-          [ ("background", "black") 
-          , ("color", "lightblue") 
-          ]
-        else 
-          [("background", "lightblue")]
-      ] 
-      [ text tree.name ] 
-    ] ++ (
-      Maybe.withDefault [ text "?" ] 
-        <| translate grammar st (dpprint grammar) text
-    )
+-- dpprint : Grammar -> SyntaxTree -> Html
+-- dpprint grammar (SyntaxTree tree as st) = 
+--   let background = 
+--         if tree.focus then 
+--            [ ("background", "lightgray") ]
+--         else []
+--   in div 
+--     [ style <|
+--       [ ("display", "inline-block")
+--       , ("margin", "2px 2px 0px 2px")
+--       , ("text-align", "center")
+--       ] ++ if tree.focus then 
+--         [ ("background", "lightgray") ]
+--       else []
+--     ]
+--     <| [ div 
+--       [ style <|
+--         [ ("font-size", "6pt") ] ++ 
+--         if tree.focus then 
+--           [ ("background", "black") 
+--           , ("color", "lightblue") 
+--           ]
+--         else 
+--           [("background", "lightblue")]
+--       ] 
+--       [ text tree.name ] 
+--     ] ++ (
+--       Maybe.withDefault [ text "?" ] 
+--         <| translate grammar st (dpprint grammar) text
+--     )
 
-pprint : Grammar -> SyntaxTree -> Html
-pprint grammar (SyntaxTree tree as st) =
-  let background = 
-        if tree.focus then 
-           [ ("background", "lightgray") ]
-        else []
-      terms = Maybe.withDefault [ text "?" ] 
-        <| translate grammar st (pprint grammar) text
-  in div
-    [ style <| 
-        [ ("display", "inline")
-        ] ++ background
-    ]
-    terms
+pprint : Model -> Html
+pprint {tree, lang, focus} =
+  let
+    collector id tree =
+      div 
+        [ style <| 
+          [ ("display", "inline") ] 
+            ++ if id == focus then
+              [ ("background", "lightgray") ]
+            else []
+        ]
+        ( Maybe.withDefault [ text "?" ] 
+          <| translate lang tree text )
+  in
+     collect collector tree
 
 view address model = 
   table 
@@ -143,11 +154,12 @@ view address model =
                [ ("vertical-align", "bottom")
                , ("text-align", "center")
                ]
-            ] [ f Arithmetic.lang model ]
+            ] [ f model ]
         ) 
-        [ dpprint 
-        , pprint 
-        ]
+        [ pprint ]
+        --[ dpprint 
+        --, pprint 
+        --]
     ]
 
 
