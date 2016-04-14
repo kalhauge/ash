@@ -1,6 +1,7 @@
 module Command where
 
-import List exposing (map, any, head)
+import List exposing (map, any, head, member)
+import Maybe exposing (withDefault)
 
 import AST exposing (..)
 import Utils exposing (..)
@@ -17,8 +18,7 @@ child tree id =
     else
       Nothing
   in 
-     first childIterator tree
-       |> Maybe.withDefault id 
+     first childIterator tree |> withDefault id 
 
 {-
 Focus out takes and identifier and returns
@@ -27,124 +27,80 @@ the idetifier for the tree just above it.
 parrent : SyntaxTree -> Int -> Int
 parrent tree id =
   let parrentIterator i tree = 
-    if List.member id (subIndecies i tree) then
+    if member id (subIndecies i tree) then
       Just i
     else 
       Nothing
   in
-    first parrentIterator tree
-      |> Maybe.withDefault id   -- If we can't find a parrent, chill
+    first parrentIterator tree |> withDefault id   
+    -- If we can't find a parrent, chill
 
+{-
+-}
+next : SyntaxTree -> Int -> Int
+next tree id =
+  let 
+    nextIterator i tree = next' (subIndecies i tree)
+    next' indecies = 
+      case indecies of
+        a :: b :: rest -> 
+          if id == a then Just b
+          else next' rest
+        _ -> Nothing
+  in
+    first nextIterator tree |> withDefault id   
+{-
+-}
+smartNext : SyntaxTree -> Int -> Int
+smartNext tree id =
+  let 
+    nextIterator i tree = 
+      let subs = (subWithIndecies i tree)
+      in 
+        case next' subs of
+        Just (idx, sub) -> 
+          if getType sub == getType tree then
+             head (subIndecies idx sub)
+          else Just idx
+        Nothing -> Nothing
+    next' indecies = 
+      case indecies of
+        a :: b :: rest -> 
+          if id == fst a then Just b
+          else next' rest
+        _ -> Nothing
+  in
+    first nextIterator tree |> withDefault id   
 
---focusOut : SyntaxTree -> SyntaxTree
---focusOut tree = 
-  --if any hasFocus <| getTerms tree then
-    --setFocus True tree
-  --else 
-    --tree
-  --|> setTerms 
-    --( map 
-       --( setFocus False >> focusOut ) 
-       --( getTerms tree )
-    --)
+prev : SyntaxTree -> Int -> Int
+prev tree id =
+  let 
+    prevIterator i tree = prev' (subIndecies i tree)
+    prev' indecies = 
+      case indecies of
+        a :: b :: rest -> 
+          if id == b then Just a
+          else prev' rest
+        _ -> Nothing
+  in
+    first prevIterator tree |> withDefault id   
 
-
---focusIn' : SyntaxTree -> SyntaxTree
---focusIn' (SyntaxTree inner as st) = 
-  --case inner.terms of 
-    --SyntaxTree term :: rest -> 
-      --SyntaxTree 
-        --{ inner 
-        --| focus = False
-        --, terms = 
-          --SyntaxTree 
-            --{ term 
-            --| focus = term.focus || inner.focus 
-            --} :: rest
-        --}
-    --[] ->
-      --st
-
---focusIn : SyntaxTree -> SyntaxTree
---focusIn tree  = 
-  --focusIn' <| updateTerms (List.map focusIn) tree
-
---focusNext : SyntaxTree -> SyntaxTree
---focusNext tree = 
-  --let 
-    --moveNext terms = 
-      --case terms of
-        --t1 :: rest ->
-          --if hasFocus t1 then
-            --case moveNext rest of
-              --t2 :: rest' ->
-                --setFocus False t1 :: setFocus True t2 :: rest'
-              --[] -> [t1]
-          --else
-            --t1 :: moveNext rest
-        --[] -> [] 
-  --in updateTerms (List.map focusNext >> moveNext) tree
-
-
---{- focusSmartNext: 
- --FocusSmartNext tries to fix the problem of navigating in list of
- --similiar data. There are two possible problems eigther left 
- --leaning or right leaning.
- --Right example:  
-   --1| :: (2 :: 3)
-   --move right and move down, if the second terms type is equal to
-   --the parent.
- --Left example
-   --(1 + 2|) + 3
-   --if end of list and parrent has same type as granparrent
----}
---focusSmartNext : SyntaxTree -> SyntaxTree
---focusSmartNext tree = 
-  --let 
-    --moveNext terms = 
-      --case terms of
-        --t1 :: rest ->
-          --if hasFocus t1 then
-            --case moveNext rest of
-              --t2 :: rest' ->
-                --let fn = 
-                  --if getType tree == getType t2 then
-                    --focusIn'
-                  --else
-                    --identity
-                --in setFocus False t1 :: fn (setFocus True t2) :: rest'
-              --[] -> [t1]
-          --else
-            --t1 :: moveNext rest
-        --[] -> [] 
-  --in updateTerms (List.map focusSmartNext >> moveNext) tree
-
-
---focusPrev : SyntaxTree -> SyntaxTree
---focusPrev tree =
-  --let 
-    --movePrev terms =
-      --case terms of
-        --t1 :: t2 :: rest ->
-          --if hasFocus t2 then
-             --setFocus True t1 :: setFocus False t2 :: movePrev rest
-          --else
-            --t1 :: movePrev (t2 :: rest)
-        --_ -> terms
-  --in updateTerms (movePrev >> List.map focusPrev) tree
-
-
---deleteFocus : SyntaxTree -> Maybe SyntaxTree
---deleteFocus (SyntaxTree inner as tree) = 
-  --if hasFocus tree then
-    --Nothing
-  --else
-    --let 
-      --terms = List.map deleteFocus inner.terms 
-    --in
-      --case allOf terms of
-        --Just terms' -> 
-          --Just (setTerms terms' tree)
-        --Nothing -> 
-          --Maybe.map (setFocus True) (onlyOne terms)
-
+smartPrev : SyntaxTree -> Int -> Int
+smartPrev tree id =
+  let 
+    prevIterator i tree = 
+      let subs = (subWithIndecies i tree)
+      in case prev' subs of
+        Just (idx, sub) -> 
+          if getType sub == getType tree then
+             last (subIndecies idx sub)
+          else Just idx
+        Nothing -> Nothing
+    prev' indecies = 
+      case indecies of
+        a :: b :: rest -> 
+          if id == fst b then Just a
+          else prev' rest
+        _ -> Nothing
+  in
+    first prevIterator tree |> withDefault id   

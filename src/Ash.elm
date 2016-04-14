@@ -24,7 +24,7 @@ model : Model
 model = 
   let 
     tree =
-      syntax "AddExp" 1
+      syntax "AddExp" 0
         [ syntax "AddExp" 0
           [ number [1, 2, 3]
           , number [4, 2]
@@ -72,10 +72,16 @@ update : Action -> Model -> (Model, Effects.Effects Action)
 update action model = 
   let model' = case action of
       FocusOut -> 
-        { model | focus = Debug.log "FocusOut" (parrent model.tree model.focus)} 
+        { model | focus = parrent model.tree model.focus } 
 
       FocusIn -> 
-        { model | focus = Debug.log "FocusIn" (child model.tree model.focus)}
+        { model | focus = child model.tree model.focus }
+
+      FocusNext ->
+        { model | focus = smartNext model.tree model.focus }
+      
+      FocusPrev ->
+        { model | focus = smartPrev model.tree model.focus }
       
       _ -> 
         model
@@ -93,36 +99,35 @@ update action model =
           
   in (model', Effects.none)
 
--- dpprint : Grammar -> SyntaxTree -> Html
--- dpprint grammar (SyntaxTree tree as st) = 
---   let background = 
---         if tree.focus then 
---            [ ("background", "lightgray") ]
---         else []
---   in div 
---     [ style <|
---       [ ("display", "inline-block")
---       , ("margin", "2px 2px 0px 2px")
---       , ("text-align", "center")
---       ] ++ if tree.focus then 
---         [ ("background", "lightgray") ]
---       else []
---     ]
---     <| [ div 
---       [ style <|
---         [ ("font-size", "6pt") ] ++ 
---         if tree.focus then 
---           [ ("background", "black") 
---           , ("color", "lightblue") 
---           ]
---         else 
---           [("background", "lightblue")]
---       ] 
---       [ text tree.name ] 
---     ] ++ (
---       Maybe.withDefault [ text "?" ] 
---         <| translate grammar st (dpprint grammar) text
---     )
+dpprint : Model -> Html
+dpprint {tree, lang, focus} = 
+  let 
+    collector id tree =       
+      div 
+        [ style <|
+          [ ("display", "inline-block")
+          , ("margin", "2px 2px 0px 2px")
+          , ("text-align", "center")
+          ] ++ if focus == id then 
+            [ ("background", "lightgray") ]
+          else []
+        ]
+        <| [ div 
+          [ style <|
+            [ ("font-size", "6pt") ] ++ 
+            if focus == id then 
+              [ ("background", "black") 
+              , ("color", "lightblue") 
+              ]
+            else 
+              [("background", "lightblue")]
+          ] 
+          [ text (tree.name ++ " : " ++ toString id)] 
+        ] ++ (
+          Maybe.withDefault [ text "?" ] 
+            <| translate lang tree text
+        )
+  in collect collector tree
 
 pprint : Model -> Html
 pprint {tree, lang, focus} =
@@ -156,10 +161,9 @@ view address model =
                ]
             ] [ f model ]
         ) 
-        [ pprint ]
-        --[ dpprint 
-        --, pprint 
-        --]
+        [ dpprint 
+        , pprint 
+        ]
     ]
 
 

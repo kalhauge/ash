@@ -1,6 +1,6 @@
 module AST where
 
-import List exposing (sum)
+import List exposing (sum, map2)
 
 import Grammar exposing (..)
 import Utils exposing (..)
@@ -72,6 +72,10 @@ subIndecies : Int -> SyntaxTree -> List Int
 subIndecies id tree =
   indecies (id - tree.size) (getTerms tree)
 
+subWithIndecies : Int -> SyntaxTree -> List (Int, SyntaxTree)
+subWithIndecies id tree =
+  map2 (,) (subIndecies id tree) (getTerms tree)
+  
 indecies : Int -> List SyntaxTree -> List Int
 indecies i list = 
   case list of
@@ -145,26 +149,14 @@ get id =
   )
 
 
-updateFromTerms :
-  Int 
-  -> (SyntaxTree -> SyntaxTree) 
-  -> List SyntaxTree 
-  -> List SyntaxTree
-updateFromTerms i fn terms =
-  case terms of 
-    [] ->
-      [] 
-    term :: rest ->
-      update i fn term :: updateFromTerms (i - term.size) fn rest
-
-
-update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
-update i fn tree =
-  case compare i tree.size of
-    LT -> updateTerms (updateFromTerms i fn) tree
-    EQ -> fn tree
-    GT -> tree
-
+-- update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
+-- update id fn tree =
+--   collect (\i tree ->
+--     if id == i then
+--       fn tree
+--     else 
+--       tree
+--   )
 
 -- Should be put some where else.
 
