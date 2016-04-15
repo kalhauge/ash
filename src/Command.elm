@@ -77,10 +77,29 @@ next tree id =
       case indecies of
         a :: b :: rest -> 
           if id == a then Just b
-          else next' rest
+          else next' (b :: rest)
         _ -> Nothing
   in
     search id nextIterator tree |> withDefault id   
+
+
+prev : SyntaxTree -> Int -> Int
+prev tree id =
+  let 
+    prevIterator i tree = 
+      prev' (subIndecies i tree)
+    prev' indecies = 
+      case indecies of
+        a :: b :: rest -> 
+          if id == b then Just a
+          else prev' (b :: rest)
+        _ -> Nothing
+  in
+    search id prevIterator tree |> withDefault id   
+
+{- Smart movement ahead 
+  Be aware here be dragons
+-} 
 
 type MoveErr
   = GiveUp
@@ -88,6 +107,7 @@ type MoveErr
   | ChildStuck
 
 type SNInfo = SNInfo Int SyntaxType (Maybe Int)
+
 {-
 -}
 smartNext : SyntaxTree -> Int -> Int
@@ -133,6 +153,7 @@ smartNext tree id =
         [ (_, msg) ] -> 
           case msg of
             Err Stuck -> Err ChildStuck
+            Err ChildStuck -> Err GiveUp
             a -> a
         
         [] -> 
@@ -140,20 +161,6 @@ smartNext tree id =
   in
      collect nextIterator tree 
         |> snd >> Result.withDefault id
-
-prev : SyntaxTree -> Int -> Int
-prev tree id =
-  let 
-    prevIterator i tree = prev' (subIndecies i tree)
-    prev' indecies = 
-      case indecies of
-        a :: b :: rest -> 
-          if id == b then Just a
-          else prev' rest
-        _ -> Nothing
-  in
-    search id prevIterator tree |> withDefault id   
-
 smartPrev : SyntaxTree -> Int -> Int
 smartPrev tree id =
   let
@@ -200,6 +207,7 @@ smartPrev tree id =
         [ (_, msg) ] -> 
           case msg of
             Err Stuck -> Err ChildStuck
+            Err ChildStuck -> Err GiveUp
             a -> a
         
         [] -> 
@@ -208,22 +216,44 @@ smartPrev tree id =
      collect prevIterator tree 
         |> snd >> Result.withDefault id
 
--- smartPrev : SyntaxTree -> Int -> Int
--- smartPrev tree id =
---   let 
---     prevIterator i tree = 
---       let subs = (subWithIndecies i tree)
---       in case prev' subs of
---         Just (idx, sub) -> 
---           if getType sub == getType tree then
---              last (subIndecies idx sub)
---           else Just idx
---         Nothing -> Nothing
---     prev' indecies = 
---       case indecies of
---         a :: b :: rest -> 
---           if id == fst b then Just a
---           else prev' rest
---         _ -> Nothing
---   in
---     search id prevIterator tree |> withDefault id   
+smartOut : SyntaxTree -> Int -> Int
+smartOut tree id = 
+  let
+    upIterator i tree =
+      let t = getType tree
+      in if i == id then
+        Just (i, Just t)
+      else
+        case Maybe.oneOf tree.terms of
+          Just (i', Just t') -> 
+            if t' == t || i' == id then
+              Just (i, Just t)
+            else 
+              Just (i', Nothing)
+          a -> a
+  in 
+    collect upIterator tree 
+      |> Maybe.map fst >> Maybe.withDefault id
+
+smartIn : SyntaxTree -> Int -> Int
+smartIn tree id = 
+  let
+    downIterator i tree =
+      if i == id then
+        goInWithType (getType tree) (id - tree.size) tree
+      else
+        Nothing
+    goInWithType t i tree =
+      case head (getTerms tree) of
+        Just tree' -> 
+          if getType tree' == t then
+             case goInWithType t i tree' of
+               Nothing -> Just (i + tree'.size)
+               a -> a
+          else
+            Just (i + tree'.size)
+        Nothing -> Nothing
+  in 
+    search id downIterator tree |> Maybe.withDefault id
+
+

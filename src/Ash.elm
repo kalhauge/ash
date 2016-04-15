@@ -26,10 +26,13 @@ model =
     tree =
       syntax "AddExp" 0
         [ syntax "AddExp" 0
-          [ number [1, 2, 3, 4]
-          , number [4, 2]
-          ] 
-        , number [2, 3]
+          [ syntax "AddExp" 0
+            [ number [1, 2, 3, 4]
+            , number [4, 2]
+            ] 
+          , number [2, 3]
+          ]
+          , number [3, 4]
         ]
   in { tree = tree
      , focus = tree.size 
@@ -47,12 +50,19 @@ number numbers =
         ]
     [] -> Debug.crash "Bad use!"
 
+type Movement 
+  = Out 
+  | SmartOut
+  | In
+  | SmartIn
+  | Next
+  | SmartNext
+  | Prev
+  | SmartPrev
+
 type Action 
   = NoOp
-  | FocusOut 
-  | FocusIn 
-  | FocusNext
-  | FocusPrev
+  | Focus Movement 
   | DeleteFocus
 
 inputs = 
@@ -61,28 +71,33 @@ inputs =
 
 keyHandle keyCode = 
   case (Char.fromCode keyCode) of
-    'j' -> FocusIn
-    'k' -> FocusOut
-    'l' -> FocusNext
-    'h' -> FocusPrev
+    'j' -> Focus SmartIn
+    'J' -> Focus In
+    'k' -> Focus SmartOut
+    'K' -> Focus Out
+    'l' -> Focus SmartNext
+    'L' -> Focus Next
+    'h' -> Focus SmartPrev
+    'H' -> Focus Prev
     'd' -> DeleteFocus
     _ -> NoOp
 
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model = 
   let model' = case action of
-      FocusOut -> 
-        { model | focus = parrent model.tree model.focus } 
-
-      FocusIn -> 
-        { model | focus = child model.tree model.focus }
-
-      FocusNext ->
-        { model | focus = smartNext model.tree model.focus }
-      
-      FocusPrev ->
-        { model | focus = smartPrev model.tree model.focus }
-      
+      Focus movement -> 
+        { model | focus = 
+            ( case movement of 
+                SmartOut  -> smartOut
+                SmartIn   -> smartIn
+                SmartNext -> smartNext
+                SmartPrev -> smartPrev
+                Out       -> parrent
+                In        -> child
+                Next      -> next
+                Prev      -> prev
+            ) model.tree model.focus
+        }
       _ -> 
         model
 
@@ -148,7 +163,7 @@ pprint {tree, lang, focus} =
 view address model = 
   table 
     [ style
-        [ ("width", "400px")
+        [ ("width", "600px")
         , ("margin", "100px auto")
         ]
     ]
