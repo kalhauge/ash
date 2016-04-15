@@ -5,6 +5,38 @@ import Maybe exposing (withDefault)
 
 import AST exposing (..)
 import Utils exposing (..)
+import Grammar exposing (..)
+
+{-
+Return the subtree, represneted by the index
+-}
+get : Int -> SyntaxTree -> Maybe SyntaxTree
+get id =
+  let get' i tree = 
+    if i == id then 
+      Just tree 
+    else 
+      Nothing
+  in search id get' 
+
+{-
+Updates the subtree identified by the index. Returns an new index representing
+the new subtree.
+-}
+update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> (Int, SyntaxTree)
+update id fn =
+  let 
+    toTree = AST.map (snd >> SubTree) 
+    update' i node =
+      if id == i then
+        let rval = fn (toTree node)
+        in (i - node.size + rval.size, rval)
+      else 
+        let idx = Maybe.withDefault 0 (
+            List.maximum (List.map fst node.terms)
+          )
+        in (idx, toTree node)
+  in collectPath id (\i tree -> (0, tree)) update'
 
 
 {-
@@ -18,7 +50,7 @@ child tree id =
     else
       Nothing
   in 
-     first childIterator tree |> withDefault id 
+     search id childIterator tree |> withDefault id 
 
 {-
 Focus out takes and identifier and returns
@@ -32,7 +64,7 @@ parrent tree id =
     else 
       Nothing
   in
-    first parrentIterator tree |> withDefault id   
+    search id parrentIterator tree |> withDefault id   
     -- If we can't find a parrent, chill
 
 {-
@@ -48,29 +80,54 @@ next tree id =
           else next' rest
         _ -> Nothing
   in
-    first nextIterator tree |> withDefault id   
+    search id nextIterator tree |> withDefault id   
+
+type MoveErr
+  = NotFound
+  | Stuck SyntaxType 
 {-
 -}
 smartNext : SyntaxTree -> Int -> Int
 smartNext tree id =
   let 
     nextIterator i tree = 
-      let subs = (subWithIndecies i tree)
-      in 
-        case next' subs of
-        Just (idx, sub) -> 
-          if getType sub == getType tree then
-             head (subIndecies idx sub)
-          else Just idx
-        Nothing -> Nothing
-    next' indecies = 
+      ((i, tree.name, Maybe.map (\((i, t, m), msg) -> (i, t)) (head tree.terms)), 
+        if i == id then
+          Err (Stuck (getType tree))
+        else 
+          findNext tree.terms
+      )
+    findNext indecies = 
       case indecies of
-        a :: b :: rest -> 
-          if id == fst a then Just b
-          else next' rest
-        _ -> Nothing
+        (_, msg) :: (((i', t', m), _) as b) :: rest -> 
+          case msg of
+            Err (Stuck t) -> 
+              if fst t == t' then 
+                 Ok i'
+              else
+                case m of 
+                  Just (i'', t'') -> 
+                    if fst t == t'' then
+                      Ok i''
+                    else
+                      Err (Stuck t)
+                  Nothing ->
+                    Ok i'
+            Err NotFound -> findNext (b :: rest)
+            Ok idx -> Ok idx
+        [ (_, msg) ] -> msg
+        [] -> Err NotFound 
+    -- defaultVal i tree = 
+    --   ( (i, tree.name)
+    --   , Err NotFound
+    --   , Maybe.map 
+    --       (\(SubTree stree) -> (i - tree.size + stree.size, getType stree)) 
+    --       (head (tree.terms))
+    --   )
   in
-    first nextIterator tree |> withDefault id   
+     collect nextIterator tree 
+        |> snd >> Result.withDefault id
+    -- collectPath id (\tree -> Nothing) nextIterator tree |> withDefault id   
 
 prev : SyntaxTree -> Int -> Int
 prev tree id =
@@ -83,7 +140,7 @@ prev tree id =
           else prev' rest
         _ -> Nothing
   in
-    first prevIterator tree |> withDefault id   
+    search id prevIterator tree |> withDefault id   
 
 smartPrev : SyntaxTree -> Int -> Int
 smartPrev tree id =
@@ -103,4 +160,4 @@ smartPrev tree id =
           else prev' rest
         _ -> Nothing
   in
-    first prevIterator tree |> withDefault id   
+    search id prevIterator tree |> withDefault id   

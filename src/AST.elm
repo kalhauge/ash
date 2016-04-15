@@ -36,19 +36,9 @@ mapS fn a =
   { a | terms = fn (getTerms a) }
 
 
-setTerms : List SyntaxTree -> SyntaxTree -> SyntaxTree
+setTerms : List SyntaxTree -> SNode a -> SyntaxTree
 setTerms terms inner =
   syntax (inner.name) (inner.alt) terms
-
-
--- updateTerms : 
---   (List SyntaxTree -> List SyntaxTree) 
---   -> SyntaxTree 
---   -> SyntaxTree
--- updateTerms fn tree =
---   getTerms tree
---     |> fn
---     |> flip setTerms tree
 
 
 getType : SNode a -> (ClauseId, AlternativeId) 
@@ -87,39 +77,64 @@ indecies i list =
       let index = i + term.size
       in index :: indecies index rest
 
+
 type alias TreeIterator a = Int -> SyntaxTree -> Maybe a
 
 {- 
 Will iterate through the tree in index order and return the
 first positive result.
 -}
-first : TreeIterator a -> SyntaxTree -> Maybe a 
+first : TreeIterator a -> SyntaxTree -> Maybe a
 first itr =
   let 
-    step i terms =
-      case terms of 
-        [] -> 
-          Nothing
-        term :: rest ->
-          case iterate i term of
-            Nothing -> step (term.size + i) rest 
-            a -> a
+    step term i =
+      case iterate i term of
+        Nothing -> Err <| i + term.size
+        Just a -> Ok a
     iterate i tree = 
-      case step i (getTerms tree) of
-        Nothing -> itr (i + tree.size) tree
+      case oneOfScan step i (getTerms tree) of
+        Nothing -> 
+          itr (i + tree.size) tree 
         a -> a
   in 
     iterate 0 
 
+
+{- 
+Will iterate through the tree directly towards the target
+and return the first positive result.
+-}
+search : Int -> TreeIterator a -> SyntaxTree -> Maybe a
+search id itr =
+  let 
+    step term i =
+      if i < id && id <= i + term.size then
+        case iterate i term of
+          Nothing -> Err <| i + term.size
+          Just a -> Ok a
+      else 
+        Err (i + term.size)
+    iterate i tree = 
+      case oneOfScan step i (getTerms tree) of
+        Nothing -> 
+          itr (i + tree.size) tree 
+        a -> a
+  in 
+    iterate 0 
+
+
 type alias TreeCollector a = Int -> SNode a -> a 
 
+{-
+Collect runs through the syntax tree and collects the results in a
+SNode.
+-}
 collect : TreeCollector a -> SyntaxTree -> a
 collect clt =
   let 
     step i terms =
       case terms of 
-        [] ->
-          []
+        [] -> []
         term :: rest ->
           iterate i term :: step (term.size + i) rest 
     iterate i tree = 
@@ -131,36 +146,28 @@ collectS : (Int -> SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
 collectS clt tree = 
   unfix <| collect (\i t -> SubTree <| clt i t) tree
 
+
 {-
-Will iterate directly towards a index, and will return the first
-positive result.
+CollectPath only touches the nodes that are direct parrents
+to the indcies given. Because of this we need a way to map a 
+SyntaxTree to the collectValue.
 -}
--- directTo : Int -> TreeIterator a -> SyntaxTree -> Maybe a 
--- directTo target fn id tree =
---   case compare id target of
---     LT -> getTerms id  
---     EQ -> fn id tree
---     GT -> Nothing
+collectPath : Int -> (Int -> SyntaxTree -> a) -> TreeCollector a -> SyntaxTree -> a
+collectPath id default clt =
+  let 
+    step i terms =
+      case terms of 
+        [] -> []
+        term :: rest ->
+          if i < id && id <= i + term.size then
+            iterate i term :: step (term.size + i) rest 
+          else 
+            default (i + term.size) term :: step (term.size + i) rest
+    iterate i tree = 
+      clt (i + tree.size) (mapS (step i) tree)
+  in 
+    iterate 0 
 
-
-get : Int -> SyntaxTree -> Maybe SyntaxTree
-get id =
-  first (\i tree -> 
-    if i == id then 
-      Just tree 
-    else 
-      Nothing
-  )
-
-
-update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
-update id fn =
-  collectS (\i tree ->
-    if id == i then
-      fn tree
-    else 
-      tree
-  )
 
 -- Should be put some where else.
 

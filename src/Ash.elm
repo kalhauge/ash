@@ -26,7 +26,7 @@ model =
     tree =
       syntax "AddExp" 0
         [ syntax "AddExp" 0
-          [ number [1, 2, 3]
+          [ number [1, 2, 3, 4]
           , number [4, 2]
           ] 
         , number [2, 3]

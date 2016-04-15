@@ -28,6 +28,30 @@ allOf maybes =
     Nothing :: rest -> 
       Nothing
 
+{- 
+Lazy and short-ciruit oneOf with map.
+-}
+oneOfMap : (a -> Maybe b) -> List a -> Maybe b
+oneOfMap fn list =
+  case list of
+    [] -> Nothing
+    item :: rest -> 
+      case fn item of
+        Nothing -> oneOfMap fn rest
+        a -> a
+{- 
+Lazy and short-ciruiting oneOf with fold.
+-}
+oneOfScan : (a -> b -> Result b c) -> b -> List a -> Maybe c
+oneOfScan fn val list =
+  case list of
+    [] -> Nothing
+    item :: rest ->
+      case fn item val of
+        Err val' -> oneOfScan fn val' rest
+        Ok item -> Just item
+
+
 onlyOne : List (Maybe a) -> Maybe a
 onlyOne list = 
   case list of
