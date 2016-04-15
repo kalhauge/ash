@@ -83,51 +83,63 @@ next tree id =
     search id nextIterator tree |> withDefault id   
 
 type MoveErr
-  = NotFound
-  | Stuck SyntaxType 
+  = GiveUp
+  | Stuck
+  | ChildStuck
+
+type SNInfo = SNInfo Int SyntaxType (Maybe Int)
 {-
 -}
 smartNext : SyntaxTree -> Int -> Int
 smartNext tree id =
-  let 
+  let
+    helper ((SNInfo i t _), msg) = i
     nextIterator i tree = 
-      ((i, tree.name, Maybe.map (\((i, t, m), msg) -> (i, t)) (head tree.terms)), 
-        if i == id then
-          Err (Stuck (getType tree))
+      ( SNInfo i (getType tree) (Maybe.map helper (head tree.terms))
+      , if i == id then
+          Err Stuck
         else 
-          findNext tree.terms
+          findNext (getType tree) tree.terms
       )
-    findNext indecies = 
+    findNext pt indecies = 
       case indecies of
-        (_, msg) :: (((i', t', m), _) as b) :: rest -> 
+        (SNInfo i t m, msg) :: ((SNInfo i' t' m', _) as b) :: rest -> 
           case msg of
-            Err (Stuck t) -> 
-              if fst t == t' then 
-                 Ok i'
-              else
-                case m of 
-                  Just (i'', t'') -> 
-                    if fst t == t'' then
-                      Ok i''
-                    else
-                      Err (Stuck t)
-                  Nothing ->
-                    Ok i'
-            Err NotFound -> findNext (b :: rest)
-            Ok idx -> Ok idx
-        [ (_, msg) ] -> msg
-        [] -> Err NotFound 
-    -- defaultVal i tree = 
-    --   ( (i, tree.name)
-    --   , Err NotFound
-    --   , Maybe.map 
-    --       (\(SubTree stree) -> (i - tree.size + stree.size, getType stree)) 
-    --       (head (tree.terms))
-    --   )
+            Err Stuck -> 
+              -- Does the next field have a child:
+              case m' of 
+                Just i'' -> 
+                  -- If the next has the same type as the parrent take the
+                  -- child if possible (RR) 
+                  if pt == t' then
+                    Ok i''
+                  else  
+                    Ok i' 
+                Nothing -> Ok i'
+
+            Err ChildStuck  -> 
+              -- In this case is the first term's child stuck
+              if t == pt then
+                Ok i'
+              else 
+                Err GiveUp
+
+            Err GiveUp -> 
+              findNext pt (b :: rest)
+
+            Ok idx -> 
+              Ok idx
+        
+        [ (_, msg) ] -> 
+          case msg of
+            Err Stuck -> Err ChildStuck
+            a -> a
+        
+        [] -> 
+          Err GiveUp 
   in
      collect nextIterator tree 
         |> snd >> Result.withDefault id
-    -- collectPath id (\tree -> Nothing) nextIterator tree |> withDefault id   
 
 prev : SyntaxTree -> Int -> Int
 prev tree id =
@@ -144,20 +156,74 @@ prev tree id =
 
 smartPrev : SyntaxTree -> Int -> Int
 smartPrev tree id =
-  let 
+  let
+    helper ((SNInfo i t _), msg) = i
     prevIterator i tree = 
-      let subs = (subWithIndecies i tree)
-      in case prev' subs of
-        Just (idx, sub) -> 
-          if getType sub == getType tree then
-             last (subIndecies idx sub)
-          else Just idx
-        Nothing -> Nothing
-    prev' indecies = 
+      ( SNInfo i (getType tree) (Maybe.map helper (last tree.terms))
+      , if i == id then
+          Err Stuck
+        else 
+          findPrev (getType tree) tree.terms
+      )
+    findPrev pt indecies = 
       case indecies of
-        a :: b :: rest -> 
-          if id == fst b then Just a
-          else prev' rest
-        _ -> Nothing
+        (SNInfo i t m, msg) :: ((SNInfo i' t' m', msg') as b) :: rest -> 
+          case msg' of
+            Err Stuck -> 
+              -- Does the next field have a child:
+              case m of 
+                Just i'' -> 
+                  -- If the next has the same type as the parrent take the
+                  -- child if possible (LR) 
+                  if pt == t then
+                    Ok i''
+                  else  
+                    Ok i 
+                Nothing -> Ok i
+
+            Err ChildStuck  -> 
+              -- In this case is the first term's child stuck
+              if t' == pt then
+                Ok i
+              else 
+                Err GiveUp
+
+            Err GiveUp -> 
+              case msg of
+                Ok idx -> Ok idx
+                Err Stuck -> Err ChildStuck
+                _ -> findPrev pt (b :: rest)
+
+            Ok idx -> 
+              Ok idx
+        
+        [ (_, msg) ] -> 
+          case msg of
+            Err Stuck -> Err ChildStuck
+            a -> a
+        
+        [] -> 
+          Err GiveUp 
   in
-    search id prevIterator tree |> withDefault id   
+     collect prevIterator tree 
+        |> snd >> Result.withDefault id
+
+-- smartPrev : SyntaxTree -> Int -> Int
+-- smartPrev tree id =
+--   let 
+--     prevIterator i tree = 
+--       let subs = (subWithIndecies i tree)
+--       in case prev' subs of
+--         Just (idx, sub) -> 
+--           if getType sub == getType tree then
+--              last (subIndecies idx sub)
+--           else Just idx
+--         Nothing -> Nothing
+--     prev' indecies = 
+--       case indecies of
+--         a :: b :: rest -> 
+--           if id == fst b then Just a
+--           else prev' rest
+--         _ -> Nothing
+--   in
+--     search id prevIterator tree |> withDefault id   
