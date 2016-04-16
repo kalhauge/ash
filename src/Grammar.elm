@@ -28,6 +28,11 @@ type alias AlternativeId = Int
 
 type alias SyntaxType = (ClauseId, AlternativeId)
 
+getRule : ClauseId -> Grammar -> Maybe Rule
+getRule = Dict.get 
+
 get : ClauseId -> AlternativeId ->  Grammar -> Maybe Alternative
 get clauseId altId grammar = 
   Dict.get clauseId grammar `Maybe.andThen` Array.get altId 
+
+

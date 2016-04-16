@@ -58,6 +58,8 @@ syntax name alt terms =
   , size = sum (List.map .size terms) + 1
   }
 
+empty = syntax "empty" 0 []
+
 -- Special functions from here
 
 subIndecies : Int -> SyntaxTree -> List Int

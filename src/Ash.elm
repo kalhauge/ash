@@ -12,6 +12,7 @@ import String
 import AST exposing (..)
 import Command exposing (..)
 import Grammar exposing (..)
+import Parser exposing (..)
 import Arithmetic 
 
 type alias Model = 
@@ -24,16 +25,17 @@ model : Model
 model = 
   let 
     tree =
-      syntax "AddExp" 0
-        [ syntax "AddExp" 0
-          [ syntax "AddExp" 0
-            [ number [1, 2, 3, 4]
-            , number [4, 2]
-            ] 
-          , number [2, 3]
-          ]
-          , number [3, 4]
-        ]
+       Maybe.withDefault empty (parse Arithmetic.lang "Exp" "1234+5")
+--      syntax "AddExp" 0
+--        [ syntax "AddExp" 0
+--          [ syntax "AddExp" 0
+--            [ number [1, 2, 3, 4]
+--            , number [4, 2]
+--            ] 
+--          , number [2, 3]
+--          ]
+--          , number [3, 4]
+--        ]
   in { tree = tree
      , focus = tree.size 
      , lang = Arithmetic.lang
