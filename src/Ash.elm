@@ -15,31 +15,26 @@ import Grammar exposing (..)
 import Parser exposing (..)
 import Arithmetic 
 
+type Mode 
+  = Normal
+  | Change String
+
 type alias Model = 
   { tree : SyntaxTree
   , focus : Int
   , lang : Grammar
+  , mode : Mode
+  , lastKey : Char.KeyCode
   }
 
 model : Model
 model = 
-  let 
-    tree =
-       Maybe.withDefault empty (parse Arithmetic.lang "Exp" "1234+5")
---      syntax "AddExp" 0
---        [ syntax "AddExp" 0
---          [ syntax "AddExp" 0
---            [ number [1, 2, 3, 4]
---            , number [4, 2]
---            ] 
---          , number [2, 3]
---          ]
---          , number [3, 4]
---        ]
-  in { tree = tree
-     , focus = tree.size 
-     , lang = Arithmetic.lang
-     }
+  { tree = empty
+  , focus = 1
+  , lang = Arithmetic.lang
+  , mode = Normal
+  , lastKey = 0
+  }
 
 number numbers =
   case numbers of
@@ -62,56 +57,55 @@ type Movement
   | Prev
   | SmartPrev
 
-type Action 
-  = NoOp
-  | Focus Movement 
-  | DeleteFocus
+type alias Action = Char.KeyCode
 
 inputs = 
-    [ Signal.map keyHandle Keyboard.presses 
+    [ Keyboard.presses 
     ]
 
-keyHandle keyCode = 
-  case (Char.fromCode keyCode) of
-    'j' -> Focus SmartIn
-    'J' -> Focus In
-    'k' -> Focus SmartOut
-    'K' -> Focus Out
-    'l' -> Focus SmartNext
-    'L' -> Focus Next
-    'h' -> Focus SmartPrev
-    'H' -> Focus Prev
-    'd' -> DeleteFocus
-    _ -> NoOp
+addChar str key = 
+  String.append str (String.fromChar (Char.fromCode key))
 
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model = 
   let 
+    updateWith : (Int -> SyntaxTree -> (Int, SyntaxTree)) -> Model -> Model
     updateWith fn ({focus, tree} as model) =
-        let (focus', tree') = fn model.focus model.tree 
+        let (focus', tree') = fn focus tree 
         in { model | tree = tree', focus = focus'}
+  
+    focus fn ({focus, tree} as model) =
+      { model | focus = fn tree focus }
 
-    model' = case action of
-      Focus movement -> 
-        { model | focus = 
-            ( case movement of 
-                SmartOut  -> smartOut
-                SmartIn   -> smartIn
-                SmartNext -> smartNext
-                SmartPrev -> smartPrev
-                Out       -> parrent
-                In        -> child
-                Next      -> next
-                Prev      -> prev
-            ) model.tree model.focus
-        }
+    model' = case model.mode of
+      Normal -> 
+        case (Char.fromCode action) of
+          'c' -> 
+            updateWith 
+              (Command.update (\_ -> empty)) 
+              { model | mode = Change "" }
+          'd' -> 
+            updateWith delete model
+          'l' -> focus smartNext model
+          'h' -> focus smartPrev model
+          'j' -> focus smartChild model
+          'k' -> focus smartParrent model
+          'L' -> focus next model
+          'H' -> focus prev model
+          'J' -> focus child model
+          'K' -> focus parrent model
+          _ -> model
+      Change str -> 
+        case action of
+          13 -> 
+            updateWith (Command.update (\_ -> 
+                Maybe.withDefault empty (parse model.lang "Exp" str)
+                )) 
+              { model | mode = Normal }
+          _ ->  
+            { model | mode = Change (addChar str action) }
 
-      DeleteFocus -> updateWith delete model
-
-      _ -> 
-        model
-          
-  in (model', Effects.none)
+  in ({ model' | lastKey = action }, Effects.none)
 
 dpprint : Model -> Html
 dpprint {tree, lang, focus} = 
@@ -154,7 +148,7 @@ dpprint {tree, lang, focus} =
   in collect collector tree
 
 pprint : Model -> Html
-pprint {tree, lang, focus} =
+pprint {tree, lang, focus, mode} =
   let
     collector id tree =
       div 
@@ -164,30 +158,49 @@ pprint {tree, lang, focus} =
               [ ("background", "lightgray") ]
             else []
         ]
-        ( Maybe.withDefault [ text "?" ] 
-          <| translate lang tree (\str -> 
-            div  
-              [ style <| 
-                [ ("display", "inline") ] 
-                  ++ if id == focus then
-                    [ ("color", "red") ]
-                  else []
-              ]
-              [ text str ]
-          ))
+        ( Maybe.withDefault 
+            [ case mode of 
+                Change str -> text str
+                Normal -> text "-"
+            ] 
+            <| translate lang tree (\str -> 
+                  div  
+                    [ style <| 
+                      [ ("display", "inline") ] 
+                        ++ if id == focus then
+                          [ ("color", "red") ]
+                        else []
+                    ]
+                    [ text str ]
+                )
+        )
   in
      collect collector tree
 
 view address model = 
-  table 
+  div 
     [ style
-        [ ("width", "600px")
-        , ("margin", "100px auto")
-        ]
+      [ ("width", "80%")
+      , ("margin", "100px auto")
+      ]
     ]
-    [ tr [] 
-      <| List.map 
-        (\f -> 
+    [ div [ style [] ] 
+      [ div 
+        [ style 
+          [ ("width", "40px")
+          , ("display", "inline-block") 
+          ] 
+        ] 
+        [ text (toString model.lastKey) ] 
+      , text (toString model.mode)
+      ]
+    , table 
+      [ style 
+        [ ("width", "100%") 
+        , ("table-layout", "fixed")
+        ] 
+      ]
+      [ tr [] <| List.map (\f -> 
           td [ style 
                [ ("vertical-align", "bottom")
                , ("text-align", "center")
@@ -197,6 +210,7 @@ view address model =
         [ dpprint 
         , pprint 
         ]
+      ]
     ]
 
 

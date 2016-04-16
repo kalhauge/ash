@@ -49,7 +49,6 @@ parse grammar entry =
             Nothing
     
     parseLeftAlt str ruleName first (i, alt) = 
-      Debug.log ("LeftAlt: " ++ ruleName ++ " " ++ toString i ++ ": '" ++ str ++ "'")
       ( parseTerms str alt
         |> Maybe.map (\(terms, str') -> 
             (syntax ruleName i (first :: terms), str')
@@ -57,12 +56,11 @@ parse grammar entry =
       )
  
     parseAlt str ruleName (i, alt) = 
-      Debug.log ("Alt: " ++ ruleName ++ " " ++ toString i ++ ": '" ++ str ++ "'")
-        ( parseTerms str alt
-          |> Maybe.map (\(terms, str') -> 
-              (syntax ruleName i terms, str')
-            )
-        )
+      ( parseTerms str alt
+        |> Maybe.map (\(terms, str') -> 
+            (syntax ruleName i terms, str')
+          )
+      )
   
     parseTerms str alt =
       case alt of 

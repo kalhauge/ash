@@ -23,10 +23,10 @@ get id =
 Updates the subtree identified by the index. Returns an new index representing
 the new subtree.
 -}
-update : Int -> (SyntaxTree -> SyntaxTree) -> SyntaxTree -> (Int, SyntaxTree)
-update id fn =
+update : (SyntaxTree -> SyntaxTree) -> Int -> SyntaxTree -> (Int, SyntaxTree)
+update fn id =
   let 
-    toTree = AST.map (snd >> SubTree) 
+    toTree {name, alt, terms} = syntax name alt (List.map snd terms)
     update' i node =
       if id == i then
         let rval = fn (toTree node)
@@ -246,8 +246,8 @@ smartPrev tree id =
      collectPath id defaultVal prevIterator tree 
         |> snd >> Result.withDefault id
 
-smartOut : SyntaxTree -> Int -> Int
-smartOut tree id = 
+smartParrent : SyntaxTree -> Int -> Int
+smartParrent tree id = 
   let
     upIterator i tree =
       let t = getType tree
@@ -265,8 +265,8 @@ smartOut tree id =
     collectPath id (\i tree -> Nothing) upIterator tree 
       |> Maybe.map fst >> Maybe.withDefault id
 
-smartIn : SyntaxTree -> Int -> Int
-smartIn tree id = 
+smartChild : SyntaxTree -> Int -> Int
+smartChild tree id = 
   let
     downIterator i tree =
       if i == id then
