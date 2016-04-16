@@ -31,9 +31,14 @@ getTerms {terms} =
   List.map unfix terms
 
 
-mapS : (List SyntaxTree -> List b) -> SyntaxTree -> SNode b
-mapS fn a =
+mapFromS : (List SyntaxTree -> List b) -> SyntaxTree -> SNode b
+mapFromS fn a =
   { a | terms = fn (getTerms a) }
+
+
+mapToS : (List a -> List SyntaxTree) -> SNode a -> SyntaxTree
+mapToS fn a =
+  setTerms (fn a.terms) a
 
 
 setTerms : List SyntaxTree -> SNode a -> SyntaxTree
@@ -140,13 +145,24 @@ collect clt =
         term :: rest ->
           iterate i term :: step (term.size + i) rest 
     iterate i tree = 
-      clt (i + tree.size) (mapS (step i) tree)
+      clt (i + tree.size) (mapFromS (step i) tree)
   in 
     iterate 0 
 
 collectS : (Int -> SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
-collectS clt tree = 
-  unfix <| collect (\i t -> SubTree <| clt i t) tree
+collectS clt = 
+  let
+    step : Int -> List SyntaxTree -> List SyntaxTree
+    step i terms =
+      case terms of 
+        [] -> []
+        term :: rest ->
+          iterate i term :: step (term.size + i) rest 
+    iterate : Int -> SyntaxTree -> SyntaxTree
+    iterate i tree = 
+      clt (i + tree.size) (mapToS (List.map unfix >> step i) tree)
+  in 
+    iterate 0 
 
 
 {-
@@ -166,7 +182,7 @@ collectPath id default clt =
           else 
             default (i + term.size) term :: step (term.size + i) rest
     iterate i tree = 
-      clt (i + tree.size) (mapS (step i) tree)
+      clt (i + tree.size) (mapFromS (step i) tree)
   in 
     iterate 0 
 

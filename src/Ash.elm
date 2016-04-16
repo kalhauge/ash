@@ -99,7 +99,9 @@ update action model =
         case action of
           13 -> 
             updateWith (Command.update (\_ -> 
-                Maybe.withDefault empty (parse model.lang "Exp" str)
+                parse model.lang "Exp" str
+                  |> Maybe.map (trim model.lang)
+                  |> Maybe.withDefault empty 
                 )) 
               { model | mode = Normal }
           _ ->  

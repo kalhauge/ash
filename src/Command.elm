@@ -60,6 +60,21 @@ delete id tree =
       |> Maybe.withDefault (id, tree)
 
 
+trim : Grammar -> SyntaxTree -> SyntaxTree
+trim grammar =
+  let
+    trimmer i tree =
+      Grammar.get tree.name tree.alt grammar
+        |> flip Maybe.andThen (\alt -> 
+            if List.length alt == 1 then 
+              head (getTerms tree)
+            else 
+              Nothing
+          )
+        |> Maybe.withDefault tree 
+  in 
+    collectS trimmer
+
 {-
 FocusIn deepens the  
 -}
