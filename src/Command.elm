@@ -39,6 +39,27 @@ update id fn =
   in collectPath id (\i tree -> (0, tree)) update'
 
 
+delete : Int -> SyntaxTree -> (Int, SyntaxTree)
+delete id tree =
+  let
+    deleteIterator i tree =
+      if i == id then
+         Nothing
+      else 
+        case allOf (tree.terms) of
+          Just terms -> 
+            Just <| 
+              ( Maybe.withDefault 0 ( List.maximum (List.map fst terms))
+              , setTerms (List.map snd terms) tree
+              )
+          Nothing -> 
+            case onlyOne tree.terms of
+              Just (i', tree') -> Just (i - tree.size + tree'.size, tree') 
+              Nothing -> Nothing
+  in collectPath id (\i tree -> Just (0, tree)) deleteIterator tree
+      |> Maybe.withDefault (id, tree)
+
+
 {-
 FocusIn deepens the  
 -}
@@ -158,8 +179,12 @@ smartNext tree id =
         
         [] -> 
           Err GiveUp 
+    defaultVal i tree = 
+      ( SNInfo i (getType tree) (head (subIndecies i tree))
+      , Err GiveUp 
+      )
   in
-     collect nextIterator tree 
+     collectPath id defaultVal nextIterator tree 
         |> snd >> Result.withDefault id
 smartPrev : SyntaxTree -> Int -> Int
 smartPrev tree id =
@@ -212,8 +237,13 @@ smartPrev tree id =
         
         [] -> 
           Err GiveUp 
+    defaultVal i tree = 
+      ( SNInfo i (getType tree) (last (subIndecies i tree))
+      , Err GiveUp 
+      )
+
   in
-     collect prevIterator tree 
+     collectPath id defaultVal prevIterator tree 
         |> snd >> Result.withDefault id
 
 smartOut : SyntaxTree -> Int -> Int
@@ -232,7 +262,7 @@ smartOut tree id =
               Just (i', Nothing)
           a -> a
   in 
-    collect upIterator tree 
+    collectPath id (\i tree -> Nothing) upIterator tree 
       |> Maybe.map fst >> Maybe.withDefault id
 
 smartIn : SyntaxTree -> Int -> Int

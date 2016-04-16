@@ -84,7 +84,12 @@ keyHandle keyCode =
 
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model = 
-  let model' = case action of
+  let 
+    updateWith fn ({focus, tree} as model) =
+        let (focus', tree') = fn model.focus model.tree 
+        in { model | tree = tree', focus = focus'}
+
+    model' = case action of
       Focus movement -> 
         { model | focus = 
             ( case movement of 
@@ -98,19 +103,11 @@ update action model =
                 Prev      -> prev
             ) model.tree model.focus
         }
+
+      DeleteFocus -> updateWith delete model
+
       _ -> 
         model
-
-
-      -- FocusNext ->
-      --   focusSmartNext model
-
-      -- FocusPrev -> 
-      --   focusPrev model
-
-      -- DeleteFocus ->
-      --   deleteFocus model
-      --    |> Maybe.withDefault (syntax "Empty" 0 True [])
           
   in (model', Effects.none)
 
@@ -140,7 +137,17 @@ dpprint {tree, lang, focus} =
           [ text (tree.name ++ " : " ++ toString id)] 
         ] ++ (
           Maybe.withDefault [ text "?" ] 
-            <| translate lang tree text
+            <| translate lang tree (\str -> 
+              div 
+                [ style <|
+                  [ ("display", "inline-block")
+                  , ("margin", "2px 2px 0px 2px")
+                  , ("text-align", "center")
+                  ] ++ if focus == id then 
+                    [ ("color", "red") ]
+                  else []
+                ] [ text str ]
+            )
         )
   in collect collector tree
 
@@ -156,7 +163,16 @@ pprint {tree, lang, focus} =
             else []
         ]
         ( Maybe.withDefault [ text "?" ] 
-          <| translate lang tree text )
+          <| translate lang tree (\str -> 
+            div  
+              [ style <| 
+                [ ("display", "inline") ] 
+                  ++ if id == focus then
+                    [ ("color", "red") ]
+                  else []
+              ]
+              [ text str ]
+          ))
   in
      collect collector tree
 
