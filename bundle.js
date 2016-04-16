@@ -12005,6 +12005,7 @@ Elm.Grammar.make = function (_elm) {
       A2($Dict.get,clauseId,grammar),
       $Array.get(altId));
    });
+   var getRule = $Dict.get;
    var rule = $Array.fromList;
    var grammar = $Dict.fromList;
    var Ref = function (a) {    return {ctor: "Ref",_0: a};};
@@ -12024,6 +12025,7 @@ Elm.Grammar.make = function (_elm) {
                                 ,grammar: grammar
                                 ,rule: rule
                                 ,oneOf: oneOf
+                                ,getRule: getRule
                                 ,get: get};
 };
 Elm.Utils = Elm.Utils || {};
@@ -12231,7 +12233,7 @@ Elm.AST.make = function (_elm) {
       var _p9 = _p8;
       return A2($List.map,unfix,_p9.terms);
    };
-   var mapS = F2(function (fn,a) {
+   var mapFromS = F2(function (fn,a) {
       return _U.update(a,{terms: fn(getTerms(a))});
    });
    var collect = function (clt) {
@@ -12247,7 +12249,7 @@ Elm.AST.make = function (_elm) {
             }
       });
       var iterate = F2(function (i,tree) {
-         return A2(clt,i + tree.size,A2(mapS,step(i),tree));
+         return A2(clt,i + tree.size,A2(mapFromS,step(i),tree));
       });
       return iterate(0);
    };
@@ -12268,7 +12270,7 @@ Elm.AST.make = function (_elm) {
             }
       });
       var iterate = F2(function (i,tree) {
-         return A2(clt,i + tree.size,A2(mapS,step(i),tree));
+         return A2(clt,i + tree.size,A2(mapFromS,step(i),tree));
       });
       return iterate(0);
    });
@@ -12339,11 +12341,33 @@ Elm.AST.make = function (_elm) {
    var setTerms = F2(function (terms,inner) {
       return A3(syntax,inner.name,inner.alt,terms);
    });
-   var collectS = F2(function (clt,tree) {
-      return unfix(A2(collect,
-      F2(function (i,t) {    return SubTree(A2(clt,i,t));}),
-      tree));
+   var mapToS = F2(function (fn,a) {
+      return A2(setTerms,fn(a.terms),a);
    });
+   var collectS = function (clt) {
+      var step = F2(function (i,terms) {
+         var _p19 = terms;
+         if (_p19.ctor === "[]") {
+               return _U.list([]);
+            } else {
+               var _p20 = _p19._0;
+               return A2($List._op["::"],
+               A2(iterate,i,_p20),
+               A2(step,_p20.size + i,_p19._1));
+            }
+      });
+      var iterate = F2(function (i,tree) {
+         return A2(clt,
+         i + tree.size,
+         A2(mapToS,
+         function (_p21) {
+            return A2(step,i,A2($List.map,unfix,_p21));
+         },
+         tree));
+      });
+      return iterate(0);
+   };
+   var empty = A3(syntax,"empty",0,_U.list([]));
    var SNode = F4(function (a,b,c,d) {
       return {name: a,alt: b,terms: c,size: d};
    });
@@ -12353,10 +12377,12 @@ Elm.AST.make = function (_elm) {
                             ,unfix: unfix
                             ,map: map
                             ,getTerms: getTerms
-                            ,mapS: mapS
+                            ,mapFromS: mapFromS
+                            ,mapToS: mapToS
                             ,setTerms: setTerms
                             ,getType: getType
                             ,syntax: syntax
+                            ,empty: empty
                             ,subIndecies: subIndecies
                             ,subWithIndecies: subWithIndecies
                             ,indecies: indecies
@@ -12451,7 +12477,7 @@ Elm.Command.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
-   var smartIn = F2(function (tree,id) {
+   var smartChild = F2(function (tree,id) {
       var goInWithType = F3(function (t,i,tree) {
          var _p0 = $List.head($AST.getTerms(tree));
          if (_p0.ctor === "Just") {
@@ -12478,7 +12504,7 @@ Elm.Command.make = function (_elm) {
       id,
       A3($AST.search,id,downIterator,tree));
    });
-   var smartOut = F2(function (tree,id) {
+   var smartParrent = F2(function (tree,id) {
       var upIterator = F2(function (i,tree) {
          var t = $AST.getType(tree);
          if (_U.eq(i,id)) return $Maybe.Just({ctor: "_Tuple2"
@@ -12503,7 +12529,11 @@ Elm.Command.make = function (_elm) {
          return A2($Maybe.withDefault,
          id,
          A2($Maybe.map,$Basics.fst,_p5));
-      }(A2($AST.collect,upIterator,tree));
+      }(A4($AST.collectPath,
+      id,
+      F2(function (i,tree) {    return $Maybe.Nothing;}),
+      upIterator,
+      tree));
    });
    var SNInfo = F3(function (a,b,c) {
       return {ctor: "SNInfo",_0: a,_1: b,_2: c};
@@ -12512,6 +12542,14 @@ Elm.Command.make = function (_elm) {
    var Stuck = {ctor: "Stuck"};
    var GiveUp = {ctor: "GiveUp"};
    var smartNext = F2(function (tree,id) {
+      var defaultVal = F2(function (i,tree) {
+         return {ctor: "_Tuple2"
+                ,_0: A3(SNInfo,
+                i,
+                $AST.getType(tree),
+                $List.head(A2($AST.subIndecies,i,tree)))
+                ,_1: $Result.Err(GiveUp)};
+      });
       var findNext = F2(function (pt,indecies) {
          findNext: while (true) {
             var _p6 = indecies;
@@ -12573,9 +12611,17 @@ Elm.Command.make = function (_elm) {
       });
       return function (_p13) {
          return A2($Result.withDefault,id,$Basics.snd(_p13));
-      }(A2($AST.collect,nextIterator,tree));
+      }(A4($AST.collectPath,id,defaultVal,nextIterator,tree));
    });
    var smartPrev = F2(function (tree,id) {
+      var defaultVal = F2(function (i,tree) {
+         return {ctor: "_Tuple2"
+                ,_0: A3(SNInfo,
+                i,
+                $AST.getType(tree),
+                $Utils.last(A2($AST.subIndecies,i,tree)))
+                ,_1: $Result.Err(GiveUp)};
+      });
       var findPrev = F2(function (pt,indecies) {
          findPrev: while (true) {
             var _p14 = indecies;
@@ -12646,7 +12692,7 @@ Elm.Command.make = function (_elm) {
       });
       return function (_p22) {
          return A2($Result.withDefault,id,$Basics.snd(_p22));
-      }(A2($AST.collect,prevIterator,tree));
+      }(A4($AST.collectPath,id,defaultVal,prevIterator,tree));
    });
    var prev = F2(function (tree,id) {
       var prev$ = function (indecies) {
@@ -12714,10 +12760,62 @@ Elm.Command.make = function (_elm) {
       id,
       A3($AST.search,id,childIterator,tree));
    });
-   var update = F2(function (id,fn) {
-      var toTree = $AST.map(function (_p27) {
-         return $AST.SubTree($Basics.snd(_p27));
+   var trim = function (grammar) {
+      var trimmer = F2(function (i,tree) {
+         return A2($Maybe.withDefault,
+         tree,
+         A3($Basics.flip,
+         $Maybe.andThen,
+         function (alt) {
+            return _U.eq($List.length(alt),
+            1) ? $List.head($AST.getTerms(tree)) : $Maybe.Nothing;
+         },
+         A3($Grammar.get,tree.name,tree.alt,grammar)));
       });
+      return $AST.collectS(trimmer);
+   };
+   var $delete = F2(function (id,tree) {
+      var deleteIterator = F2(function (i,tree) {
+         if (_U.eq(i,id)) return $Maybe.Nothing; else {
+               var _p27 = $Utils.allOf(tree.terms);
+               if (_p27.ctor === "Just") {
+                     var _p28 = _p27._0;
+                     return $Maybe.Just({ctor: "_Tuple2"
+                                        ,_0: A2($Maybe.withDefault,
+                                        0,
+                                        $List.maximum(A2($List.map,$Basics.fst,_p28)))
+                                        ,_1: A2($AST.setTerms,A2($List.map,$Basics.snd,_p28),tree)});
+                  } else {
+                     var _p29 = $Utils.onlyOne(tree.terms);
+                     if (_p29.ctor === "Just") {
+                           var _p30 = _p29._0._1;
+                           return $Maybe.Just({ctor: "_Tuple2"
+                                              ,_0: i - tree.size + _p30.size
+                                              ,_1: _p30});
+                        } else {
+                           return $Maybe.Nothing;
+                        }
+                  }
+            }
+      });
+      return A2($Maybe.withDefault,
+      {ctor: "_Tuple2",_0: id,_1: tree},
+      A4($AST.collectPath,
+      id,
+      F2(function (i,tree) {
+         return $Maybe.Just({ctor: "_Tuple2",_0: 0,_1: tree});
+      }),
+      deleteIterator,
+      tree));
+   });
+   var update = F2(function (fn,id) {
+      var toTree = function (_p31) {
+         var _p32 = _p31;
+         return A3($AST.syntax,
+         _p32.name,
+         _p32.alt,
+         A2($List.map,$Basics.snd,_p32.terms));
+      };
       var update$ = F2(function (i,node) {
          if (_U.eq(id,i)) {
                var rval = fn(toTree(node));
@@ -12745,6 +12843,8 @@ Elm.Command.make = function (_elm) {
    return _elm.Command.values = {_op: _op
                                 ,get: get
                                 ,update: update
+                                ,$delete: $delete
+                                ,trim: trim
                                 ,child: child
                                 ,parrent: parrent
                                 ,next: next
@@ -12755,8 +12855,155 @@ Elm.Command.make = function (_elm) {
                                 ,SNInfo: SNInfo
                                 ,smartNext: smartNext
                                 ,smartPrev: smartPrev
-                                ,smartOut: smartOut
-                                ,smartIn: smartIn};
+                                ,smartParrent: smartParrent
+                                ,smartChild: smartChild};
+};
+Elm.Parser = Elm.Parser || {};
+Elm.Parser.make = function (_elm) {
+   "use strict";
+   _elm.Parser = _elm.Parser || {};
+   if (_elm.Parser.values) return _elm.Parser.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $AST = Elm.AST.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Grammar = Elm.Grammar.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm),
+   $Utils = Elm.Utils.make(_elm);
+   var _op = {};
+   var parse = F2(function (grammar,entry) {
+      var parseRule = F2(function (ruleName,str) {
+         return A2($Maybe.andThen,
+         A2($Grammar.getRule,ruleName,grammar),
+         function (rule) {
+            return A4(parseRules,
+            _U.list([]),
+            str,
+            ruleName,
+            A2($List.indexedMap,
+            F2(function (v0,v1) {
+               return {ctor: "_Tuple2",_0: v0,_1: v1};
+            }),
+            $Array.toList(rule)));
+         });
+      });
+      var parseRules = F4(function (rec,str,ruleName,alts) {
+         parseRules: while (true) {
+            var $continue = F2(function (alt,rest) {
+               var _p0 = A3(parseAlt,str,ruleName,alt);
+               if (_p0.ctor === "Nothing") {
+                     return A4(parseRules,rec,str,ruleName,rest);
+                  } else {
+                     var _p3 = _p0._0._1;
+                     var _p2 = _p0._0._0;
+                     var val = A2($Utils.oneOfMap,
+                     A3(parseLeftAlt,_p3,ruleName,_p2),
+                     $List.reverse(rec));
+                     var _p1 = val;
+                     if (_p1.ctor === "Nothing") {
+                           return $Maybe.Just({ctor: "_Tuple2",_0: _p2,_1: _p3});
+                        } else {
+                           return _p1;
+                        }
+                  }
+            });
+            var _p4 = alts;
+            if (_p4.ctor === "::") {
+                  var _p7 = _p4._1;
+                  var _p6 = _p4._0;
+                  var _p5 = _p4._0._1;
+                  if (_p5.ctor === "::" && _p5._0.ctor === "Ref") {
+                        if (_U.eq(_p5._0._0,ruleName)) {
+                              var _v4 = A2($List._op["::"],
+                              {ctor: "_Tuple2",_0: _p4._0._0,_1: _p5._1},
+                              rec),
+                              _v5 = str,
+                              _v6 = ruleName,
+                              _v7 = _p7;
+                              rec = _v4;
+                              str = _v5;
+                              ruleName = _v6;
+                              alts = _v7;
+                              continue parseRules;
+                           } else return A2($continue,_p6,_p7);
+                     } else {
+                        return A2($continue,_p6,_p7);
+                     }
+               } else {
+                  return $Maybe.Nothing;
+               }
+         }
+      });
+      var parseAlt = F3(function (str,ruleName,_p8) {
+         var _p9 = _p8;
+         return A2($Maybe.map,
+         function (_p10) {
+            var _p11 = _p10;
+            return {ctor: "_Tuple2"
+                   ,_0: A3($AST.syntax,ruleName,_p9._0,_p11._0)
+                   ,_1: _p11._1};
+         },
+         A2(parseTerms,str,_p9._1));
+      });
+      var parseTerms = F2(function (str,alt) {
+         parseTerms: while (true) {
+            var _p12 = alt;
+            if (_p12.ctor === "::") {
+                  if (_p12._0.ctor === "Lex") {
+                        var _p13 = _p12._0._0;
+                        if (A2($String.startsWith,_p13,str)) {
+                              var _v11 = A2($String.dropLeft,$String.length(_p13),str),
+                              _v12 = _p12._1;
+                              str = _v11;
+                              alt = _v12;
+                              continue parseTerms;
+                           } else return $Maybe.Nothing;
+                     } else {
+                        var _p14 = A2(parseRule,_p12._0._0,str);
+                        if (_p14.ctor === "Just") {
+                              var _p15 = A2(parseTerms,_p14._0._1,_p12._1);
+                              if (_p15.ctor === "Just") {
+                                    return $Maybe.Just({ctor: "_Tuple2"
+                                                       ,_0: A2($List._op["::"],_p14._0._0,_p15._0._0)
+                                                       ,_1: _p15._0._1});
+                                 } else {
+                                    return $Maybe.Nothing;
+                                 }
+                           } else {
+                              return $Maybe.Nothing;
+                           }
+                     }
+               } else {
+                  return $Maybe.Just({ctor: "_Tuple2"
+                                     ,_0: _U.list([])
+                                     ,_1: str});
+               }
+         }
+      });
+      var parseLeftAlt = F4(function (str,ruleName,first,_p16) {
+         var _p17 = _p16;
+         return A2($Maybe.map,
+         function (_p18) {
+            var _p19 = _p18;
+            return {ctor: "_Tuple2"
+                   ,_0: A3($AST.syntax,
+                   ruleName,
+                   _p17._0,
+                   A2($List._op["::"],first,_p19._0))
+                   ,_1: _p19._1};
+         },
+         A2(parseTerms,str,_p17._1));
+      });
+      return function (_p20) {
+         return A2($Maybe.map,$Basics.fst,A2(parseRule,entry,_p20));
+      };
+   });
+   return _elm.Parser.values = {_op: _op,parse: parse};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -12777,42 +13024,63 @@ Elm.Main.make = function (_elm) {
    $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Parser = Elm.Parser.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StartApp = Elm.StartApp.make(_elm);
+   $StartApp = Elm.StartApp.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
    var pprint = function (_p0) {
       var _p1 = _p0;
+      var _p3 = _p1.focus;
       var collector = F2(function (id,tree) {
          return A2($Html.div,
          _U.list([$Html$Attributes.style(A2($Basics._op["++"],
          _U.list([{ctor: "_Tuple2",_0: "display",_1: "inline"}]),
-         _U.eq(id,_p1.focus) ? _U.list([{ctor: "_Tuple2"
-                                        ,_0: "background"
-                                        ,_1: "lightgray"}]) : _U.list([])))]),
+         _U.eq(id,_p3) ? _U.list([{ctor: "_Tuple2"
+                                  ,_0: "background"
+                                  ,_1: "lightgray"}]) : _U.list([])))]),
          A2($Maybe.withDefault,
-         _U.list([$Html.text("?")]),
-         A3($AST.translate,_p1.lang,tree,$Html.text)));
+         _U.list([function () {
+            var _p2 = _p1.mode;
+            if (_p2.ctor === "Change") {
+                  return $Html.text(_p2._0);
+               } else {
+                  return $Html.text("-");
+               }
+         }()]),
+         A3($AST.translate,
+         _p1.lang,
+         tree,
+         function (str) {
+            return A2($Html.div,
+            _U.list([$Html$Attributes.style(A2($Basics._op["++"],
+            _U.list([{ctor: "_Tuple2",_0: "display",_1: "inline"}]),
+            _U.eq(id,_p3) ? _U.list([{ctor: "_Tuple2"
+                                     ,_0: "color"
+                                     ,_1: "red"}]) : _U.list([])))]),
+            _U.list([$Html.text(str)]));
+         })));
       });
       return A2($AST.collect,collector,_p1.tree);
    };
-   var dpprint = function (_p2) {
-      var _p3 = _p2;
-      var _p4 = _p3.focus;
+   var dpprint = function (_p4) {
+      var _p5 = _p4;
+      var _p6 = _p5.focus;
       var collector = F2(function (id,tree) {
          return A2($Html.div,
          _U.list([$Html$Attributes.style(A2($Basics._op["++"],
          _U.list([{ctor: "_Tuple2",_0: "display",_1: "inline-block"}
                  ,{ctor: "_Tuple2",_0: "margin",_1: "2px 2px 0px 2px"}
                  ,{ctor: "_Tuple2",_0: "text-align",_1: "center"}]),
-         _U.eq(_p4,id) ? _U.list([{ctor: "_Tuple2"
+         _U.eq(_p6,id) ? _U.list([{ctor: "_Tuple2"
                                   ,_0: "background"
                                   ,_1: "lightgray"}]) : _U.list([])))]),
          A2($Basics._op["++"],
          _U.list([A2($Html.div,
          _U.list([$Html$Attributes.style(A2($Basics._op["++"],
          _U.list([{ctor: "_Tuple2",_0: "font-size",_1: "6pt"}]),
-         _U.eq(_p4,id) ? _U.list([{ctor: "_Tuple2"
+         _U.eq(_p6,id) ? _U.list([{ctor: "_Tuple2"
                                   ,_0: "background"
                                   ,_1: "black"}
                                  ,{ctor: "_Tuple2"
@@ -12825,57 +13093,62 @@ Elm.Main.make = function (_elm) {
          A2($Basics._op["++"]," : ",$Basics.toString(id))))]))]),
          A2($Maybe.withDefault,
          _U.list([$Html.text("?")]),
-         A3($AST.translate,_p3.lang,tree,$Html.text))));
+         A3($AST.translate,
+         _p5.lang,
+         tree,
+         function (str) {
+            return A2($Html.div,
+            _U.list([$Html$Attributes.style(A2($Basics._op["++"],
+            _U.list([{ctor: "_Tuple2",_0: "display",_1: "inline-block"}
+                    ,{ctor: "_Tuple2",_0: "margin",_1: "2px 2px 0px 2px"}
+                    ,{ctor: "_Tuple2",_0: "text-align",_1: "center"}]),
+            _U.eq(_p6,id) ? _U.list([{ctor: "_Tuple2"
+                                     ,_0: "color"
+                                     ,_1: "red"}]) : _U.list([])))]),
+            _U.list([$Html.text(str)]));
+         }))));
       });
-      return A2($AST.collect,collector,_p3.tree);
+      return A2($AST.collect,collector,_p5.tree);
    };
    var view = F2(function (address,model) {
-      return A2($Html.table,
+      return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
                                                ,_0: "width"
-                                               ,_1: "600px"}
+                                               ,_1: "80%"}
                                               ,{ctor: "_Tuple2",_0: "margin",_1: "100px auto"}]))]),
-      _U.list([A2($Html.tr,
-      _U.list([]),
-      A2($List.map,
-      function (f) {
-         return A2($Html.td,
-         _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                                  ,_0: "vertical-align"
-                                                  ,_1: "bottom"}
-                                                 ,{ctor: "_Tuple2",_0: "text-align",_1: "center"}]))]),
-         _U.list([f(model)]));
-      },
-      _U.list([dpprint,pprint])))]));
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([]))]),
+              _U.list([A2($Html.div,
+                      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                               ,_0: "width"
+                                                               ,_1: "40px"}
+                                                              ,{ctor: "_Tuple2",_0: "display",_1: "inline-block"}]))]),
+                      _U.list([$Html.text($Basics.toString(model.lastKey))]))
+                      ,$Html.text($Basics.toString(model.mode))]))
+              ,A2($Html.table,
+              _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                       ,_0: "width"
+                                                       ,_1: "100%"}
+                                                      ,{ctor: "_Tuple2",_0: "table-layout",_1: "fixed"}]))]),
+              _U.list([A2($Html.tr,
+              _U.list([]),
+              A2($List.map,
+              function (f) {
+                 return A2($Html.td,
+                 _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                          ,_0: "vertical-align"
+                                                          ,_1: "bottom"}
+                                                         ,{ctor: "_Tuple2",_0: "text-align",_1: "center"}]))]),
+                 _U.list([f(model)]));
+              },
+              _U.list([dpprint,pprint])))]))]));
    });
-   var update = F2(function (action,model) {
-      var model$ = function () {
-         var _p5 = action;
-         if (_p5.ctor === "Focus") {
-               return _U.update(model,
-               {focus: A2(function () {
-                  var _p6 = _p5._0;
-                  switch (_p6.ctor)
-                  {case "SmartOut": return $Command.smartOut;
-                     case "SmartIn": return $Command.smartIn;
-                     case "SmartNext": return $Command.smartNext;
-                     case "SmartPrev": return $Command.smartPrev;
-                     case "Out": return $Command.parrent;
-                     case "In": return $Command.child;
-                     case "Next": return $Command.next;
-                     default: return $Command.prev;}
-               }(),
-               model.tree,
-               model.focus)});
-            } else {
-               return model;
-            }
-      }();
-      return {ctor: "_Tuple2",_0: model$,_1: $Effects.none};
+   var addChar = F2(function (str,key) {
+      return A2($String.append,
+      str,
+      $String.fromChar($Char.fromCode(key)));
    });
-   var DeleteFocus = {ctor: "DeleteFocus"};
-   var Focus = function (a) {    return {ctor: "Focus",_0: a};};
-   var NoOp = {ctor: "NoOp"};
+   var inputs = _U.list([$Keyboard.presses]);
    var SmartPrev = {ctor: "SmartPrev"};
    var Prev = {ctor: "Prev"};
    var SmartNext = {ctor: "SmartNext"};
@@ -12884,56 +13157,87 @@ Elm.Main.make = function (_elm) {
    var In = {ctor: "In"};
    var SmartOut = {ctor: "SmartOut"};
    var Out = {ctor: "Out"};
-   var keyHandle = function (keyCode) {
-      var _p7 = $Char.fromCode(keyCode);
-      switch (_p7.valueOf())
-      {case "j": return Focus(SmartIn);
-         case "J": return Focus(In);
-         case "k": return Focus(SmartOut);
-         case "K": return Focus(Out);
-         case "l": return Focus(SmartNext);
-         case "L": return Focus(Next);
-         case "h": return Focus(SmartPrev);
-         case "H": return Focus(Prev);
-         case "d": return DeleteFocus;
-         default: return NoOp;}
-   };
-   var inputs = _U.list([A2($Signal.map,
-   keyHandle,
-   $Keyboard.presses)]);
    var number = function (numbers) {
-      var _p8 = numbers;
-      if (_p8.ctor === "::") {
-            if (_p8._1.ctor === "[]") {
-                  return A3($AST.syntax,"digit",_p8._0,_U.list([]));
+      var _p7 = numbers;
+      if (_p7.ctor === "::") {
+            if (_p7._1.ctor === "[]") {
+                  return A3($AST.syntax,"digit",_p7._0,_U.list([]));
                } else {
                   return A3($AST.syntax,
                   "number",
                   0,
-                  _U.list([A3($AST.syntax,"digit",_p8._0,_U.list([]))
-                          ,number(_p8._1)]));
+                  _U.list([A3($AST.syntax,"digit",_p7._0,_U.list([]))
+                          ,number(_p7._1)]));
                }
          } else {
             return _U.crashCase("Main",
-            {start: {line: 43,column: 3},end: {line: 51,column: 33}},
-            _p8)("Bad use!");
+            {start: {line: 40,column: 3},end: {line: 48,column: 33}},
+            _p7)("Bad use!");
          }
    };
-   var model = function () {
-      var tree = A3($AST.syntax,
-      "AddExp",
-      0,
-      _U.list([A3($AST.syntax,
-              "AddExp",
-              0,
-              _U.list([A3($AST.syntax,
-                      "AddExp",
-                      0,
-                      _U.list([number(_U.list([1,2,3,4])),number(_U.list([4,2]))]))
-                      ,number(_U.list([2,3]))]))
-              ,number(_U.list([3,4]))]));
-      return {tree: tree,focus: tree.size,lang: $Arithmetic.lang};
-   }();
+   var Model = F5(function (a,b,c,d,e) {
+      return {tree: a,focus: b,lang: c,mode: d,lastKey: e};
+   });
+   var Change = function (a) {    return {ctor: "Change",_0: a};};
+   var Normal = {ctor: "Normal"};
+   var model = {tree: $AST.empty
+               ,focus: 1
+               ,lang: $Arithmetic.lang
+               ,mode: Normal
+               ,lastKey: 0};
+   var update = F2(function (action,model) {
+      var focus = F2(function (fn,_p9) {
+         var _p10 = _p9;
+         return _U.update(_p10,{focus: A2(fn,_p10.tree,_p10.focus)});
+      });
+      var updateWith = F2(function (fn,_p11) {
+         var _p12 = _p11;
+         var _p13 = A2(fn,_p12.focus,_p12.tree);
+         var focus$ = _p13._0;
+         var tree$ = _p13._1;
+         return _U.update(_p12,{tree: tree$,focus: focus$});
+      });
+      var model$ = function () {
+         var _p14 = model.mode;
+         if (_p14.ctor === "Normal") {
+               var _p15 = $Char.fromCode(action);
+               switch (_p15.valueOf())
+               {case "c": return A2(updateWith,
+                    $Command.update(function (_p16) {    return $AST.empty;}),
+                    _U.update(model,{mode: Change("")}));
+                  case "d": return A2(updateWith,$Command.$delete,model);
+                  case "l": return A2(focus,$Command.smartNext,model);
+                  case "h": return A2(focus,$Command.smartPrev,model);
+                  case "j": return A2(focus,$Command.smartChild,model);
+                  case "k": return A2(focus,$Command.smartParrent,model);
+                  case "L": return A2(focus,$Command.next,model);
+                  case "H": return A2(focus,$Command.prev,model);
+                  case "J": return A2(focus,$Command.child,model);
+                  case "K": return A2(focus,$Command.parrent,model);
+                  default: return model;}
+            } else {
+               var _p19 = _p14._0;
+               var _p17 = action;
+               if (_p17 === 13) {
+                     return A2(updateWith,
+                     $Command.update(function (_p18) {
+                        return A2($Maybe.withDefault,
+                        $AST.empty,
+                        A2($Maybe.map,
+                        $Command.trim(model.lang),
+                        A3($Parser.parse,model.lang,"Exp",_p19)));
+                     }),
+                     _U.update(model,{mode: Normal}));
+                  } else {
+                     return _U.update(model,
+                     {mode: Change(A2(addChar,_p19,action))});
+                  }
+            }
+      }();
+      return {ctor: "_Tuple2"
+             ,_0: _U.update(model$,{lastKey: action})
+             ,_1: $Effects.none};
+   });
    var main = function (_) {
       return _.html;
    }($StartApp.start({init: {ctor: "_Tuple2"
@@ -12942,10 +13246,9 @@ Elm.Main.make = function (_elm) {
                      ,view: view
                      ,update: update
                      ,inputs: inputs}));
-   var Model = F3(function (a,b,c) {
-      return {tree: a,focus: b,lang: c};
-   });
    return _elm.Main.values = {_op: _op
+                             ,Normal: Normal
+                             ,Change: Change
                              ,Model: Model
                              ,model: model
                              ,number: number
@@ -12957,11 +13260,8 @@ Elm.Main.make = function (_elm) {
                              ,SmartNext: SmartNext
                              ,Prev: Prev
                              ,SmartPrev: SmartPrev
-                             ,NoOp: NoOp
-                             ,Focus: Focus
-                             ,DeleteFocus: DeleteFocus
                              ,inputs: inputs
-                             ,keyHandle: keyHandle
+                             ,addChar: addChar
                              ,update: update
                              ,dpprint: dpprint
                              ,pprint: pprint
