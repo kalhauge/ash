@@ -6,6 +6,8 @@ import Signal
 import StartApp exposing (start)
 import Keyboard exposing (presses)
 
+import Array
+
 import Char
 import Maybe exposing (Maybe, andThen)
 import String
@@ -19,6 +21,7 @@ import Arithmetic
 type Mode 
   = Normal
   | Change String
+  | Choose (Int, (Array.Array (Int, SyntaxTree)))
 
 type alias Model = 
   { tree : SyntaxTree
@@ -36,17 +39,6 @@ model =
   , mode = Normal
   , lastKey = 0
   }
-
-number numbers =
-  case numbers of
-    [n] -> 
-      syntax "digit" n [] 
-    n :: ns -> 
-      syntax "number" 0
-        [ syntax "digit" n [] 
-        , number ns 
-        ]
-    [] -> Debug.crash "Bad use!"
 
 type Movement 
   = Out 
@@ -66,16 +58,22 @@ inputs =
     [ Signal.map KeyPress Keyboard.presses 
     ]
 
-addChar str key = 
-  String.append str (String.fromChar (Char.fromCode key))
+-- Tries to verify a model returns a list of sugested fixes, including the
+-- Original model if it is correct.
+verify : Grammar -> (Int, SyntaxTree) -> List (Int, SyntaxTree) 
+verify lang ((id, tree) as item) = [ item ]
 
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model = 
   let 
     updateWith : (Int -> SyntaxTree -> (Int, SyntaxTree)) -> Model -> Model
-    updateWith fn ({focus, tree} as model) =
-        let (focus', tree') = fn focus tree 
-        in { model | tree = tree', focus = focus'}
+    updateWith fn ({focus, tree, lang} as model) =
+        let options = verify lang (fn focus tree)
+        in case options of
+            [ (focus, tree) ] -> 
+              { model | tree = tree, focus = focus}
+            [] -> model
+            a -> { model | mode = Choose (0, Array.fromList a) }
   
     focus fn ({focus, tree} as model) =
       { model | focus = fn tree focus }
@@ -111,8 +109,24 @@ update action model =
                   |> Maybe.map (trim model.lang)
                   |> Maybe.withDefault empty 
                 )) 
-              { model | mode = Normal }
+              { model | mode = Normal, lastKey = 13 }
           KeyPress key -> { model | lastKey = key }
+      Choose (i, list) ->
+          case action of 
+            KeyPress 13 ->
+              case  Array.get i list of
+                Just (focus, tree) ->
+                  { model | mode = Normal, focus = focus, tree = tree }
+                _ -> model
+            KeyPress key ->
+              let model'' = case (Char.fromCode key) of
+                'l' -> { model | mode = Choose((i + 1) % Array.length list, list) }
+                'h' -> { model | mode = Choose((i - 1) % Array.length list, list) }
+                _ ->  model
+              in { model'' | lastKey = key }
+            _ -> model
+
+
 
   in (model', Effects.none)
 
@@ -170,7 +184,7 @@ pprint {tree, lang, focus, mode} =
         ( Maybe.withDefault 
             [ case mode of 
                 Change str -> text str
-                Normal -> text "-"
+                _ -> text "?"
             ] 
             <| translate lang tree (\str -> 
                   div  
@@ -245,25 +259,23 @@ editorBar address model =
                 ] 
               ] []
             ]
+          Choose (i, list) -> 
+            [ text 
+              ( "choose " ++ "[" 
+                ++ toString (i + 1) ++ "/" 
+                ++ toString (Array.length list) 
+                ++ "]"
+              )
+            ]
         ) 
+      , td 
+        [ style [ ("width", "40px"), ("text-align", "right") ] ] 
+        [ text (toString model.focus) ] 
       , td 
         [ style [ ("width", "40px"), ("text-align", "right") ] ] 
         [ text (toString model.lastKey) ] 
       ]
     ]
-
---port focus : Signal String
--- port focus = actions.signal 
---     let needsFocus act =
---             case act of
---               SetMode (Change a) -> True
---               _ -> False
--- 
---         toSelector (EditingTask id _) = ("#todo-" ++ toString id)
---     in
---         actions.signal
---           |> Signal.filter needsFocus (EditingTask 0 True)
---           |> Signal.map toSelector
 
 main = 
   start 
