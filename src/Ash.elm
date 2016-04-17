@@ -1,5 +1,6 @@
 import Html exposing (..)
-import Html.Attributes exposing (style)
+import Html.Events exposing (..)
+import Html.Attributes exposing (style, attribute, autofocus)
 import Effects exposing (Never)
 import Signal
 import StartApp exposing (start)
@@ -57,10 +58,12 @@ type Movement
   | Prev
   | SmartPrev
 
-type alias Action = Char.KeyCode
+type Action 
+  = KeyPress Char.KeyCode
+  | SetChange String
 
 inputs = 
-    [ Keyboard.presses 
+    [ Signal.map KeyPress Keyboard.presses 
     ]
 
 addChar str key = 
@@ -79,35 +82,39 @@ update action model =
 
     model' = case model.mode of
       Normal -> 
-        case (Char.fromCode action) of
-          'c' -> 
-            updateWith 
-              (Command.update (\_ -> empty)) 
-              { model | mode = Change "" }
-          'd' -> 
-            updateWith delete model
-          'l' -> focus smartNext model
-          'h' -> focus smartPrev model
-          'j' -> focus smartChild model
-          'k' -> focus smartParrent model
-          'L' -> focus next model
-          'H' -> focus prev model
-          'J' -> focus child model
-          'K' -> focus parrent model
+        case action of 
+          KeyPress key -> 
+            let model'' = case (Char.fromCode key) of
+              'c' -> 
+                updateWith 
+                  (Command.update (\_ -> empty)) 
+                  { model | mode = Change "" }
+              'd' -> 
+                updateWith delete model
+              'l' -> focus smartNext model
+              'h' -> focus smartPrev model
+              'j' -> focus smartChild model
+              'k' -> focus smartParrent model
+              'L' -> focus next model
+              'H' -> focus prev model
+              'J' -> focus child model
+              'K' -> focus parrent model
+              _ -> model
+            in { model'' | lastKey = key }
           _ -> model
       Change str -> 
-        case action of
-          13 -> 
+        case action of 
+          SetChange str -> { model | mode = Change str }
+          KeyPress 13 ->
             updateWith (Command.update (\_ -> 
                 parse model.lang "Exp" str
                   |> Maybe.map (trim model.lang)
                   |> Maybe.withDefault empty 
                 )) 
               { model | mode = Normal }
-          _ ->  
-            { model | mode = Change (addChar str action) }
+          KeyPress key -> { model | lastKey = key }
 
-  in ({ model' | lastKey = action }, Effects.none)
+  in (model', Effects.none)
 
 dpprint : Model -> Html
 dpprint {tree, lang, focus} = 
@@ -180,26 +187,12 @@ pprint {tree, lang, focus, mode} =
      collect collector tree
 
 view address model = 
-  div 
-    [ style
-      [ ("width", "80%")
-      , ("margin", "100px auto")
-      ]
-    ]
-    [ div [ style [] ] 
-      [ div 
-        [ style 
-          [ ("width", "40px")
-          , ("display", "inline-block") 
-          ] 
-        ] 
-        [ text (toString model.lastKey) ] 
-      , text (toString model.mode)
-      ]
-    , table 
+  div [ ]
+    [ table 
       [ style 
         [ ("width", "100%") 
         , ("table-layout", "fixed")
+        , ("margin", "30pt")
         ] 
       ]
       [ tr [] <| List.map (\f -> 
@@ -213,8 +206,64 @@ view address model =
         , pprint 
         ]
       ]
+    , editorBar address model
     ]
 
+editorBar address model =
+  table 
+    [ style 
+      [ ("background", "lightblue")
+      , ("height", "30px")
+      , ("position", "absolute")
+      , ("bottom", "0px")
+      , ("width", "100%")
+      , ("vertical-align", "middle")
+      , ("font-size", "10pt")
+      , ("font-family", "monospace")
+      , ("padding", "0 6px")
+      ] 
+    ] 
+    [ tr [] 
+      [ td [ style [] ] 
+        ( case model.mode of
+          Normal -> [ text "normal" ] 
+          Change str -> 
+            [ text "change:" 
+            , input 
+              [ on "input" targetValue
+                (\str -> 
+                    Signal.message address (SetChange str)
+                )
+              , autofocus True
+              , attribute "data-autofocus" ""
+              , style 
+                [ ("background", "none")
+                , ("border", "none")
+                , ("font-family", "monospace")
+                , ("font-size", "10pt")
+                , ("outline", "none")
+                ] 
+              ] []
+            ]
+        ) 
+      , td 
+        [ style [ ("width", "40px"), ("text-align", "right") ] ] 
+        [ text (toString model.lastKey) ] 
+      ]
+    ]
+
+--port focus : Signal String
+-- port focus = actions.signal 
+--     let needsFocus act =
+--             case act of
+--               SetMode (Change a) -> True
+--               _ -> False
+-- 
+--         toSelector (EditingTask id _) = ("#todo-" ++ toString id)
+--     in
+--         actions.signal
+--           |> Signal.filter needsFocus (EditingTask 0 True)
+--           |> Signal.map toSelector
 
 main = 
   start 
