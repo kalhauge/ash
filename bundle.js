@@ -11919,6 +11919,94 @@ Elm.Html.Attributes.make = function (_elm) {
                                         ,property: property
                                         ,attribute: attribute};
 };
+Elm.Html = Elm.Html || {};
+Elm.Html.Events = Elm.Html.Events || {};
+Elm.Html.Events.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Events = _elm.Html.Events || {};
+   if (_elm.Html.Events.values) return _elm.Html.Events.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var _op = {};
+   var keyCode = A2($Json$Decode._op[":="],
+   "keyCode",
+   $Json$Decode.$int);
+   var targetChecked = A2($Json$Decode.at,
+   _U.list(["target","checked"]),
+   $Json$Decode.bool);
+   var targetValue = A2($Json$Decode.at,
+   _U.list(["target","value"]),
+   $Json$Decode.string);
+   var defaultOptions = $VirtualDom.defaultOptions;
+   var Options = F2(function (a,b) {
+      return {stopPropagation: a,preventDefault: b};
+   });
+   var onWithOptions = $VirtualDom.onWithOptions;
+   var on = $VirtualDom.on;
+   var messageOn = F3(function (name,addr,msg) {
+      return A3(on,
+      name,
+      $Json$Decode.value,
+      function (_p0) {
+         return A2($Signal.message,addr,msg);
+      });
+   });
+   var onClick = messageOn("click");
+   var onDoubleClick = messageOn("dblclick");
+   var onMouseMove = messageOn("mousemove");
+   var onMouseDown = messageOn("mousedown");
+   var onMouseUp = messageOn("mouseup");
+   var onMouseEnter = messageOn("mouseenter");
+   var onMouseLeave = messageOn("mouseleave");
+   var onMouseOver = messageOn("mouseover");
+   var onMouseOut = messageOn("mouseout");
+   var onBlur = messageOn("blur");
+   var onFocus = messageOn("focus");
+   var onSubmit = messageOn("submit");
+   var onKey = F3(function (name,addr,handler) {
+      return A3(on,
+      name,
+      keyCode,
+      function (code) {
+         return A2($Signal.message,addr,handler(code));
+      });
+   });
+   var onKeyUp = onKey("keyup");
+   var onKeyDown = onKey("keydown");
+   var onKeyPress = onKey("keypress");
+   return _elm.Html.Events.values = {_op: _op
+                                    ,onBlur: onBlur
+                                    ,onFocus: onFocus
+                                    ,onSubmit: onSubmit
+                                    ,onKeyUp: onKeyUp
+                                    ,onKeyDown: onKeyDown
+                                    ,onKeyPress: onKeyPress
+                                    ,onClick: onClick
+                                    ,onDoubleClick: onDoubleClick
+                                    ,onMouseMove: onMouseMove
+                                    ,onMouseDown: onMouseDown
+                                    ,onMouseUp: onMouseUp
+                                    ,onMouseEnter: onMouseEnter
+                                    ,onMouseLeave: onMouseLeave
+                                    ,onMouseOver: onMouseOver
+                                    ,onMouseOut: onMouseOut
+                                    ,on: on
+                                    ,onWithOptions: onWithOptions
+                                    ,defaultOptions: defaultOptions
+                                    ,targetValue: targetValue
+                                    ,targetChecked: targetChecked
+                                    ,keyCode: keyCode
+                                    ,Options: Options};
+};
 Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
    "use strict";
@@ -13013,6 +13101,7 @@ Elm.Main.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $AST = Elm.AST.make(_elm),
    $Arithmetic = Elm.Arithmetic.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Char = Elm.Char.make(_elm),
    $Command = Elm.Command.make(_elm),
@@ -13021,14 +13110,14 @@ Elm.Main.make = function (_elm) {
    $Grammar = Elm.Grammar.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Parser = Elm.Parser.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StartApp = Elm.StartApp.make(_elm),
-   $String = Elm.String.make(_elm);
+   $StartApp = Elm.StartApp.make(_elm);
    var _op = {};
    var pprint = function (_p0) {
       var _p1 = _p0;
@@ -13046,7 +13135,7 @@ Elm.Main.make = function (_elm) {
             if (_p2.ctor === "Change") {
                   return $Html.text(_p2._0);
                } else {
-                  return $Html.text("-");
+                  return $Html.text("?");
                }
          }()]),
          A3($AST.translate,
@@ -13110,26 +13199,86 @@ Elm.Main.make = function (_elm) {
       });
       return A2($AST.collect,collector,_p5.tree);
    };
+   var verify = F2(function (lang,_p7) {
+      var _p8 = _p7;
+      return _U.list([_p8]);
+   });
+   var SetChange = function (a) {
+      return {ctor: "SetChange",_0: a};
+   };
+   var editorBar = F2(function (address,model) {
+      return A2($Html.table,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                               ,_0: "background"
+                                               ,_1: "lightblue"}
+                                              ,{ctor: "_Tuple2",_0: "height",_1: "30px"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "absolute"}
+                                              ,{ctor: "_Tuple2",_0: "bottom",_1: "0px"}
+                                              ,{ctor: "_Tuple2",_0: "width",_1: "100%"}
+                                              ,{ctor: "_Tuple2",_0: "vertical-align",_1: "middle"}
+                                              ,{ctor: "_Tuple2",_0: "font-size",_1: "10pt"}
+                                              ,{ctor: "_Tuple2",_0: "font-family",_1: "monospace"}
+                                              ,{ctor: "_Tuple2",_0: "padding",_1: "0 6px"}]))]),
+      _U.list([A2($Html.tr,
+      _U.list([]),
+      _U.list([A2($Html.td,
+              _U.list([$Html$Attributes.style(_U.list([]))]),
+              function () {
+                 var _p9 = model.mode;
+                 switch (_p9.ctor)
+                 {case "Normal": return _U.list([$Html.text("normal")]);
+                    case "Change": return _U.list([$Html.text("change:")
+                                                  ,A2($Html.input,
+                                                  _U.list([A3($Html$Events.on,
+                                                          "input",
+                                                          $Html$Events.targetValue,
+                                                          function (str) {
+                                                             return A2($Signal.message,address,SetChange(str));
+                                                          })
+                                                          ,$Html$Attributes.autofocus(true)
+                                                          ,A2($Html$Attributes.attribute,"data-autofocus","")
+                                                          ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                                                           ,_0: "background"
+                                                                                           ,_1: "none"}
+                                                                                          ,{ctor: "_Tuple2",_0: "border",_1: "none"}
+                                                                                          ,{ctor: "_Tuple2",_0: "font-family",_1: "monospace"}
+                                                                                          ,{ctor: "_Tuple2",_0: "font-size",_1: "10pt"}
+                                                                                          ,{ctor: "_Tuple2",_0: "outline",_1: "none"}]))]),
+                                                  _U.list([]))]);
+                    default: return _U.list([$Html.text(A2($Basics._op["++"],
+                      "choose ",
+                      A2($Basics._op["++"],
+                      "[",
+                      A2($Basics._op["++"],
+                      $Basics.toString(_p9._0._0 + 1),
+                      A2($Basics._op["++"],
+                      "/",
+                      A2($Basics._op["++"],
+                      $Basics.toString($Array.length(_p9._0._1)),
+                      "]"))))))]);}
+              }())
+              ,A2($Html.td,
+              _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                       ,_0: "width"
+                                                       ,_1: "40px"}
+                                                      ,{ctor: "_Tuple2",_0: "text-align",_1: "right"}]))]),
+              _U.list([$Html.text($Basics.toString(model.focus))]))
+              ,A2($Html.td,
+              _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                       ,_0: "width"
+                                                       ,_1: "40px"}
+                                                      ,{ctor: "_Tuple2",_0: "text-align",_1: "right"}]))]),
+              _U.list([$Html.text($Basics.toString(model.lastKey))]))]))]));
+   });
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                               ,_0: "width"
-                                               ,_1: "80%"}
-                                              ,{ctor: "_Tuple2",_0: "margin",_1: "100px auto"}]))]),
-      _U.list([A2($Html.div,
-              _U.list([$Html$Attributes.style(_U.list([]))]),
-              _U.list([A2($Html.div,
-                      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                                               ,_0: "width"
-                                                               ,_1: "40px"}
-                                                              ,{ctor: "_Tuple2",_0: "display",_1: "inline-block"}]))]),
-                      _U.list([$Html.text($Basics.toString(model.lastKey))]))
-                      ,$Html.text($Basics.toString(model.mode))]))
-              ,A2($Html.table,
+      _U.list([]),
+      _U.list([A2($Html.table,
               _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
                                                        ,_0: "width"
                                                        ,_1: "100%"}
-                                                      ,{ctor: "_Tuple2",_0: "table-layout",_1: "fixed"}]))]),
+                                                      ,{ctor: "_Tuple2",_0: "table-layout",_1: "fixed"}
+                                                      ,{ctor: "_Tuple2",_0: "margin",_1: "30pt"}]))]),
               _U.list([A2($Html.tr,
               _U.list([]),
               A2($List.map,
@@ -13141,14 +13290,15 @@ Elm.Main.make = function (_elm) {
                                                          ,{ctor: "_Tuple2",_0: "text-align",_1: "center"}]))]),
                  _U.list([f(model)]));
               },
-              _U.list([dpprint,pprint])))]))]));
+              _U.list([dpprint,pprint])))]))
+              ,A2(editorBar,address,model)]));
    });
-   var addChar = F2(function (str,key) {
-      return A2($String.append,
-      str,
-      $String.fromChar($Char.fromCode(key)));
-   });
-   var inputs = _U.list([$Keyboard.presses]);
+   var KeyPress = function (a) {
+      return {ctor: "KeyPress",_0: a};
+   };
+   var inputs = _U.list([A2($Signal.map,
+   KeyPress,
+   $Keyboard.presses)]);
    var SmartPrev = {ctor: "SmartPrev"};
    var Prev = {ctor: "Prev"};
    var SmartNext = {ctor: "SmartNext"};
@@ -13157,27 +13307,10 @@ Elm.Main.make = function (_elm) {
    var In = {ctor: "In"};
    var SmartOut = {ctor: "SmartOut"};
    var Out = {ctor: "Out"};
-   var number = function (numbers) {
-      var _p7 = numbers;
-      if (_p7.ctor === "::") {
-            if (_p7._1.ctor === "[]") {
-                  return A3($AST.syntax,"digit",_p7._0,_U.list([]));
-               } else {
-                  return A3($AST.syntax,
-                  "number",
-                  0,
-                  _U.list([A3($AST.syntax,"digit",_p7._0,_U.list([]))
-                          ,number(_p7._1)]));
-               }
-         } else {
-            return _U.crashCase("Main",
-            {start: {line: 40,column: 3},end: {line: 48,column: 33}},
-            _p7)("Bad use!");
-         }
-   };
    var Model = F5(function (a,b,c,d,e) {
       return {tree: a,focus: b,lang: c,mode: d,lastKey: e};
    });
+   var Choose = function (a) {    return {ctor: "Choose",_0: a};};
    var Change = function (a) {    return {ctor: "Change",_0: a};};
    var Normal = {ctor: "Normal"};
    var model = {tree: $AST.empty
@@ -13186,57 +13319,107 @@ Elm.Main.make = function (_elm) {
                ,mode: Normal
                ,lastKey: 0};
    var update = F2(function (action,model) {
-      var focus = F2(function (fn,_p9) {
-         var _p10 = _p9;
-         return _U.update(_p10,{focus: A2(fn,_p10.tree,_p10.focus)});
+      var focus = F2(function (fn,_p10) {
+         var _p11 = _p10;
+         return _U.update(_p11,{focus: A2(fn,_p11.tree,_p11.focus)});
       });
-      var updateWith = F2(function (fn,_p11) {
-         var _p12 = _p11;
-         var _p13 = A2(fn,_p12.focus,_p12.tree);
-         var focus$ = _p13._0;
-         var tree$ = _p13._1;
-         return _U.update(_p12,{tree: tree$,focus: focus$});
+      var updateWith = F2(function (fn,_p12) {
+         var _p13 = _p12;
+         var _p15 = _p13;
+         var options = A2(verify,_p13.lang,A2(fn,_p13.focus,_p13.tree));
+         var _p14 = options;
+         if (_p14.ctor === "::") {
+               if (_p14._0.ctor === "_Tuple2" && _p14._1.ctor === "[]") {
+                     return _U.update(_p15,{tree: _p14._0._1,focus: _p14._0._0});
+                  } else {
+                     return _U.update(_p15,
+                     {mode: Choose({ctor: "_Tuple2"
+                                   ,_0: 0
+                                   ,_1: $Array.fromList(_p14)})});
+                  }
+            } else {
+               return _p15;
+            }
       });
       var model$ = function () {
-         var _p14 = model.mode;
-         if (_p14.ctor === "Normal") {
-               var _p15 = $Char.fromCode(action);
-               switch (_p15.valueOf())
-               {case "c": return A2(updateWith,
-                    $Command.update(function (_p16) {    return $AST.empty;}),
-                    _U.update(model,{mode: Change("")}));
-                  case "d": return A2(updateWith,$Command.$delete,model);
-                  case "l": return A2(focus,$Command.smartNext,model);
-                  case "h": return A2(focus,$Command.smartPrev,model);
-                  case "j": return A2(focus,$Command.smartChild,model);
-                  case "k": return A2(focus,$Command.smartParrent,model);
-                  case "L": return A2(focus,$Command.next,model);
-                  case "H": return A2(focus,$Command.prev,model);
-                  case "J": return A2(focus,$Command.child,model);
-                  case "K": return A2(focus,$Command.parrent,model);
-                  default: return model;}
-            } else {
-               var _p19 = _p14._0;
-               var _p17 = action;
-               if (_p17 === 13) {
-                     return A2(updateWith,
-                     $Command.update(function (_p18) {
-                        return A2($Maybe.withDefault,
-                        $AST.empty,
-                        A2($Maybe.map,
-                        $Command.trim(model.lang),
-                        A3($Parser.parse,model.lang,"Exp",_p19)));
-                     }),
-                     _U.update(model,{mode: Normal}));
-                  } else {
-                     return _U.update(model,
-                     {mode: Change(A2(addChar,_p19,action))});
-                  }
-            }
+         var _p16 = model.mode;
+         switch (_p16.ctor)
+         {case "Normal": var _p17 = action;
+              if (_p17.ctor === "KeyPress") {
+                    var _p20 = _p17._0;
+                    var model$$ = function () {
+                       var _p18 = $Char.fromCode(_p20);
+                       switch (_p18.valueOf())
+                       {case "c": return A2(updateWith,
+                            $Command.update(function (_p19) {    return $AST.empty;}),
+                            _U.update(model,{mode: Change("")}));
+                          case "d": return A2(updateWith,$Command.$delete,model);
+                          case "l": return A2(focus,$Command.smartNext,model);
+                          case "h": return A2(focus,$Command.smartPrev,model);
+                          case "j": return A2(focus,$Command.smartChild,model);
+                          case "k": return A2(focus,$Command.smartParrent,model);
+                          case "L": return A2(focus,$Command.next,model);
+                          case "H": return A2(focus,$Command.prev,model);
+                          case "J": return A2(focus,$Command.child,model);
+                          case "K": return A2(focus,$Command.parrent,model);
+                          default: return model;}
+                    }();
+                    return _U.update(model$$,{lastKey: _p20});
+                 } else {
+                    return model;
+                 }
+            case "Change": var _p21 = action;
+              if (_p21.ctor === "SetChange") {
+                    return _U.update(model,{mode: Change(_p21._0)});
+                 } else {
+                    if (_p21._0 === 13) {
+                          return A2(updateWith,
+                          $Command.update(function (_p22) {
+                             return A2($Maybe.withDefault,
+                             $AST.empty,
+                             A2($Maybe.map,
+                             $Command.trim(model.lang),
+                             A3($Parser.parse,model.lang,"Exp",_p16._0)));
+                          }),
+                          _U.update(model,{mode: Normal,lastKey: 13}));
+                       } else {
+                          return _U.update(model,{lastKey: _p21._0});
+                       }
+                 }
+            default: var _p28 = _p16._0._1;
+              var _p27 = _p16._0._0;
+              var _p23 = action;
+              if (_p23.ctor === "KeyPress") {
+                    if (_p23._0 === 13) {
+                          var _p24 = A2($Array.get,_p27,_p28);
+                          if (_p24.ctor === "Just" && _p24._0.ctor === "_Tuple2") {
+                                return _U.update(model,
+                                {mode: Normal,focus: _p24._0._0,tree: _p24._0._1});
+                             } else {
+                                return model;
+                             }
+                       } else {
+                          var _p26 = _p23._0;
+                          var model$$ = function () {
+                             var _p25 = $Char.fromCode(_p26);
+                             switch (_p25.valueOf())
+                             {case "l": return _U.update(model,
+                                  {mode: Choose({ctor: "_Tuple2"
+                                                ,_0: A2($Basics._op["%"],_p27 + 1,$Array.length(_p28))
+                                                ,_1: _p28})});
+                                case "h": return _U.update(model,
+                                  {mode: Choose({ctor: "_Tuple2"
+                                                ,_0: A2($Basics._op["%"],_p27 - 1,$Array.length(_p28))
+                                                ,_1: _p28})});
+                                default: return model;}
+                          }();
+                          return _U.update(model$$,{lastKey: _p26});
+                       }
+                 } else {
+                    return model;
+                 }}
       }();
-      return {ctor: "_Tuple2"
-             ,_0: _U.update(model$,{lastKey: action})
-             ,_1: $Effects.none};
+      return {ctor: "_Tuple2",_0: model$,_1: $Effects.none};
    });
    var main = function (_) {
       return _.html;
@@ -13249,9 +13432,9 @@ Elm.Main.make = function (_elm) {
    return _elm.Main.values = {_op: _op
                              ,Normal: Normal
                              ,Change: Change
+                             ,Choose: Choose
                              ,Model: Model
                              ,model: model
-                             ,number: number
                              ,Out: Out
                              ,SmartOut: SmartOut
                              ,In: In
@@ -13260,11 +13443,14 @@ Elm.Main.make = function (_elm) {
                              ,SmartNext: SmartNext
                              ,Prev: Prev
                              ,SmartPrev: SmartPrev
+                             ,KeyPress: KeyPress
+                             ,SetChange: SetChange
                              ,inputs: inputs
-                             ,addChar: addChar
+                             ,verify: verify
                              ,update: update
                              ,dpprint: dpprint
                              ,pprint: pprint
                              ,view: view
+                             ,editorBar: editorBar
                              ,main: main};
 };
