@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (style, attribute, autofocus)
+import Html.Attributes exposing (style, attribute, autofocus, id, class)
 import Platform.Cmd exposing (..)
 import Html.App exposing (program)
 import Keyboard exposing (presses)
@@ -30,7 +30,10 @@ type alias Model =
   , lang : Grammar
   , mode : Mode
   , lastKey : Char.KeyCode
+  , buffers : List Buffer 
   }
+
+type Buffer = Buffer (Model -> Html Msg)
 
 model : Model
 model = 
@@ -39,6 +42,7 @@ model =
   , lang = Languages.Arithmetic.lang
   , mode = Normal
   , lastKey = 0
+  , buffers = [ Buffer dpprint, Buffer pprint ]
   }
 
 type Movement 
@@ -54,8 +58,6 @@ type Movement
 type Msg 
   = KeyPress Char.KeyCode
   | SetChange String
-
-inputs = presses KeyPress 
 
 -- Tries to verify a model returns a list of sugested fixes, including the
 -- Original model if it is correct.
@@ -200,44 +202,22 @@ pprint {tree, lang, focus, mode} =
      collect collector tree
 
 view model = 
-  div [ ]
-    [ table 
-      [ style 
-        [ ("width", "100%") 
-        , ("table-layout", "fixed")
-        , ("margin", "30pt")
-        ] 
-      ]
-      [ tr [] <| List.map (\f -> 
-          td [ style 
-               [ ("vertical-align", "bottom")
-               , ("text-align", "center")
-               ]
-            ] [ f model ]
+  div [ class "editor" ]
+    [ table [ class "mainView" ]
+      [ tr [] 
+        <| List.map (\(Buffer f) -> 
+          td [ ] [ f model ]
         ) 
-        [ dpprint 
-        , pprint 
-        ]
+        model.buffers
       ]
     , editorBar model
     ]
 
 editorBar model =
   table 
-    [ style 
-      [ ("background", "lightblue")
-      , ("height", "30px")
-      , ("position", "absolute")
-      , ("bottom", "0px")
-      , ("width", "100%")
-      , ("vertical-align", "middle")
-      , ("font-size", "10pt")
-      , ("font-family", "monospace")
-      , ("padding", "0 6px")
-      ] 
-    ] 
+    [ id "editorBar" ] 
     [ tr [] 
-      [ td [ style [] ] 
+      [ td [] 
         ( case model.mode of
           Normal -> [ text "normal" ] 
           Change str -> 
@@ -246,13 +226,7 @@ editorBar model =
               [ onInput SetChange 
               , autofocus True
               , attribute "data-autofocus" ""
-              , style 
-                [ ("background", "none")
-                , ("border", "none")
-                , ("font-family", "monospace")
-                , ("font-size", "10pt")
-                , ("outline", "none")
-                ] 
+              , id "changeInputField"
               ] []
             ]
           Choose (i, list) -> 
@@ -265,13 +239,15 @@ editorBar model =
             ]
         ) 
       , td 
-        [ style [ ("width", "40px"), ("text-align", "right") ] ] 
+        [ class "rightData"  ] 
         [ text (toString model.focus) ] 
       , td 
-        [ style [ ("width", "40px"), ("text-align", "right") ] ] 
+        [ class "rightData"  ] 
         [ text (toString model.lastKey) ] 
       ]
     ]
+
+subscriptions = presses KeyPress 
 
 port onload : String -> Cmd msg
 
@@ -280,5 +256,5 @@ main =
     { init = (model, onload "hi")
     , view = view 
     , update = update
-    , subscriptions = (\m -> inputs)
+    , subscriptions = (\m -> subscriptions)
     } 

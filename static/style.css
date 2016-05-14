@@ -1,0 +1,36 @@
+
+.editor .mainView {
+    width: 100%;
+    table-layout: fixed;
+    margin: 30pt;
+}
+
+.editor .mainView  td {
+    vertical-align: bottom;
+    text-align: center;
+}
+
+#editorBar {
+    background: lightblue;
+    height: 30px;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    vertical-align: middle;
+    font-size: 10pt;
+    font-family: monospace;
+    padding: 0 6px;
+}
+
+#editorBar .rightData {
+    width: 40px;
+    text-align: right;
+}
+
+#changeInputField {
+    background: none;
+    border: none;
+    font-family: monospace;
+    font-size: 10pt;
+    outline: none;
+}
