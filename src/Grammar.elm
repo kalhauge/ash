@@ -1,4 +1,5 @@
-module Grammar where
+module Grammar exposing (..)
+
 import Array
 import Dict
 import Maybe

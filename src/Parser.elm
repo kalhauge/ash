@@ -1,4 +1,4 @@
-module Parser where
+module Parser exposing (..)
 
 import List exposing (..)
 import Array
@@ -6,7 +6,7 @@ import String
 
 import Utils exposing (..)
 import Grammar exposing (..)
-import AST exposing (..)
+import SyntaxTree exposing (..)
 
 parse : Grammar -> ClauseId -> String -> Maybe SyntaxTree
 parse grammar entry = 
@@ -25,10 +25,10 @@ parse grammar entry =
             Nothing -> 
               parseRules rec str ruleName rest
             Just (result, str')  -> 
-              let val = 
-                    oneOfMap 
-                      (parseLeftAlt str' ruleName result)             
-                      (List.reverse rec)
+              let 
+                val = oneOfMap 
+                  (parseLeftAlt str' ruleName result)             
+                  (List.reverse rec)
               in case val of
                  Nothing -> Just (result, str')
                  a -> a

@@ -1,9 +1,9 @@
-module Command where
+module Command exposing (..)
 
 import List exposing (map, any, head, member)
 import Maybe exposing (withDefault)
 
-import AST exposing (..)
+import SyntaxTree exposing (..)
 import Utils exposing (..)
 import Grammar exposing (..)
 

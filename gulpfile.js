@@ -7,7 +7,7 @@ gulp.task('elm-init', elm.init);
 
 var paths = {
   dest: 'dist',
-  elm: 'src/*.elm',
+  elm: 'src/**/*.elm',
   staticfiles: 'static/*.html'
 };
 

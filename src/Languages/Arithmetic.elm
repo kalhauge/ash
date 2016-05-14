@@ -1,6 +1,6 @@
 -- Manual translation of 
 -- https://github.com/cdglabs/ohm/blob/master/examples/math/index.html
-module Arithmetic where
+module Languages.Arithmetic exposing (..)
 
 import Grammar exposing (..)
 

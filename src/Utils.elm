@@ -1,4 +1,4 @@
-module Utils where
+module Utils exposing (..)
 
 prepend : a -> List a -> List a
 prepend = (::)

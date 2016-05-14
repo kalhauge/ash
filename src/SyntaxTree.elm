@@ -1,4 +1,4 @@
-module AST where
+module SyntaxTree exposing (..)
 
 import List exposing (sum, map2)
 

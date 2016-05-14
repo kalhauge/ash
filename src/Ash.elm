@@ -1,9 +1,10 @@
+port module Main exposing (..)
+
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (style, attribute, autofocus)
-import Effects exposing (Never)
-import Signal
-import StartApp exposing (start)
+import Platform.Cmd exposing (..)
+import Html.App exposing (program)
 import Keyboard exposing (presses)
 
 import Array
@@ -12,11 +13,11 @@ import Char
 import Maybe exposing (Maybe, andThen)
 import String
 
-import AST exposing (..)
+import SyntaxTree exposing (..)
 import Command exposing (..)
 import Grammar exposing (..)
 import Parser exposing (..)
-import Arithmetic 
+import Languages.Arithmetic 
 
 type Mode 
   = Normal
@@ -35,7 +36,7 @@ model : Model
 model = 
   { tree = empty
   , focus = 1
-  , lang = Arithmetic.lang
+  , lang = Languages.Arithmetic.lang
   , mode = Normal
   , lastKey = 0
   }
@@ -50,20 +51,18 @@ type Movement
   | Prev
   | SmartPrev
 
-type Action 
+type Msg 
   = KeyPress Char.KeyCode
   | SetChange String
 
-inputs = 
-    [ Signal.map KeyPress Keyboard.presses 
-    ]
+inputs = presses KeyPress 
 
 -- Tries to verify a model returns a list of sugested fixes, including the
 -- Original model if it is correct.
 verify : Grammar -> (Int, SyntaxTree) -> List (Int, SyntaxTree) 
 verify lang ((id, tree) as item) = [ item ]
 
-update : Action -> Model -> (Model, Effects.Effects Action)
+update : Msg -> Model -> (Model, Cmd Msg)
 update action model = 
   let 
     updateWith : (Int -> SyntaxTree -> (Int, SyntaxTree)) -> Model -> Model
@@ -128,9 +127,9 @@ update action model =
 
 
 
-  in (model', Effects.none)
+  in (model', none)
 
-dpprint : Model -> Html
+dpprint : Model -> Html msg
 dpprint {tree, lang, focus} = 
   let 
     collector id tree =       
@@ -170,7 +169,7 @@ dpprint {tree, lang, focus} =
         )
   in collect collector tree
 
-pprint : Model -> Html
+pprint : Model -> Html msg
 pprint {tree, lang, focus, mode} =
   let
     collector id tree =
@@ -200,7 +199,7 @@ pprint {tree, lang, focus, mode} =
   in
      collect collector tree
 
-view address model = 
+view model = 
   div [ ]
     [ table 
       [ style 
@@ -220,10 +219,10 @@ view address model =
         , pprint 
         ]
       ]
-    , editorBar address model
+    , editorBar model
     ]
 
-editorBar address model =
+editorBar model =
   table 
     [ style 
       [ ("background", "lightblue")
@@ -244,10 +243,7 @@ editorBar address model =
           Change str -> 
             [ text "change:" 
             , input 
-              [ on "input" targetValue
-                (\str -> 
-                    Signal.message address (SetChange str)
-                )
+              [ onInput SetChange 
               , autofocus True
               , attribute "data-autofocus" ""
               , style 
@@ -277,10 +273,12 @@ editorBar address model =
       ]
     ]
 
+port onload : String -> Cmd msg
+
 main = 
-  start 
-    { init = (model, Effects.none)
-    , view = view
-    , update = update 
-    , inputs = inputs
-    } |> .html
+  program 
+    { init = (model, onload "hi")
+    , view = view 
+    , update = update
+    , subscriptions = (\m -> inputs)
+    } 
