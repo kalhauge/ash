@@ -24,14 +24,18 @@ parse grammar entry =
           case parseAlt str ruleName alt of 
             Nothing -> 
               parseRules rec str ruleName rest
-            Just (result, str')  -> 
+            Just a -> 
+              uncurry continueLeftRecursive a 
+        
+        continueLeftRecursive result str = 
               let 
                 val = oneOfMap 
-                  (parseLeftAlt str' ruleName result)             
+                  (parseLeftAlt str ruleName result)             
                   (List.reverse rec)
-              in case val of
-                 Nothing -> Just (result, str')
-                 a -> a
+              in 
+                case val of
+                  Nothing -> Just (result, str)
+                  Just a -> uncurry continueLeftRecursive a
       in
         case alts of 
           ((i, terms) as alt) :: rest -> 
