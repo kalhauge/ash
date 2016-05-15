@@ -1,14 +1,13 @@
-module SyntaxTree exposing (..)
+module Ash.SyntaxTree exposing 
+  (..)
 
 import List exposing (sum, map2)
 
-import Grammar exposing (..)
+import Ash.Grammar exposing (..)
 import Utils exposing (..)
 
-
 type alias SNode a
-  = { name : ClauseId
-    , alt : AlternativeId 
+  = { kind : SyntaxId
     , terms : List a
     , size : Int
     }
@@ -43,27 +42,20 @@ mapToS fn a =
 
 setTerms : List SyntaxTree -> SNode a -> SyntaxTree
 setTerms terms inner =
-  syntax (inner.name) (inner.alt) terms
-
-
-getType : SNode a -> (ClauseId, AlternativeId) 
-getType {name, alt} =
-  (name, alt)
+  syntax (inner.kind) terms
 
 
 syntax : 
-  ClauseId 
-  -> AlternativeId
+  SyntaxId
   -> List SyntaxTree 
   -> SyntaxTree
-syntax name alt terms =
-  { name = name
-  , alt = alt
+syntax kind terms =
+  { kind = kind
   , terms = List.map SubTree terms
   , size = sum (List.map .size terms) + 1
   }
 
-empty = syntax "empty" 0 []
+empty = syntax ("empty", 0) []
 
 -- Special functions from here
 
@@ -190,18 +182,18 @@ collectPath id default clt =
 -- Should be put some where else.
 
 match : 
-  Alternative
-  -> List a 
+  List a 
   -> (String -> a)
+  -> Alternative
   -> Maybe (List a)
-match template terms f =
+match terms f template =
   case (template, terms) of
     (Ref name :: template', term:: terms') ->
-        match template' terms' f
+        match terms' f template' 
          |> tryPrepend term
     
     (Lex str :: template', _) ->
-        match template' terms f
+        match terms f template' 
          |> tryPrepend (f str) 
     
     ([], []) ->
@@ -215,7 +207,7 @@ translate :
   -> SNode a 
   -> (String -> a)
   -> Maybe (List a)
-translate grammar {name, alt, terms} f =
-  Grammar.get name alt grammar 
-    `Maybe.andThen` (\alt -> match alt terms f)
+translate grammar {kind, terms} f =
+  let alt = Ash.Grammar.get kind grammar 
+  in alt `Maybe.andThen` match terms f
 

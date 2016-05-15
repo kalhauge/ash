@@ -13,10 +13,10 @@ import Char
 import Maybe exposing (Maybe, andThen)
 import String
 
-import SyntaxTree exposing (..)
-import Command exposing (..)
-import Grammar exposing (..)
-import Parser exposing (..)
+import Ash.SyntaxTree exposing (..)
+import Ash.Command exposing (..)
+import Ash.Grammar exposing (..)
+import Ash.Parser exposing (..)
 import Languages.Arithmetic 
 
 type Mode 
@@ -42,7 +42,10 @@ model =
   , lang = Languages.Arithmetic.lang
   , mode = Normal
   , lastKey = 0
-  , buffers = [ Buffer dpprint, Buffer pprint ]
+  , buffers = 
+    [ Buffer dpprint
+    -- , Buffer pprint 
+    ]
   }
 
 type Movement 
@@ -86,7 +89,7 @@ update action model =
             let model'' = case (Char.fromCode key) of
               'c' -> 
                 updateWith 
-                  (Command.update (\_ -> empty)) 
+                  (Ash.Command.update (\_ -> empty)) 
                   { model | mode = Change "" }
               'd' -> 
                 updateWith delete model
@@ -105,7 +108,7 @@ update action model =
         case action of 
           SetChange str -> { model | mode = Change str }
           KeyPress 13 ->
-            updateWith (Command.update (\_ -> 
+            updateWith (Ash.Command.update (\_ -> 
                 parse model.lang "Exp" str
                   |> Maybe.map (trim model.lang)
                   |> Maybe.withDefault empty 
@@ -154,7 +157,7 @@ dpprint {tree, lang, focus} =
             else 
               [("background", "lightblue")]
           ] 
-          [ text (tree.name ++ " : " ++ toString id)] 
+          [ text (fst tree.kind ++ " : " ++ toString id)] 
         ] ++ (
           Maybe.withDefault [ text "?" ] 
             <| translate lang tree (\str -> 

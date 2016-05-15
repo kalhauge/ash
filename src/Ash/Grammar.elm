@@ -1,4 +1,21 @@
-module Grammar exposing (..)
+module Ash.Grammar exposing 
+  ( Grammar
+  , Rule
+  , Alternative
+  , Term (..)
+
+  , ClauseId
+  , AlternativeId
+  , SyntaxId
+  
+  , grammar
+  , rule
+
+  , oneOf
+
+  , getRule
+  , get
+  )
 
 import Array
 import Dict
@@ -12,6 +29,11 @@ type Term
   = Lex String
   | Ref String
 
+type alias ClauseId      = String
+type alias AlternativeId = Int
+
+type alias SyntaxId = (ClauseId, AlternativeId)
+
 grammar : List (String, Rule) -> Grammar
 grammar = Dict.fromList
 
@@ -24,16 +46,10 @@ oneOf str =
   |> List.map (String.fromChar >> \x -> [ Lex x ])
   |> rule
 
-type alias ClauseId      = String
-type alias AlternativeId = Int
-
-type alias SyntaxType = (ClauseId, AlternativeId)
-
 getRule : ClauseId -> Grammar -> Maybe Rule
 getRule = Dict.get 
 
-get : ClauseId -> AlternativeId ->  Grammar -> Maybe Alternative
-get clauseId altId grammar = 
+get : SyntaxId -> Grammar -> Maybe Alternative
+get (clauseId, altId) grammar = 
   Dict.get clauseId grammar `Maybe.andThen` Array.get altId 
-
 

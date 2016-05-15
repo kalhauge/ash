@@ -1,22 +1,30 @@
-module Parser exposing (..)
+module Ash.Parser exposing (parse)
 
 import List exposing (..)
 import Array
 import String
 
 import Utils exposing (..)
-import Grammar exposing (..)
-import SyntaxTree exposing (..)
+
+import Ash.Grammar exposing 
+  ( Grammar
+  , ClauseId
+  , Term(..)
+  , getRule
+  )
+import Ash.SyntaxTree exposing (syntax, SyntaxTree)
 
 parse : Grammar -> ClauseId -> String -> Maybe SyntaxTree
 parse grammar entry = 
   let 
     parseRule ruleName str = 
       getRule ruleName grammar `Maybe.andThen` 
-        (\rule ->
-          List.indexedMap (,) (Array.toList rule)
-            |> parseRules [] str ruleName
-        )
+        parseRule' ruleName str
+    
+    parseRule' ruleName str rule = 
+      Array.toList rule
+        |> enumerate
+        |> parseRules [] str ruleName
     
     parseRules rec str ruleName alts =
       let 
@@ -55,14 +63,14 @@ parse grammar entry =
     parseLeftAlt str ruleName first (i, alt) = 
       ( parseTerms str alt
         |> Maybe.map (\(terms, str') -> 
-            (syntax ruleName i (first :: terms), str')
+            (syntax (ruleName, i) (first :: terms), str')
           )
       )
  
     parseAlt str ruleName (i, alt) = 
       ( parseTerms str alt
         |> Maybe.map (\(terms, str') -> 
-            (syntax ruleName i terms, str')
+            (syntax (ruleName, i) terms, str')
           )
       )
   
@@ -86,6 +94,3 @@ parse grammar entry =
   in 
     parseRule entry 
       >> Maybe.map fst
-
-
-

@@ -1,11 +1,12 @@
-module Command exposing (..)
+module Ash.Command exposing (..)
 
 import List exposing (map, any, head, member)
 import Maybe exposing (withDefault)
 
-import SyntaxTree exposing (..)
+import Ash.SyntaxTree exposing (..)
+import Ash.Grammar exposing (..)
+
 import Utils exposing (..)
-import Grammar exposing (..)
 
 {-
 Return the subtree, represneted by the index
@@ -26,7 +27,7 @@ the new subtree.
 update : (SyntaxTree -> SyntaxTree) -> Int -> SyntaxTree -> (Int, SyntaxTree)
 update fn id =
   let 
-    toTree {name, alt, terms} = syntax name alt (List.map snd terms)
+    toTree {kind, terms} = syntax kind (List.map snd terms)
     update' i node =
       if id == i then
         let rval = fn (toTree node)
@@ -64,7 +65,7 @@ trim : Grammar -> SyntaxTree -> SyntaxTree
 trim grammar =
   let
     trimmer i tree =
-      Grammar.get tree.name tree.alt grammar
+      Ash.Grammar.get tree.kind grammar
         |> flip Maybe.andThen (\alt -> 
             if List.length alt == 1 then 
               head (getTerms tree)
@@ -142,7 +143,7 @@ type MoveErr
   | Stuck
   | ChildStuck
 
-type SNInfo = SNInfo Int SyntaxType (Maybe Int)
+type SNInfo = SNInfo Int SyntaxId (Maybe Int)
 
 {-
 -}
@@ -151,11 +152,11 @@ smartNext tree id =
   let
     helper ((SNInfo i t _), msg) = i
     nextIterator i tree = 
-      ( SNInfo i (getType tree) (Maybe.map helper (head tree.terms))
+      ( SNInfo i (tree.kind) (Maybe.map helper (head tree.terms))
       , if i == id then
           Err Stuck
         else 
-          findNext (getType tree) tree.terms
+          findNext (tree.kind) tree.terms
       )
     findNext pt indecies = 
       case indecies of
@@ -195,7 +196,7 @@ smartNext tree id =
         [] -> 
           Err GiveUp 
     defaultVal i tree = 
-      ( SNInfo i (getType tree) (head (subIndecies i tree))
+      ( SNInfo i (tree.kind) (head (subIndecies i tree))
       , Err GiveUp 
       )
   in
@@ -206,11 +207,11 @@ smartPrev tree id =
   let
     helper ((SNInfo i t _), msg) = i
     prevIterator i tree = 
-      ( SNInfo i (getType tree) (Maybe.map helper (last tree.terms))
+      ( SNInfo i (tree.kind) (Maybe.map helper (last tree.terms))
       , if i == id then
           Err Stuck
         else 
-          findPrev (getType tree) tree.terms
+          findPrev (tree.kind) tree.terms
       )
     findPrev pt indecies = 
       case indecies of
@@ -253,7 +254,7 @@ smartPrev tree id =
         [] -> 
           Err GiveUp 
     defaultVal i tree = 
-      ( SNInfo i (getType tree) (last (subIndecies i tree))
+      ( SNInfo i (tree.kind) (last (subIndecies i tree))
       , Err GiveUp 
       )
 
@@ -265,7 +266,7 @@ smartParrent : SyntaxTree -> Int -> Int
 smartParrent tree id = 
   let
     upIterator i tree =
-      let t = getType tree
+      let t = tree.kind
       in if i == id then
         Just (i, Just t)
       else
@@ -285,13 +286,13 @@ smartChild tree id =
   let
     downIterator i tree =
       if i == id then
-        goInWithType (getType tree) (id - tree.size) tree
+        goInWithType (tree.kind) (id - tree.size) tree
       else
         Nothing
     goInWithType t i tree =
       case head (getTerms tree) of
         Just tree' -> 
-          if getType tree' == t then
+          if tree'.kind == t then
              case goInWithType t i tree' of
                Nothing -> Just (i + tree'.size)
                a -> a

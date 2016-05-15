@@ -74,3 +74,6 @@ last list =
     [a] -> Just a
     a :: rest -> last rest
 
+enumerate : List a -> List (Int, a) 
+enumerate = List.indexedMap (,) 
+

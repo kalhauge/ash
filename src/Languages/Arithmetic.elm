@@ -2,7 +2,7 @@
 -- https://github.com/cdglabs/ohm/blob/master/examples/math/index.html
 module Languages.Arithmetic exposing (..)
 
-import Grammar exposing (..)
+import Ash.Grammar exposing (..)
 
 lang = 
   grammar 

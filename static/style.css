@@ -2,7 +2,8 @@
 .editor .mainView {
     width: 100%;
     table-layout: fixed;
-    margin: 30pt;
+    margin: 0pt;
+    padding: 30pt;
 }
 
 .editor .mainView  td {
