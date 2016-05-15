@@ -302,4 +302,3 @@ smartChild tree id =
   in 
     search id downIterator tree |> Maybe.withDefault id
 
-

@@ -77,3 +77,5 @@ last list =
 enumerate : List a -> List (Int, a) 
 enumerate = List.indexedMap (,) 
 
+(&>) = Maybe.andThen
+

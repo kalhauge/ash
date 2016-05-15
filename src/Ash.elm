@@ -14,15 +14,13 @@ import Maybe exposing (Maybe, andThen)
 import String
 
 import Ash.SyntaxTree exposing (..)
+-- import Ash.Serializer exposing (..)
+import Ash.Editor exposing (..)
 import Ash.Command exposing (..)
 import Ash.Grammar exposing (..)
 import Ash.Parser exposing (..)
 import Languages.Arithmetic 
 
-type Mode 
-  = Normal
-  | Change String
-  | Choose (Int, (Array.Array (Int, SyntaxTree)))
 
 type alias Model = 
   { tree : SyntaxTree
@@ -134,75 +132,6 @@ update action model =
 
   in (model', none)
 
-dpprint : Model -> Html msg
-dpprint {tree, lang, focus} = 
-  let 
-    collector id tree =       
-      div 
-        [ style <|
-          [ ("display", "inline-block")
-          , ("margin", "2px 2px 0px 2px")
-          , ("text-align", "center")
-          ] ++ if focus == id then 
-            [ ("background", "lightgray") ]
-          else []
-        ]
-        <| [ div 
-          [ style <|
-            [ ("font-size", "6pt") ] ++ 
-            if focus == id then 
-              [ ("background", "black") 
-              , ("color", "lightblue") 
-              ]
-            else 
-              [("background", "lightblue")]
-          ] 
-          [ text (fst tree.kind ++ " : " ++ toString id)] 
-        ] ++ (
-          Maybe.withDefault [ text "?" ] 
-            <| translate lang tree (\str -> 
-              div 
-                [ style <|
-                  [ ("display", "inline-block")
-                  , ("margin", "2px 2px 0px 2px")
-                  , ("text-align", "center")
-                  ] ++ if focus == id then 
-                    [ ("color", "red") ]
-                  else []
-                ] [ text str ]
-            )
-        )
-  in collect collector tree
-
-pprint : Model -> Html msg
-pprint {tree, lang, focus, mode} =
-  let
-    collector id tree =
-      div 
-        [ style <| 
-          [ ("display", "inline") ] 
-            ++ if id == focus then
-              [ ("background", "lightgray") ]
-            else []
-        ]
-        ( Maybe.withDefault 
-            [ case mode of 
-                Change str -> text str
-                _ -> text "?"
-            ] 
-            <| translate lang tree (\str -> 
-                  div  
-                    [ style <| 
-                      [ ("display", "inline") ] 
-                        ++ if id == focus then
-                          [ ("color", "red") ]
-                        else []
-                    ]
-                    [ text str ]
-                )
-        )
-  in
-     collect collector tree
 
 view model = 
   div [ class "editor" ]
@@ -249,6 +178,45 @@ editorBar model =
         [ text (toString model.lastKey) ] 
       ]
     ]
+
+dpprint {tree, lang, focus} = 
+  let 
+    collector id tree =       
+      div 
+        [ style <|
+          [ ("display", "inline-block")
+          , ("margin", "2px 2px 0px 2px")
+          , ("text-align", "center")
+          ] ++ if focus == id then 
+            [ ("background", "lightgray") ]
+          else []
+        ]
+        <| [ div 
+          [ style <|
+            [ ("font-size", "6pt") ] ++ 
+            if focus == id then 
+              [ ("background", "black") 
+              , ("color", "lightblue") 
+              ]
+            else 
+              [("background", "lightblue")]
+          ] 
+          [ text (fst tree.kind ++ " : " ++ toString id)] 
+        ] ++ (
+          Maybe.withDefault [ text "?" ] 
+            <| translate lang tree (\str -> 
+              div 
+                [ style <|
+                  [ ("display", "inline-block")
+                  , ("margin", "2px 2px 0px 2px")
+                  , ("text-align", "center")
+                  ] ++ if focus == id then 
+                    [ ("color", "red") ]
+                  else []
+                ] [ text str ]
+            )
+        )
+  in collect collector tree
 
 subscriptions = presses KeyPress 
 
