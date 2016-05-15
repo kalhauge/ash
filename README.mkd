@@ -1,0 +1,22 @@
+# Ash
+
+Ash is a syntactic editor. Instead of working on lines of code, Ash
+works with the language itself. This makes everything easier, from
+writing code to refactoring. Ash can simply not produce code that does
+not parse. 
+
+That said Ash is a research project and is therefor created, not to give
+the best user experience, but to answer a simple set of questions.
+
+1.  It is possible, to create a minimal viable prototype that edits
+    syntax trees instead of text?
+2.  How do we navigate in such a syntactic editor? 
+3.  Are edits more idiomatic, or is the syntactic editor more confusing
+    than working in an normal editor?
+
+I'm going to evaluate the questions, by implementing a very little
+subset of a functioning editor. The editor will contain the possibility
+to create, delete and move between nodes.
+
+-   The first milestone is to create a simple editor of expressions.
+-   Upgrade to javascript to show real-life editing.
