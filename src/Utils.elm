@@ -1,5 +1,7 @@
 module Utils exposing (..)
 
+import Array exposing (Array)
+
 prepend : a -> List a -> List a
 prepend = (::)
 
@@ -27,6 +29,20 @@ allOf maybes =
 
     Nothing :: rest -> 
       Nothing
+
+compress : List (Maybe a) -> List a
+compress maybes = 
+  case maybes of
+    [] -> 
+      []
+    Just a :: rest -> 
+      a :: compress rest
+    Nothing :: rest -> 
+      compress rest
+
+maybeToList : Maybe a -> List a
+maybeToList maybe = 
+  Maybe.withDefault [] (Maybe.map (\a -> [a]) maybe) 
 
 {- 
 Lazy and short-ciruit oneOf with map.
@@ -78,4 +94,10 @@ enumerate : List a -> List (Int, a)
 enumerate = List.indexedMap (,) 
 
 (&>) = Maybe.andThen
+
+arrayUpdate : Int -> (a -> a) -> Array a -> Maybe (Array a)
+arrayUpdate i f array =
+  Array.get i array &> 
+    \x -> Just (Array.set i (f x) array)
+
 

@@ -52,4 +52,3 @@ getRule = Dict.get
 get : SyntaxId -> Grammar -> Maybe Alternative
 get (clauseId, altId) grammar = 
   Dict.get clauseId grammar `Maybe.andThen` Array.get altId 
-

@@ -1,4 +1,4 @@
-module Ash.Serializer exposing (Serializer, Mode(..), dpprint, pprint)
+module Ash.Serializer exposing (Serializer, Mode(..), default, debug)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -24,8 +24,8 @@ type alias Serializer =
   ViewT
   -> Html () 
 
-dpprint : Serializer 
-dpprint {data, grammar, focus} = 
+debug : Serializer 
+debug {data, grammar, focus} = 
   let 
     collector id tree =       
       div 
@@ -64,8 +64,8 @@ dpprint {data, grammar, focus} =
         )
   in collect collector data
 
-pprint : Serializer 
-pprint {data, grammar, focus, mode} =
+default : Serializer 
+default {data, grammar, focus, mode} =
   let
     collector id tree =
       div 
