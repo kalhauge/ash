@@ -17,6 +17,7 @@ import Platform.Cmd exposing (Cmd(..), none, (!))
 
 import Keyboard exposing (presses)
 
+import Char
 import String 
 import Array exposing (Array, fromList)
 import Dict exposing (Dict)
@@ -32,6 +33,7 @@ import Ash.Frame as Frame exposing (Frame, Buffer)
 type alias Settings = 
   { after : Cmd Msg
   , languages : List Language
+  , keymaps : List (Char,String)
   }
 
 {-
@@ -41,24 +43,32 @@ type alias Editor =
   { buffers : Array Buffer
   , frame : Maybe Frame  
   -- this variable should also contain somthing about the layout 
-  , mode : EditorMode
+  , mode : Mode
   , languages : Dict String Language
+  , keymaps : Dict Char.KeyCode KeyAction 
   }
 
-model = 
+type KeyAction = KeyAction (Editor -> Action)
+
+model : Settings -> Editor
+model settings = 
   { buffers = fromList []
   , frame = Nothing 
-  , mode = Passthrough
-  , languages = Dict.empty
+  , mode = Normal
+  , languages = Language.collect settings.languages
+  , keymaps = Dict.fromList 
+      <| List.map 
+        (\(fst,snd) -> (Char.toCode fst, KeyAction <| parseAction snd)) 
+        settings.keymaps
   }
 
-type EditorAction
+type Action
   = NoOp 
   | NewBuffer Language
   | DoFrame Frame.Action
   | Fail String
 
-doAction : EditorAction -> Editor -> Editor
+doAction : Action -> Editor -> Editor
 doAction action model = 
   case action of
     NoOp -> model
@@ -76,7 +86,6 @@ doAction action model =
         frame = 
           { focus = 1
           , bufferId = Array.length buffers - 1
-          , mode = Frame.NormalMode
           , serializer = Language.getDefaultSerialzier language
           }
       in 
@@ -108,12 +117,21 @@ doAction action model =
           { model | mode = Failed "No active frame" }
 
 
-parseAction : String -> Editor -> EditorAction
+parseAction : String -> Editor -> Action
 parseAction str model =
   let 
     args = String.split " " <| String.trim str
     badArgs = 
-      Fail "Bad number of arguments, takes one; the name of the language"
+      Fail "Bad number of arguments."
+
+    parseDir str err f = 
+      case str of
+        "child" -> f Frame.Child
+        "parrent" -> f Frame.Parrent
+        "next" -> f Frame.Next
+        "prev" -> f Frame.Prev
+        _ -> err 
+
   in Debug.log "Action" <| case args of 
     cmd :: rest -> 
       case cmd of
@@ -134,19 +152,37 @@ parseAction str model =
               DoFrame (Frame.Change expr)
             _ -> badArgs 
 
+        "focus" -> 
+          case rest of 
+            [dir] -> 
+              parseDir dir
+                (Fail <| "Could not parse direction '" ++ dir ++ "'") 
+                (DoFrame << Frame.Focus)
+            _ -> badArgs 
+        
+        "focus!" -> 
+          case rest of
+            [dir] -> 
+              parseDir dir
+                (Fail <| "Could not parse direction '" ++ dir ++ "'") 
+                (DoFrame << Frame.SmartFocus)
+            _ -> badArgs 
+
+
         _ -> 
           Fail <| "Unknown command '" ++ cmd ++ "'"
 
     [] -> NoOp
 
-type EditorMode
-  = Passthrough 
+type Mode
+  = Normal 
   | Command 
   | Failed String
+  -- | Choose (Int, (Array (Int, SyntaxTree)))
 
 type Msg 
-  = SetMode EditorMode
-  | Do EditorAction
+  = SetMode Mode
+  | Do Action
   | ParseCmd String
 
 update : Msg -> Editor -> (Editor, Cmd Msg)
@@ -157,7 +193,7 @@ update msg model =
     ParseCmd str -> 
       doAction 
         (parseAction str model) 
-        { model | mode = Passthrough }
+        { model | mode = Normal }
     Do action -> 
       doAction action model
   in model' ! []
@@ -173,7 +209,7 @@ view editor =
             Frame.view editor frame
           Nothing -> 
             div [ class "frame no-frame" ] 
-              [ text "No Frame" ] 
+              [ text "Welcome to Ash. To continue use :new <language>." ] 
       ]
     ] 
     ++ maybeToList (cmdline editor.mode)
@@ -195,7 +231,7 @@ onEnter tagger =
 
 cmdline mode = 
   case mode of
-    Passthrough -> Nothing
+    Normal -> Nothing
     Command -> 
       Just <| 
         div [ class "cmdline" ] 
@@ -211,30 +247,29 @@ cmdline mode =
         div [ class "cmdline cmdline-failed"]
           [ p [] [text ("Failed: " ++ msg)] ]
 
-keyhandler mode key =
-  case mode of
-    Passthrough -> 
+keyhandler editor key =
+  case editor.mode of
+    Normal -> 
       case key of
         -- :
         58 -> SetMode Command 
-        a  -> Do NoOp 
+        a  -> 
+          Dict.get a editor.keymaps
+          |> Maybe.map (\(KeyAction f) -> f editor)
+          |> Maybe.withDefault NoOp 
+          |> Do
     Command -> 
       Do NoOp
     Failed msg -> 
-      SetMode Passthrough
+      SetMode Normal
 
 subscriptions editor = 
-  presses (keyhandler editor.mode)
+  presses (keyhandler editor)
 
 editor : Settings -> Program Never
 editor settings = 
   program 
-    { init = ( 
-      { model | 
-        languages = Language.collect settings.languages
-      } 
-      , settings.after
-    )
+    { init = ( model settings, settings.after )
     , subscriptions = subscriptions
     , update = update 
     , view = view 

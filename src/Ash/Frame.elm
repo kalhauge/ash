@@ -16,24 +16,26 @@ type alias Buffer =
   , language : Language
   }
 
+type Direction 
+  = Child
+  | Parrent
+  | Next
+  | Prev
+
 type Action 
   = Change String
+  | Focus Direction
+  | SmartFocus Direction
 
 type Response 
   = NoOp
   | SetBufferData Int SyntaxTree
   | Fail String
 
-type Mode 
-  = NormalMode
-  | ChangeMode String
-  | ChooseMode (Int, (Array (Int, SyntaxTree)))
-
 type alias Frame = 
   { serializer : Serializer 
   , focus : Int
   , bufferId : Int
-  , mode : Mode
   }
 
 update : { a | buffers : Array Buffer } -> Frame -> Action -> (Frame, Response)
@@ -44,6 +46,7 @@ update {buffers} frame action =
     case Array.get frame.bufferId buffers of
       Just {data, language} -> 
         case action of
+          
           Change str -> 
             case Debug.log "parse" <| Language.parse language str of
               Just ast -> 
@@ -52,9 +55,35 @@ update {buffers} frame action =
                     Command.update (always ast) frame.focus data
                 in 
                   ( { frame | focus = i }
-                  , SetBufferData frame.bufferId data')
+                  , SetBufferData frame.bufferId data'
+                  )
               Nothing -> 
                 fail <| "Could not parse '" ++ str ++ "'"
+          
+          SmartFocus dir -> 
+            let f = case dir of
+              Child -> 
+                Command.smartChild
+              Parrent -> 
+                Command.smartParrent
+              Next -> 
+                Command.smartNext
+              Prev -> 
+                Command.smartPrev
+            in ({ frame | focus = f data frame.focus }, NoOp)
+
+          Focus dir -> 
+            let f = case dir of
+              Child -> 
+                Command.child
+              Parrent -> 
+                Command.parrent
+              Next -> 
+                Command.next
+              Prev -> 
+                Command.prev
+            in ({ frame | focus = f data frame.focus }, NoOp)
+
       Nothing -> 
         fail <| "No buffer " ++ toString frame.bufferId
 

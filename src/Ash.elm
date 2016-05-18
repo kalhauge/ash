@@ -17,4 +17,15 @@ defaultSettings =
   , languages = 
     [ Languages.Math.language
     ]
+  , keymaps = 
+    [ ('j', "focus! child")
+    , ('k', "focus! parrent")
+    , ('h', "focus! prev")
+    , ('l', "focus! next")
+
+    , ('J', "focus child")
+    , ('K', "focus parrent")
+    , ('H', "focus prev")
+    , ('L', "focus next")
+    ]
   }
