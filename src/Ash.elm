@@ -27,5 +27,11 @@ defaultSettings =
     , ('K', "focus parrent")
     , ('H', "focus prev")
     , ('L', "focus next")
+
+    , ('r', "withInput = replace")
+    , ('d', "delete")
+    , ('c', "change")
+    
+    , (':', "withInput : command")
     ]
   }

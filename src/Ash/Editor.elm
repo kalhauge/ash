@@ -48,7 +48,7 @@ type alias Editor =
   , keymaps : Dict Char.KeyCode KeyAction 
   }
 
-type KeyAction = KeyAction (Editor -> Action)
+type KeyAction = KeyAction (Editor -> Msg)
 
 model : Settings -> Editor
 model settings = 
@@ -58,23 +58,32 @@ model settings =
   , languages = Language.collect settings.languages
   , keymaps = Dict.fromList 
       <| List.map 
-        (\(fst,snd) -> (Char.toCode fst, KeyAction <| parseAction snd)) 
+        (\(fst,snd) -> (Char.toCode fst, KeyAction <| parseMsg snd)) 
         settings.keymaps
   }
 
-type Action
+type Msg
   = NoOp 
   | NewBuffer Language
   | DoFrame Frame.Action
-  | Fail String
+  | Fail String 
+  | WithInput String (String -> Editor -> Msg)
+  | SetMode Mode
+  | DoAll (List Msg)
 
-doAction : Action -> Editor -> Editor
-doAction action model = 
-  case action of
+
+doMsg msg model = 
+  let 
+    fail msg =
+      { model | mode = Failed msg model.mode }
+  in case msg of
+    DoAll actions -> 
+      List.foldl doMsg model actions
+    
     NoOp -> model
     
     Fail msg -> 
-      { model | mode = Failed msg }
+      fail msg
     
     NewBuffer language -> 
       let
@@ -111,16 +120,28 @@ doAction action model =
                           model.buffers
                 }
               Frame.Fail msg -> 
-                { model | mode = Failed msg }
+                fail msg 
           in { model'' | frame = Just frame }
         Nothing ->
-          { model | mode = Failed "No active frame" }
+          fail "No active frame" 
+
+    SetMode mode -> 
+      { model | mode = mode }
+
+    WithInput pre f -> 
+      { model | mode = Command pre (\str -> DoAll [SetMode Normal, f str model]) }
+
+update : Msg -> Editor -> (Editor, Cmd Msg)
+update msg model = 
+  doMsg msg model ! []
 
 
-parseAction : String -> Editor -> Action
-parseAction str model =
+parseMsg : String -> Editor -> Msg
+parseMsg str model =
   let 
-    args = String.split " " <| String.trim str
+    args = 
+      String.split " " <| String.trim str
+    
     badArgs = 
       Fail "Bad number of arguments."
 
@@ -132,72 +153,70 @@ parseAction str model =
         "prev" -> f Frame.Prev
         _ -> err 
 
-  in Debug.log "Action" <| case args of 
-    cmd :: rest -> 
-      case cmd of
-        
-        "new" -> 
-          case rest of
-            [name] -> 
-              case Dict.get name model.languages of
-                Just language -> 
-                  NewBuffer language
-                Nothing -> 
-                  Fail <| "Language '" ++ name ++ "' not known to Ash"
-            _ -> badArgs
+    parseArgs args = 
+      case args of 
+        cmd :: rest -> 
+          case cmd of
+            
+            "new" -> 
+              case rest of
+                [name] -> 
+                  case Dict.get name model.languages of
+                    Just language -> 
+                      NewBuffer language
+                    Nothing -> 
+                      Fail <| "Language '" ++ name ++ "' not known to Ash"
+                _ -> badArgs
 
-        "change" -> 
-          case rest of
-            [expr] -> 
-              DoFrame (Frame.Change expr)
-            _ -> badArgs 
+            "replace" -> 
+              case rest of
+                [expr] -> 
+                  DoFrame (Frame.Replace expr)
+                _ -> badArgs 
+            
+            "delete" -> 
+                DoFrame (Frame.Delete)
+            
+            "change" -> 
+                DoFrame (Frame.Change)
 
-        "focus" -> 
-          case rest of 
-            [dir] -> 
-              parseDir dir
-                (Fail <| "Could not parse direction '" ++ dir ++ "'") 
-                (DoFrame << Frame.Focus)
-            _ -> badArgs 
-        
-        "focus!" -> 
-          case rest of
-            [dir] -> 
-              parseDir dir
-                (Fail <| "Could not parse direction '" ++ dir ++ "'") 
-                (DoFrame << Frame.SmartFocus)
-            _ -> badArgs 
+            "focus" -> 
+              case rest of 
+                [dir] -> 
+                  parseDir dir
+                    (Fail <| "Could not parse direction '" ++ dir ++ "'") 
+                    (DoFrame << Frame.Focus)
+                _ -> badArgs 
+            
+            "focus!" -> 
+              case rest of
+                [dir] -> 
+                  parseDir dir
+                    (Fail <| "Could not parse direction '" ++ dir ++ "'") 
+                    (DoFrame << Frame.SmartFocus)
+                _ -> badArgs 
 
+            "withInput" -> 
+              case rest of
+                pre :: rest -> 
+                  WithInput pre (\i -> parseMsg (String.join " " rest ++ " " ++ i))
+                _ -> badArgs
+            
+            "command" ->
+              parseArgs rest 
+            
+            _ -> 
+              Fail <| "Unknown command '" ++ cmd ++ "'"
 
-        _ -> 
-          Fail <| "Unknown command '" ++ cmd ++ "'"
+        [] -> NoOp
 
-    [] -> NoOp
+  in Debug.log "Msg" <| parseArgs args
 
 type Mode
   = Normal 
-  | Command 
-  | Failed String
+  | Failed String Mode
+  | Command String (String -> Msg)
   -- | Choose (Int, (Array (Int, SyntaxTree)))
-
-type Msg 
-  = SetMode Mode
-  | Do Action
-  | ParseCmd String
-
-update : Msg -> Editor -> (Editor, Cmd Msg)
-update msg model = 
-  let model' = case msg of
-    SetMode mode -> 
-      { model | mode = mode }
-    ParseCmd str -> 
-      doAction 
-        (parseAction str model) 
-        { model | mode = Normal }
-    Do action -> 
-      doAction action model
-  in model' ! []
-
 
 view : Editor -> Html Msg 
 view editor = 
@@ -232,39 +251,62 @@ onEnter tagger =
 cmdline mode = 
   case mode of
     Normal -> Nothing
-    Command -> 
+    
+    Failed msg mode -> 
+      Just <|
+        div [ class "cmdline cmdline-failed"]
+          [ p [] [text ("Failed: " ++ msg)] ]
+    
+    Command pre f -> 
       Just <| 
         div [ class "cmdline" ] 
-          [ p [] [text ":"]
+          [ p [] [text pre]
           , input 
-            [ onEnter ParseCmd 
+            [ onEnter f
             , autofocus True
             , attribute "data-autofocus" ""
             ] [] 
           ]
-    Failed msg -> 
-      Just <|
-        div [ class "cmdline cmdline-failed"]
-          [ p [] [text ("Failed: " ++ msg)] ]
+    
 
-keyhandler editor key =
+keyHandler : Editor -> Keyboard.KeyCode -> Msg
+keyHandler editor key =
+  --let key' = Debug.log "key" (Char.fromCode key) in 
   case editor.mode of
     Normal -> 
       case key of
-        -- :
-        58 -> SetMode Command 
         a  -> 
           Dict.get a editor.keymaps
           |> Maybe.map (\(KeyAction f) -> f editor)
           |> Maybe.withDefault NoOp 
-          |> Do
-    Command -> 
-      Do NoOp
-    Failed msg -> 
-      SetMode Normal
+    
+    Failed msg mode-> 
+      DoAll 
+        [ SetMode mode
+        , keyHandler { editor | mode = mode } key
+        ]
+
+    Command pre f ->
+      case key of
+        96 -> SetMode Normal
+        _ -> NoOp
+
+specialKeyHandler : Editor -> Keyboard.KeyCode -> Msg
+specialKeyHandler editor key =
+  --let key' = Debug.log "specialkey" key in 
+  case editor.mode of
+    Normal -> NoOp
+    Failed msg mode -> NoOp
+    Command pre f -> 
+      case key of
+        27 -> SetMode Normal
+        _ -> NoOp
 
 subscriptions editor = 
-  presses (keyhandler editor)
+  Sub.batch 
+    [ Keyboard.presses (keyHandler editor)
+    , Keyboard.ups (specialKeyHandler editor)
+    ]
 
 editor : Settings -> Program Never
 editor settings = 

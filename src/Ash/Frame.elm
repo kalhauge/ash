@@ -23,7 +23,9 @@ type Direction
   | Prev
 
 type Action 
-  = Change String
+  = Replace String
+  | Change
+  | Delete
   | Focus Direction
   | SmartFocus Direction
 
@@ -42,21 +44,17 @@ update : { a | buffers : Array Buffer } -> Frame -> Action -> (Frame, Response)
 update {buffers} frame action =
   let 
     fail msg = (frame, Fail msg)
+    updateBuffer (i, data) = 
+      ({frame | focus = i }, SetBufferData frame.bufferId data)
   in 
     case Array.get frame.bufferId buffers of
       Just {data, language} -> 
         case action of
           
-          Change str -> 
+          Replace str -> 
             case Debug.log "parse" <| Language.parse language str of
               Just ast -> 
-                let 
-                  (i, data') = Debug.log "update" <| 
-                    Command.update (always ast) frame.focus data
-                in 
-                  ( { frame | focus = i }
-                  , SetBufferData frame.bufferId data'
-                  )
+                updateBuffer <| Command.update (always ast) frame.focus data
               Nothing -> 
                 fail <| "Could not parse '" ++ str ++ "'"
           
@@ -83,6 +81,12 @@ update {buffers} frame action =
               Prev -> 
                 Command.prev
             in ({ frame | focus = f data frame.focus }, NoOp)
+
+          Delete -> 
+            updateBuffer <| Command.delete frame.focus data
+
+          Change ->
+            (frame, Fail "Not Implemented")
 
       Nothing -> 
         fail <| "No buffer " ++ toString frame.bufferId
