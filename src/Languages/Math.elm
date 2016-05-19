@@ -1,11 +1,19 @@
 -- Manual translation of 
 -- https://github.com/cdglabs/ohm/blob/master/examples/math/index.html
-module Languages.Arithmetic exposing (..)
+module Languages.Math exposing (..)
 
-import Ash.Grammar exposing (..)
+import Ash.Grammar as Grammar exposing (..)
+import Ash.Language exposing (..)
 
-lang = 
-  grammar 
+language : Language
+language = Language
+  { name = "math"
+  , grammar = grammar
+  , headExpr = "Exp"
+  }
+
+grammar = 
+  Grammar.grammar 
     [ ( "Exp"
       , rule 
         [[ Ref "AddExp" ]]
