@@ -7,6 +7,8 @@ import Ash.Serializer exposing (Serializer)
 import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree)
 import Ash.Command as Command 
 
+import Style exposing (..)
+
 import Ash.Language as Language exposing (Language)
 
 import Array exposing (Array)
@@ -32,6 +34,7 @@ type Action
 type Response 
   = NoOp
   | SetBufferData Int SyntaxTree
+  | SuggestBufferData Int (List (Int, SyntaxTree))
   | Fail String
 
 type alias Frame = 
@@ -44,8 +47,9 @@ update : { a | buffers : Array Buffer } -> Frame -> Action -> (Frame, Response)
 update {buffers} frame action =
   let 
     fail msg = (frame, Fail msg)
-    updateBuffer (i, data) = 
-      ({frame | focus = i }, SetBufferData frame.bufferId data)
+    updateBuffer f data = 
+      let newBuffer = f frame.focus data 
+      in (frame, SuggestBufferData frame.bufferId [newBuffer, (frame.focus, data)])
   in 
     case Array.get frame.bufferId buffers of
       Just {data, language} -> 
@@ -54,7 +58,7 @@ update {buffers} frame action =
           Replace str -> 
             case Debug.log "parse" <| Language.parse language str of
               Just ast -> 
-                updateBuffer <| Command.update (always ast) frame.focus data
+                updateBuffer (Command.update <| always ast) data
               Nothing -> 
                 fail <| "Could not parse '" ++ str ++ "'"
           
@@ -83,7 +87,7 @@ update {buffers} frame action =
             in ({ frame | focus = f data frame.focus }, NoOp)
 
           Delete -> 
-            updateBuffer <| Command.delete frame.focus data
+            updateBuffer Command.delete data
 
           Change ->
             (frame, Fail "Not Implemented")
@@ -96,11 +100,16 @@ view {buffers} frame =
   case Array.get frame.bufferId buffers of
     Just buffer -> 
       div [ class "frame" ] 
-        [ debug 
+        [ div [ class "frame-content" ] 
+          [ debug 
             { focus = frame.focus
             , grammar = (Language.getGrammar buffer.language)
             , data = buffer.data
             } 
+          ]
+        , div [ class "frame-line" ] 
+          [ p [] [ text <| Language.getName buffer.language]
+          ]
         ]
     Nothing -> 
       div [ class "frame frame-no-buffer" ] 
@@ -108,40 +117,20 @@ view {buffers} frame =
 
 debug {data, grammar, focus} = 
   let 
-    collector id tree =       
-      div 
-        [ style <|
-          [ ("display", "inline-block")
-          , ("margin", "2px 2px 0px 2px")
-          , ("text-align", "center")
-          ] ++ if focus == id then 
-            [ ("background", "lightgray") ]
-          else []
-        ]
-        <| [ div 
-          [ style <|
-            [ ("font-size", "6pt") ] ++ 
-            if focus == id then 
-              [ ("background", "black") 
-              , ("color", "lightblue") 
-              ]
-            else 
-              [("background", "lightblue")]
-          ] 
+    collector id tree =
+      let focusCls = if focus == id then ["ash-focus"] else []
+      in div 
+        [ classes <| [ "ash-dnode"] ++ focusCls] <| 
+        [ div 
+          [ class "ash-dnode-header"]
           [ text (fst tree.kind ++ " : " ++ toString id)] 
         ] ++ (
           Maybe.withDefault [ text "?" ] 
             <| SyntaxTree.translate grammar tree (\str -> 
               div 
-                [ style <|
-                  [ ("display", "inline-block")
-                  , ("margin", "2px 2px 0px 2px")
-                  , ("text-align", "center")
-                  ] ++ if focus == id then 
-                    [ ("color", "red") ]
-                  else []
-                ] [ text str ]
+                [ class "ash-dnode-term"] 
+                [ text str ]
             )
         )
-  in SyntaxTree.collect collector data
+  in div [ class "ash-debug-tree" ] [ SyntaxTree.collect collector data ]
 

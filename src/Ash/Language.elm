@@ -27,3 +27,6 @@ parse (Language language) =
 
 getGrammar : Language -> Grammar
 getGrammar (Language {grammar}) = grammar
+
+getName : Language -> String
+getName (Language {name}) = name
