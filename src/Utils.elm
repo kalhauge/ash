@@ -100,4 +100,5 @@ arrayUpdate i f array =
   Array.get i array &> 
     \x -> Just (Array.set i (f x) array)
 
+for = flip List.map
 

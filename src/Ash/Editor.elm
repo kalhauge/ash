@@ -106,7 +106,7 @@ realizeChoice : Editor -> Editor
 realizeChoice editor = 
   case editor.mode of  
     Choose i v arr -> 
-      let (focus, data) = Maybe.withDefault (0, SyntaxTree.empty) <| Array.get v arr 
+      let (focus, data) = Debug.log "whut" <| Maybe.withDefault (0, SyntaxTree.empty) <| Array.get v arr 
       in
         case Array.get i editor.buffers of 
            Just buffer -> 
@@ -169,9 +169,11 @@ doMsg msg model =
         Just frame -> 
           let 
             (frame, response) = Debug.log "frame" <| Frame.update model frame action 
-            model'' = case response of
+          in case response of
               Frame.NoOp -> 
-                model
+                { model
+                | frame = Just frame
+                }
               Frame.SetBufferData i data -> 
                 { model
                 | buffers = 
@@ -179,15 +181,23 @@ doMsg msg model =
                       <| arrayUpdate i
                           (\x -> {x | data = data }) 
                           model.buffers
+                , frame = Just frame
                 }
 
               Frame.Fail msg -> 
                 fail msg 
 
               Frame.SuggestBufferData i items ->
-                { model | mode = Choose i 0 (Array.fromList items)}
-
-          in { model'' | frame = Just frame }
+                case items of
+                  [] -> 
+                    { model | mode = Failed "No suggestions given." model.mode }
+                  [a] -> 
+                    doMsg (ChooseMsg Done) { model | mode = Choose i 0 (Array.fromList items)}  
+                  _ -> 
+                    { model 
+                    | mode = Choose i 0 (Array.fromList items)
+                    , frame = Just frame
+                    }  
         Nothing ->
           fail "No active frame" 
 
@@ -241,10 +251,10 @@ parseMsg str model =
                 _ -> badArgs 
             
             "delete" -> 
-                DoFrame (Frame.Delete)
+              DoFrame (Frame.Delete)
             
             "change" -> 
-                DoFrame (Frame.Change)
+              DoFrame (Frame.Change)
 
             "focus" -> 
               case rest of 

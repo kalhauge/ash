@@ -76,9 +76,7 @@ trim grammar =
   in 
     collectS trimmer
 
-{-
-FocusIn deepens the  
--}
+{- child deepens the  -}
 child : SyntaxTree -> Int -> Int
 child tree id =
   let childIterator i tree = 

@@ -15,7 +15,7 @@ import Ash.Grammar exposing
 import Ash.SyntaxTree exposing (syntax, SyntaxTree)
 
 parse : Grammar -> ClauseId -> String -> Maybe SyntaxTree
-parse grammar entry = 
+parse grammar entry str= 
   let 
     parseRule ruleName str = 
       getRule ruleName grammar `Maybe.andThen` 
@@ -92,5 +92,9 @@ parse grammar entry =
         [] -> 
           Just ([], str)
   in 
-    parseRule entry 
-      >> Maybe.map fst
+    parseRule entry str `Maybe.andThen` \(result, rest) -> 
+    case rest of 
+      "" -> Just result
+      _ -> Nothing
+
+

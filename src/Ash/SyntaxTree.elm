@@ -3,7 +3,7 @@ module Ash.SyntaxTree exposing
 
 import List exposing (sum, map2)
 
-import Ash.Grammar exposing (..)
+import Ash.Grammar as Grammar exposing (..)
 import Utils exposing (..)
 
 type alias SNode a
@@ -66,6 +66,11 @@ subIndecies id tree =
 subWithIndecies : Int -> SyntaxTree -> List (Int, SyntaxTree)
 subWithIndecies id tree =
   map2 (,) (subIndecies id tree) (getTerms tree)
+
+clausesWithIndicies : Grammar -> Int -> SyntaxTree ->  List (Int, ClauseId) 
+clausesWithIndicies grammar id st =
+  Grammar.subClauses grammar st.kind
+  |> List.map2 (,) (subIndecies id st)
   
 indecies : Int -> List SyntaxTree -> List Int
 indecies i list = 
@@ -179,6 +184,20 @@ collectPath id default clt =
     iterate 0 
 
 
+
+{- 
+Finds the clause of the a tree in focus. To work with the trim function, and 
+empty nodes.
+-}
+clause : Grammar -> Int -> SyntaxTree -> Maybe ClauseId
+clause grammar id =
+  let
+    findClause i st = 
+      Utils.oneOfMap (\(i, s) -> if i == id then Just s else Nothing)
+          <| clausesWithIndicies grammar i st
+  in search id findClause 
+
+
 -- Should be put some where else.
 
 match : 
@@ -208,6 +227,6 @@ translate :
   -> (String -> a)
   -> Maybe (List a)
 translate grammar {kind, terms} f =
-  let alt = Ash.Grammar.get kind grammar 
+  let alt = Grammar.get kind grammar 
   in alt `Maybe.andThen` match terms f
 

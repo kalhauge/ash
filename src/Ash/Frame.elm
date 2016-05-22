@@ -6,12 +6,16 @@ import Html.Attributes exposing (class, style)
 import Ash.Serializer exposing (Serializer)
 import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree)
 import Ash.Command as Command 
+import Ash.Grammar as Grammar
 
 import Style exposing (..)
+
 
 import Ash.Language as Language exposing (Language)
 
 import Array exposing (Array)
+
+import Utils exposing (..)
 
 type alias Buffer = 
   { data : SyntaxTree
@@ -47,20 +51,37 @@ update : { a | buffers : Array Buffer } -> Frame -> Action -> (Frame, Response)
 update {buffers} frame action =
   let 
     fail msg = (frame, Fail msg)
-    updateBuffer f data = 
+    updateBufferWithOptions f data = 
       let newBuffer = f frame.focus data 
       in (frame, SuggestBufferData frame.bufferId [newBuffer, (frame.focus, data)])
+    updateBuffer f data = 
+      let (focus, data') = f frame.focus data 
+      in ({frame | focus = focus}, SetBufferData frame.bufferId data')
+    
+    update st a = 
+      Command.update (always a) frame.focus st
   in 
     case Array.get frame.bufferId buffers of
       Just {data, language} -> 
         case action of
           
           Replace str -> 
-            case Debug.log "parse" <| Language.parse language str of
-              Just ast -> 
-                updateBuffer (Command.update <| always ast) data
-              Nothing -> 
-                fail <| "Could not parse '" ++ str ++ "'"
+            let 
+              parse : Grammar.ClausePath -> Maybe SyntaxTree
+              parse (clauseid, path) = 
+                List.foldl (\i -> Maybe.map (\a -> SyntaxTree.syntax i [a]))
+                  (Language.parse language clauseid str)
+                  path
+
+              clausepaths = 
+                Language.reacableClauses language frame.focus data 
+                
+              options = 
+                List.map parse clausepaths
+                |> compress
+                |> List.map (update data) 
+            in 
+              (frame, SuggestBufferData frame.bufferId options)              
           
           SmartFocus dir -> 
             let f = case dir of
@@ -90,7 +111,8 @@ update {buffers} frame action =
             updateBuffer Command.delete data
 
           Change ->
-            (frame, Fail "Not Implemented")
+            let clause = Language.clause language frame.focus data 
+            in (frame, Fail <| "Not Implemented: " ++ clause)
 
       Nothing -> 
         fail <| "No buffer " ++ toString frame.bufferId
