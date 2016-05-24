@@ -74,7 +74,7 @@ update msg (Frame {focus, bufferId} as frame) =
       updateWithBuffer <| moveFocus dir 
     
     SmartFocus dir -> 
-      updateWithBuffer <| moveFocus dir 
+      updateWithBuffer <| moveSmartFocus dir 
 
     Delete -> 
       updateBuffer <| Buffer.Delete
