@@ -110,14 +110,18 @@ realizeChoice editor =
   case Debug.log "mode" <| editor.mode of  
     Choose i v arr -> 
       case Array.get v arr of
-        Just (buffer, update) -> 
-          { editor 
-          | buffers = Array.set i buffer editor.buffers 
-          , frame = Maybe.map (Frame.updateFocus update) editor.frame
-          }
+        Just a -> activateBufferUpdate i a editor
         Nothing -> 
           Debug.crash "Should Not Happen"
     _ -> editor
+
+activateBufferUpdate : Int -> (Buffer, Int -> Int) -> Editor -> Editor
+activateBufferUpdate i (buffer, update) editor =
+  { editor 
+  | buffers = Array.set i buffer editor.buffers 
+  , frame = Maybe.map (Frame.updateFocus update) editor.frame
+  }
+
 
 doMsg msg model = 
   let 
@@ -162,7 +166,12 @@ doMsg msg model =
         Just buffer -> 
           case Buffer.update msg buffer of
             Buffer.Options options -> 
-              { model | mode = Choose id 0 (Array.fromList options) }
+              case options of 
+                [] -> fail "Action Not Possible"
+                [a] -> 
+                  activateBufferUpdate id a model
+                _ ->
+                  { model | mode = Choose id 0 (Array.fromList options) }
         Nothing ->
           fail <| "Could not find buffer '" ++ toString id ++ "'"
 

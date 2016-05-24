@@ -34,10 +34,13 @@ mapFromS : (List SyntaxTree -> List b) -> SyntaxTree -> SNode b
 mapFromS fn a =
   { a | terms = fn (getTerms a) }
 
-
 mapToS : (List a -> List SyntaxTree) -> SNode a -> SyntaxTree
 mapToS fn a =
   setTerms (fn a.terms) a
+
+mapS : (List SyntaxTree -> List SubTree) -> SyntaxTree -> SyntaxTree
+mapS fn a =
+  setTerms (fn (getTerms a) |> List.map unfix) a
 
 
 setTerms : List SyntaxTree -> SNode a -> SyntaxTree
@@ -58,7 +61,6 @@ syntax kind terms =
 setTermsS : List SubTree -> SNode b -> SubTree
 setTermsS terms inner = 
   SubTree <| syntax inner.kind (List.map unfix terms)
-
 
 
 empty = syntax ("empty", 0) []
@@ -141,8 +143,12 @@ type alias TreeCollector a = Int -> SNode a -> a
 Collect runs through the syntax tree and collects the results in a
 SNode.
 -}
-collect : TreeCollector a -> SyntaxTree -> a
-collect clt =
+collect' : 
+  ((List SyntaxTree -> List a) -> SyntaxTree -> SNode a)
+  -> TreeCollector a 
+  -> SyntaxTree
+  -> a
+collect' col clt =
   let 
     step i terms =
       case terms of 
@@ -150,13 +156,15 @@ collect clt =
         term :: rest ->
           iterate i term :: step (term.size + i) rest 
     iterate i tree = 
-      clt (i + tree.size) (mapFromS (step i) tree)
+      clt (i + tree.size) (col (step i) tree)
   in 
     iterate 0 
 
+collect = collect' mapFromS
+
 collectS : TreeCollector SubTree -> SyntaxTree -> SyntaxTree
 collectS clt =
-  collect clt >> unfix
+  collect' mapS clt >> unfix
 
 
 {-

@@ -39,21 +39,49 @@ setData data (Buffer b) = Buffer { b | data = data }
 
 type Msg 
   = Delete Focus
+  | Replace String Focus
 
 type Response
   = Options (List (Buffer, Int -> Int))
 
 update : Msg -> Buffer -> Response 
 update msg (Buffer {data, language} as buffer) = 
-  case msg of
-    Delete focus -> Options (delete focus buffer)
-
+  let fn = case msg of
+    Delete focus -> delete focus
+    Replace str focus -> replace focus str
+  in Options (fn buffer)
+   
 
 delete : Focus -> Buffer -> List (Buffer, Focus -> Focus)
 delete focus (Buffer {data} as buffer) = 
- Command.delete focus data
- |> Maybe.map (\(st, ff) -> (setData st buffer, ff))
- |> Utils.maybeToList
+  Command.delete focus data
+  |> Maybe.map (\(st, ff) -> (setData st buffer, ff))
+  |> Utils.maybeToList
+
+replace : Focus -> String -> Buffer -> List (Buffer, Focus -> Focus)
+replace focus str (Buffer {data, language} as buffer) =
+  let 
+    clause = Debug.log "parse" <| Language.clause language focus data
+    
+    parse : Grammar.ClausePath -> Maybe SyntaxTree
+    parse (clauseid, path) = 
+      List.foldl (\i -> Maybe.map (\a -> SyntaxTree.syntax i [a]))
+        (Language.parse language clauseid str)
+        path
+
+    replace : SyntaxTree -> List (Buffer, Focus -> Focus)
+    replace st = 
+      Command.replace focus 
+        (always (Command.trim (Language.getGrammar language) st)) 
+        data
+      |> Maybe.map (\(st, ff) -> (setData st buffer, ff))
+      |> Utils.maybeToList
+
+  in case parse (clause, []) of
+    Just new -> replace new
+    Nothing -> 
+      Language.reacableClauses language clause
+      |> List.concatMap (parse >> Maybe.map replace >> Maybe.withDefault [])
 
 -- type Msg 
 --   = SetData SyntaxTree

@@ -78,6 +78,9 @@ update msg (Frame {focus, bufferId} as frame) =
 
     Delete -> 
       updateBuffer <| Buffer.Delete
+
+    Replace str -> 
+      updateBuffer <| Buffer.Replace str
     
     _ -> Fail "Not implemented"
 
@@ -128,7 +131,7 @@ debug {data, grammar, focus} =
         [ classes <| [ "ash-dnode"] ++ focusCls] <| 
         [ div 
           [ class "ash-dnode-header"]
-          [ text (fst tree.kind ++ " : " ++ toString id)] 
+          [ text (fst tree.kind ++ " : " ++ toString id ++ " - " ++ toString tree.size)] 
         ] ++ (
           Maybe.withDefault [ text "?" ] 
             <| SyntaxTree.translate grammar tree (\str -> 

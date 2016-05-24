@@ -46,10 +46,12 @@ updatetor clt oldId tree itrId =
         [] -> ([], [], id)
 
     (terms, mapping', newId) = helper tree.terms itrId 
-    mapping'' = mapping' ++ [ newId + 1]
   in
-    Debug.log "update" <| 
-    (clt oldId { tree | terms = terms }, mapping'')
+     case clt oldId { tree | terms = Debug.log "terms" terms } of
+       Just (SubTree {size} as st)  -> 
+         (Just st, mapping' ++ [ itrId + size ])
+       Nothing -> 
+         (Nothing,  mapping' ++ [ newId + 1] )
   
 
 update : TreeCollector (Maybe SubTree) -> SyntaxTree -> Maybe (SyntaxTree, Int -> Int)
@@ -62,6 +64,26 @@ update clt st =
       Array.get (i - 1) (Debug.log ("mapping " ++ toString i) array) 
       |> Maybe.withDefault i
   in Maybe.map (\r -> (unfix r, mapping)) result
+
+liftMaybe : TreeCollector SubTree -> TreeCollector (Maybe SubTree)
+liftMaybe clt i tree= 
+  Utils.allOf tree.terms 
+  |> Maybe.map (List.map unfix >> flip setTerms tree >> clt i) 
+
+replacer : Focus -> (SyntaxTree -> SyntaxTree) -> TreeCollector SubTree
+replacer id fn i tree = 
+  if i == id then
+     SubTree (fn tree)  
+  else 
+     SubTree tree
+
+replace : 
+  Focus 
+  -> (SyntaxTree -> SyntaxTree) 
+  -> SyntaxTree 
+  -> Maybe (SyntaxTree, Int -> Int)
+replace id fn tree =
+  update (liftMaybe (replacer id fn)) tree
 
 deleteIterator : Focus -> TreeCollector (Maybe SubTree)
 deleteIterator id i tree =
@@ -91,6 +113,6 @@ trimmer grammar i tree =
 
 
 trim : Grammar -> SyntaxTree -> SyntaxTree
-trim grammar =
-  collectS (trimmer grammar) 
+trim grammar st =
+  Debug.log "trim" <| collectS (trimmer grammar) st
 
