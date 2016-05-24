@@ -20,45 +20,46 @@ get id =
       Nothing
   in search id get' 
 
+
+replaceL l i = 
+  List.repeat (List.length l) i
+
 updatetor : 
   TreeCollector (Maybe SubTree) 
-  -> TreeCollector (Array Int -> Int -> (Maybe SubTree, Array Int))
-updatetor clt oldId tree array itrId = 
+  -> TreeCollector (Int -> (Maybe SubTree, List Int))
+updatetor clt oldId tree itrId = 
   let 
     helper : 
-      List (Array Int -> Int -> (Maybe SubTree, Array Int))
-      -> Array Int 
+      List (Int -> (Maybe SubTree, List Int))
       -> Int 
-      -> (List (Maybe SubTree), Array Int, Int)
-    helper list array id = 
+      -> (List (Maybe SubTree), List Int, Int)
+    helper list id = 
       case list of 
         el :: rest -> 
-          case el array id of
-            (Just (SubTree {size} as st), arr) -> 
-              let (list, array', nid) = helper rest arr (id + size) 
-              in (Just st :: list, array', nid)
-            (Nothing, arr)  -> 
-              let (list, array', nid) = helper rest arr id
-              in (Nothing :: list, array', nid)
-        [] -> ([], array, id)
+          case el id of
+            (Just (SubTree {size} as st), mapping) -> 
+              let (list, mapping', nid) = helper rest (id + size) 
+              in (Just st :: list, mapping ++ mapping', nid)
+            (Nothing, mapping)  -> 
+              let (list, mapping', nid) = helper rest id
+              in (Nothing :: list, (replaceL mapping (nid + 1)) ++ mapping', nid)
+        [] -> ([], [], id)
 
-    (terms, array', newId) = helper tree.terms array itrId 
+    (terms, mapping', newId) = helper tree.terms itrId 
+    mapping'' = mapping' ++ [ newId + 1]
   in
     Debug.log "update" <| 
-    case clt oldId { tree | terms = terms } of
-      Nothing -> -- Tree Deleted 
-       (Nothing, array)
-      Just st -> 
-        (Just st, Array.set oldId (newId + 1) array')
+    (clt oldId { tree | terms = terms }, mapping'')
   
 
 update : TreeCollector (Maybe SubTree) -> SyntaxTree -> Maybe (SyntaxTree, Int -> Int)
 update clt st =
   let 
-    (result, array) = 
-      collect (updatetor clt) st (Array.repeat st.size 0) 0
+    (result, map) = 
+      collect (updatetor clt) st 0
+    array = Array.fromList map
     mapping i = 
-      Array.get i (Debug.log ("mapping " ++ toString i) array) 
+      Array.get (i - 1) (Debug.log ("mapping " ++ toString i) array) 
       |> Maybe.withDefault i
   in Maybe.map (\r -> (unfix r, mapping)) result
 
