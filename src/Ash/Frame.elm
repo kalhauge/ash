@@ -3,6 +3,7 @@ module Ash.Frame exposing
   , new
 
   , setFocus
+  , updateFocus
   , getBufferId
 
   , moveSmartFocus
@@ -85,8 +86,12 @@ update msg (Frame {focus, bufferId} as frame) =
 type alias Direction = Movement.Direction
 
 setFocus : Focus -> Frame -> Frame
-setFocus focus (Frame frame) =
-  Frame { frame | focus = focus } 
+setFocus focus =
+  updateFocus <| always focus 
+
+updateFocus : (Focus -> Focus) -> Frame -> Frame
+updateFocus f (Frame frame) = 
+  Frame { frame | focus = f frame.focus } 
 
 moveSmartFocus : Direction -> Frame -> Buffer -> Frame
 moveSmartFocus dir (Frame {focus} as frame) =

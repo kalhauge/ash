@@ -25,7 +25,7 @@ import Dict exposing (Dict)
 
 import Utils exposing (..)
 
-import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree, SubTree(..))
+import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree, SubTree(..), Focus)
 import Ash.Grammar exposing (Grammar, Term(..))
 import Ash.Language as Language exposing (Language(..))
 import Ash.Movement as Movement
@@ -107,17 +107,16 @@ type ChooseMsg
 
 realizeChoice : Editor -> Editor
 realizeChoice editor = 
-  case editor.mode of  
+  case Debug.log "mode" <| editor.mode of  
     Choose i v arr -> 
-      let (focus, data) = Debug.log "whut" <| Maybe.withDefault (0, SyntaxTree.empty) <| Array.get v arr 
-      in
-        case Array.get i editor.buffers of 
-           Just buffer -> 
-             { editor 
-             | buffers = Array.set i (Buffer.setData data buffer) editor.buffers 
-             , frame = Maybe.map (Frame.setFocus focus) editor.frame
-             }
-           Nothing -> editor
+      case Array.get v arr of
+        Just (buffer, update) -> 
+          { editor 
+          | buffers = Array.set i buffer editor.buffers 
+          , frame = Maybe.map (Frame.updateFocus update) editor.frame
+          }
+        Nothing -> 
+          Debug.crash "Should Not Happen"
     _ -> editor
 
 doMsg msg model = 
@@ -159,7 +158,13 @@ doMsg msg model =
         }
 
     DoBuffer id msg -> 
-      fail "Not implemented"
+      case Array.get id model.buffers of
+        Just buffer -> 
+          case Buffer.update msg buffer of
+            Buffer.Options options -> 
+              { model | mode = Choose id 0 (Array.fromList options) }
+        Nothing ->
+          fail <| "Could not find buffer '" ++ toString id ++ "'"
 
     DoFrame action ->
       case model.frame of
@@ -276,7 +281,7 @@ type Mode
   = Normal 
   | Failed String Mode
   | Command String (String -> Msg)
-  | Choose Int Int (Array (Int, SyntaxTree))
+  | Choose Int Int (Array (Buffer, Focus -> Focus))
 
 view : Editor -> Html Msg 
 view editor = 

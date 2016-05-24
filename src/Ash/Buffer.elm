@@ -49,9 +49,11 @@ update msg (Buffer {data, language} as buffer) =
     Delete focus -> Options (delete focus buffer)
 
 
-delete : Focus -> Buffer -> List (Buffer, Int -> Int)
-delete focus buffer = 
-  Debug.crash "Has" 
+delete : Focus -> Buffer -> List (Buffer, Focus -> Focus)
+delete focus (Buffer {data} as buffer) = 
+ Command.delete focus data
+ |> Maybe.map (\(st, ff) -> (setData st buffer, ff))
+ |> Utils.maybeToList
 
 -- type Msg 
 --   = SetData SyntaxTree

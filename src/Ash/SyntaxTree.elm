@@ -55,6 +55,12 @@ syntax kind terms =
   , size = sum (List.map .size terms) + 1
   }
 
+setTermsS : List SubTree -> SNode b -> SubTree
+setTermsS terms inner = 
+  SubTree <| syntax inner.kind (List.map unfix terms)
+
+
+
 empty = syntax ("empty", 0) []
 
 -- Special functions from here
@@ -148,18 +154,9 @@ collect clt =
   in 
     iterate 0 
 
-collectS : (Int -> SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
-collectS clt = 
-  let
-    step i terms =
-      case terms of 
-        [] -> []
-        term :: rest ->
-          iterate i term :: step (term.size + i) rest 
-    iterate i tree = 
-      clt (i + tree.size) (mapToS (List.map unfix >> step i) tree)
-  in 
-    iterate 0 
+collectS : TreeCollector SubTree -> SyntaxTree -> SyntaxTree
+collectS clt =
+  collect clt >> unfix
 
 
 {-
@@ -193,8 +190,8 @@ clause : Grammar -> Int -> SyntaxTree -> Maybe ClauseId
 clause grammar id =
   let
     findClause i st = 
-      Utils.oneOfMap (\(i, s) -> if i == id then Just s else Nothing)
-          <| clausesWithIndicies grammar i st
+      clausesWithIndicies grammar i st
+      |> Utils.oneOfMap (\(i, s) -> if i == id then Just s else Nothing)
   in search id findClause 
 
 

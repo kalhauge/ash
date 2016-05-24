@@ -1,6 +1,6 @@
 module Ash.Command exposing (..)
-
 import List exposing (map, any, head, member)
+import Array exposing (Array)
 import Maybe exposing (withDefault)
 
 import Ash.SyntaxTree exposing (..)
@@ -20,59 +20,76 @@ get id =
       Nothing
   in search id get' 
 
-{-
-Updates the subtree identified by the index. Returns an new index representing
-the new subtree.
--}
-update : (SyntaxTree -> SyntaxTree) -> Int -> SyntaxTree -> (Int, SyntaxTree)
-update fn id =
+updatetor : 
+  TreeCollector (Maybe SubTree) 
+  -> TreeCollector (Array Int -> Int -> (Maybe SubTree, Array Int))
+updatetor clt oldId tree array itrId = 
   let 
-    toTree {kind, terms} = syntax kind (List.map snd terms)
-    update' i node =
-      if id == i then
-        let rval = fn (toTree node)
-        in (i - node.size + rval.size, rval)
-      else 
-        let idx = Maybe.withDefault 0 (
-            List.maximum (List.map fst node.terms)
-          )
-        in (idx, toTree node)
-  in collectPath id (\i tree -> (0, tree)) update'
+    helper : 
+      List (Array Int -> Int -> (Maybe SubTree, Array Int))
+      -> Array Int 
+      -> Int 
+      -> (List (Maybe SubTree), Array Int, Int)
+    helper list array id = 
+      case list of 
+        el :: rest -> 
+          case el array id of
+            (Just (SubTree {size} as st), arr) -> 
+              let (list, array', nid) = helper rest arr (id + size) 
+              in (Just st :: list, array', nid)
+            (Nothing, arr)  -> 
+              let (list, array', nid) = helper rest arr id
+              in (Nothing :: list, array', nid)
+        [] -> ([], array, id)
 
+    (terms, array', newId) = helper tree.terms array itrId 
+  in
+    Debug.log "update" <| 
+    case clt oldId { tree | terms = terms } of
+      Nothing -> -- Tree Deleted 
+       (Nothing, array)
+      Just st -> 
+        (Just st, Array.set oldId (newId + 1) array')
+  
 
-delete : Focus -> SyntaxTree -> (Int, SyntaxTree)
+update : TreeCollector (Maybe SubTree) -> SyntaxTree -> Maybe (SyntaxTree, Int -> Int)
+update clt st =
+  let 
+    (result, array) = 
+      collect (updatetor clt) st (Array.repeat st.size 0) 0
+    mapping i = 
+      Array.get i (Debug.log ("mapping " ++ toString i) array) 
+      |> Maybe.withDefault i
+  in Maybe.map (\r -> (unfix r, mapping)) result
+
+deleteIterator : Focus -> TreeCollector (Maybe SubTree)
+deleteIterator id i tree =
+  if i == id then
+     Nothing
+  else 
+    case allOf (tree.terms) of
+      Just terms -> 
+        Just <| setTermsS terms tree
+      Nothing -> 
+        onlyOne tree.terms
+
+delete : Focus -> SyntaxTree -> Maybe (SyntaxTree, Int -> Int)
 delete id tree =
-  let
-    deleteIterator i tree =
-      if i == id then
-         Nothing
-      else 
-        case allOf (tree.terms) of
-          Just terms -> 
-            Just <| 
-              ( Maybe.withDefault 0 ( List.maximum (List.map fst terms))
-              , setTerms (List.map snd terms) tree
-              )
-          Nothing -> 
-            case onlyOne tree.terms of
-              Just (i', tree') -> Just (i - tree.size + tree'.size, tree') 
-              Nothing -> Nothing
-  in collectPath id (\i tree -> Just (0, tree)) deleteIterator tree
-      |> Maybe.withDefault (id, tree)
+  update (deleteIterator id) tree
+
+trimmer : Grammar -> TreeCollector SubTree
+trimmer grammar i tree =
+  Ash.Grammar.get tree.kind grammar
+    |> flip Maybe.andThen (\alt -> 
+        if List.length alt == 1 then 
+          head tree.terms 
+        else 
+          Nothing
+      )
+    |> Maybe.withDefault (SubTree tree)
 
 
 trim : Grammar -> SyntaxTree -> SyntaxTree
 trim grammar =
-  let
-    trimmer i tree =
-      Ash.Grammar.get tree.kind grammar
-        |> flip Maybe.andThen (\alt -> 
-            if List.length alt == 1 then 
-              head (getTerms tree)
-            else 
-              Nothing
-          )
-        |> Maybe.withDefault tree 
-  in 
-    collectS trimmer
+  collectS (trimmer grammar) 
 
