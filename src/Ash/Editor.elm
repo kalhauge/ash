@@ -28,8 +28,10 @@ import Utils exposing (..)
 import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree, SubTree(..))
 import Ash.Grammar exposing (Grammar, Term(..))
 import Ash.Language as Language exposing (Language(..))
+import Ash.Movement as Movement
 
-import Ash.Frame as Frame exposing (Frame, Buffer)
+import Ash.Frame as Frame exposing (Frame)
+import Ash.Buffer as Buffer exposing (Buffer)
 
 type alias Settings = 
   { after : Cmd Msg
@@ -76,26 +78,27 @@ fix settings model =
 
 debug : Settings -> Editor
 debug settings = 
-  fix settings 
-    { buffers = Array.fromList 
-      [ { data = { kind = ("Exp",0), terms = [SubTree { kind = ("AddExp",0), terms = [SubTree { kind = ("AddExp",2), terms = [SubTree { kind = ("MulExp",2), terms = [SubTree { kind = ("ExpExp",1), terms = [SubTree { kind = ("PriExp",3), terms = [SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",1), terms = [], size = 1 },SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("number",1), terms = [SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 2 }], size = 4 }], size = 6 }], size = 7 }], size = 8 }], size = 9 }], size = 10 },SubTree { kind = ("MulExp",2), terms = [SubTree { kind = ("ExpExp",1), terms = [SubTree { kind = ("PriExp",3), terms = [SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("number",1), terms = [SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 2 }], size = 4 }], size = 5 }], size = 6 }], size = 7 }], size = 18 }], size = 19 }
-        , language = Language { name = "math", grammar = Dict.fromList [("AddExp",Array.fromList [[Ref "AddExp",Lex "+",Ref "MulExp"],[Ref "AddExp",Lex "-",Ref "MulExp"],[Ref "MulExp"]]),("Exp",Array.fromList [[Ref "AddExp"]]),("ExpExp",Array.fromList [[Ref "PriExp",Lex "^",Ref "ExpExp"],[Ref "PriExp"]]),("MulExp",Array.fromList [[Ref "MulExp",Lex "*",Ref "ExpExp"],[Ref "MulExp",Lex "/",Ref "ExpExp"],[Ref "ExpExp"]]),("PriExp",Array.fromList [[Lex "(",Ref "Exp",Lex ")"],[Lex "-",Ref "PriExp"],[Ref "ident"],[Ref "number"]]),("alpha",Array.fromList [[Lex "a"],[Lex "b"],[Lex "c"],[Lex "d"],[Lex "e"],[Lex "f"],[Lex "g"],[Lex "h"],[Lex "i"],[Lex "j"],[Lex "k"],[Lex "l"],[Lex "m"],[Lex "n"],[Lex "o"],[Lex "p"],[Lex "q"],[Lex "r"],[Lex "s"],[Lex "t"],[Lex "u"],[Lex "v"],[Lex "x"],[Lex "y"],[Lex "z"]]),("digit",Array.fromList [[Lex "0"],[Lex "1"],[Lex "2"],[Lex "3"],[Lex "4"],[Lex "5"],[Lex "6"],[Lex "7"],[Lex "8"],[Lex "9"]]),("ident",Array.fromList [[Ref "alpha",Ref "ident"],[Ref "alpha"]]),("number",Array.fromList [[Ref "digit",Ref "number"],[Ref "digit"]])], headExpr = "Exp" } 
-        }
-      ]
-    , frame = Just { focus = 19, bufferId = 0, serializer = Frame.debug}
+  let buffer = 
+    Buffer.Buffer { data = { kind = ("Exp",0), terms = [SubTree { kind = ("AddExp",0), terms = [SubTree { kind = ("AddExp",2), terms = [SubTree { kind = ("MulExp",2), terms = [SubTree { kind = ("ExpExp",1), terms = [SubTree { kind = ("PriExp",3), terms = [SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",1), terms = [], size = 1 },SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("number",1), terms = [SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 2 }], size = 4 }], size = 6 }], size = 7 }], size = 8 }], size = 9 }], size = 10 },SubTree { kind = ("MulExp",2), terms = [SubTree { kind = ("ExpExp",1), terms = [SubTree { kind = ("PriExp",3), terms = [SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("number",1), terms = [SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 2 }], size = 4 }], size = 5 }], size = 6 }], size = 7 }], size = 18 }], size = 19 }
+    , language = Language { name = "math", grammar = Dict.fromList [("AddExp",Array.fromList [[Ref "AddExp",Lex "+",Ref "MulExp"],[Ref "AddExp",Lex "-",Ref "MulExp"],[Ref "MulExp"]]),("Exp",Array.fromList [[Ref "AddExp"]]),("ExpExp",Array.fromList [[Ref "PriExp",Lex "^",Ref "ExpExp"],[Ref "PriExp"]]),("MulExp",Array.fromList [[Ref "MulExp",Lex "*",Ref "ExpExp"],[Ref "MulExp",Lex "/",Ref "ExpExp"],[Ref "ExpExp"]]),("PriExp",Array.fromList [[Lex "(",Ref "Exp",Lex ")"],[Lex "-",Ref "PriExp"],[Ref "ident"],[Ref "number"]]),("alpha",Array.fromList [[Lex "a"],[Lex "b"],[Lex "c"],[Lex "d"],[Lex "e"],[Lex "f"],[Lex "g"],[Lex "h"],[Lex "i"],[Lex "j"],[Lex "k"],[Lex "l"],[Lex "m"],[Lex "n"],[Lex "o"],[Lex "p"],[Lex "q"],[Lex "r"],[Lex "s"],[Lex "t"],[Lex "u"],[Lex "v"],[Lex "x"],[Lex "y"],[Lex "z"]]),("digit",Array.fromList [[Lex "0"],[Lex "1"],[Lex "2"],[Lex "3"],[Lex "4"],[Lex "5"],[Lex "6"],[Lex "7"],[Lex "8"],[Lex "9"]]),("ident",Array.fromList [[Ref "alpha",Ref "ident"],[Ref "alpha"]]),("number",Array.fromList [[Ref "digit",Ref "number"],[Ref "digit"]])], headExpr = "Exp" } 
+    }
+  in fix settings 
+    { buffers = Array.fromList [ buffer ]
+    , frame = Just <| Frame.new (0, buffer) 
     , mode = Normal
     }
 
 type Msg
   = NoOp 
-  | NewBuffer Language
-  | State
-  | DoFrame Frame.Action
-  | Fail String 
-  | WithInput String (String -> Editor -> Msg)
-  | SetMode Mode
-  | DoAll (List Msg)
   | ChooseMsg ChooseMsg
+  | DoAll (List Msg)
+  | DoFrame Frame.Msg
+  | DoBuffer Int Buffer.Msg
+  | Fail String 
+  | NewBuffer Language
+  | SetMode Mode
+  | State
+  | WithInput String (String -> Editor -> Msg)
 
 type ChooseMsg 
   = Next
@@ -111,10 +114,8 @@ realizeChoice editor =
         case Array.get i editor.buffers of 
            Just buffer -> 
              { editor 
-             | buffers = Array.set i { buffer | data = data } editor.buffers 
-             , frame = Maybe.map 
-                  (\frame -> {frame | focus = focus }) 
-                  editor.frame
+             | buffers = Array.set i (Buffer.setData data buffer) editor.buffers 
+             , frame = Maybe.map (Frame.setFocus focus) editor.frame
              }
            Nothing -> editor
     _ -> editor
@@ -148,56 +149,33 @@ doMsg msg model =
     
     NewBuffer language -> 
       let
-        buffer = 
-          { data = SyntaxTree.empty
-          , language = language 
-          }       
+        buffer = Buffer.new language 
         buffers = Array.push buffer model.buffers 
-        frame = 
-          { focus = 1
-          , bufferId = Array.length buffers - 1
-          , serializer = Language.getDefaultSerialzier language
-          }
+        frame = Frame.new (Array.length buffers - 1, buffer)
       in 
         { model | 
             buffers = buffers, 
             frame = Just frame
         }
 
+    DoBuffer id msg -> 
+      fail "Not implemented"
+
     DoFrame action ->
       case model.frame of
         Just frame -> 
-          let 
-            (frame, response) = Debug.log "frame" <| Frame.update model frame action 
-          in case response of
-              Frame.NoOp -> 
-                { model
-                | frame = Just frame
-                }
-              Frame.SetBufferData i data -> 
-                { model
-                | buffers = 
-                    Maybe.withDefault model.buffers
-                      <| arrayUpdate i
-                          (\x -> {x | data = data }) 
-                          model.buffers
-                , frame = Just frame
-                }
-
-              Frame.Fail msg -> 
-                fail msg 
-
-              Frame.SuggestBufferData i items ->
-                case items of
-                  [] -> 
-                    { model | mode = Failed "No suggestions given." model.mode }
-                  [a] -> 
-                    doMsg (ChooseMsg Done) { model | mode = Choose i 0 (Array.fromList items)}  
-                  _ -> 
-                    { model 
-                    | mode = Choose i 0 (Array.fromList items)
-                    , frame = Just frame
-                    }  
+          case Frame.update action frame of 
+            Frame.UpdateFrame frame' -> 
+              { model | frame = Just frame' }
+            Frame.UpdateWithBuffer id fn -> 
+              case Array.get id model.buffers of 
+                Just buffer -> 
+                  { model | frame = Just (fn buffer) } 
+                Nothing -> fail "No buffer"
+            Frame.UpdateBuffer i msg -> 
+              doMsg (DoBuffer i msg) model
+            Frame.Fail str -> 
+              fail str
         Nothing ->
           fail "No active frame" 
 
@@ -223,10 +201,14 @@ parseMsg str model =
 
     parseDir str err f = 
       case str of
-        "child" -> f Frame.Child
-        "parrent" -> f Frame.Parrent
-        "next" -> f Frame.Next
-        "prev" -> f Frame.Prev
+        "child" -> 
+          f Movement.Child
+        "parrent" -> 
+          f Movement.Parrent
+        "next" -> 
+          f Movement.Next
+        "prev" -> 
+          f Movement.Prev
         _ -> err 
 
     parseArgs args = 
@@ -312,7 +294,14 @@ view editor =
         in 
           [ case editor'.frame of
               Just frame -> 
-                Frame.view editor' frame
+                case Array.get (Frame.getBufferId frame) editor'.buffers of 
+                  Just buffer -> Frame.view frame buffer
+                  Nothing -> 
+                    div [ class "frame" ] 
+                      [ div 
+                        [ class "no-buffer-frame" ] 
+                        [ text "No buffer in frame." ] 
+                      ]
               Nothing -> 
                 div [ class "frame" ] 
                   [ div 

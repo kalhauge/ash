@@ -1,141 +1,113 @@
-module Ash.Frame exposing (..)
+module Ash.Frame exposing 
+  ( Frame
+  , new
+
+  , setFocus
+  , getBufferId
+
+  , moveSmartFocus
+  , moveFocus
+  
+  , view
+
+  , Msg(..)
+  , Response(..)
+  , update
+  )
+
+import Ash.Buffer as Buffer exposing (Buffer(..))
+import Ash.Command as Command 
+import Ash.Movement as Movement
+import Ash.Language as Language exposing (Language)
+import Ash.Serializer exposing (Serializer)
+import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree, Focus)
+
+import Array exposing (Array)
+import Style exposing (..)
+import Utils exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
 
-import Ash.Serializer exposing (Serializer)
-import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree)
-import Ash.Command as Command 
-import Ash.Grammar as Grammar
-
-import Style exposing (..)
-
-
-import Ash.Language as Language exposing (Language)
-
-import Array exposing (Array)
-
-import Utils exposing (..)
-
-type alias Buffer = 
-  { data : SyntaxTree
-  , language : Language
+type Frame = Frame
+  { serializer : Serializer 
+  , focus : Int
+  , bufferId : Int
   }
 
-type Direction 
-  = Child
-  | Parrent
-  | Next
-  | Prev
+new : (Int, Buffer) -> Frame
+new (i, Buffer {data, language}) = 
+  Frame
+    { focus = data.size 
+    , bufferId = i 
+    , serializer = Language.getDefaultSerialzier language
+    }
 
-type Action 
+getBufferId : Frame -> Int
+getBufferId (Frame {bufferId}) = bufferId
+
+{- Actions & Handlers -} 
+
+type Msg 
   = Replace String
   | Change
   | Delete
   | Focus Direction
   | SmartFocus Direction
 
-type Response 
-  = NoOp
-  | SetBufferData Int SyntaxTree
-  | SuggestBufferData Int (List (Int, SyntaxTree))
+type Response
+  = UpdateFrame Frame
+  | UpdateWithBuffer Int (Buffer -> Frame)
+  | UpdateBuffer Int (Buffer.Msg) 
   | Fail String
 
-type alias Frame = 
-  { serializer : Serializer 
-  , focus : Int
-  , bufferId : Int
-  }
+update : Msg -> Frame -> Response
+update msg frame = 
+  case msg of
+    _ -> Fail "Not implemented"
 
-update : { a | buffers : Array Buffer } -> Frame -> Action -> (Frame, Response)
-update {buffers} frame action =
-  let 
-    fail msg = (frame, Fail msg)
-    updateBufferWithOptions f data = 
-      let newBuffer = f frame.focus data 
-      in (frame, SuggestBufferData frame.bufferId [newBuffer, (frame.focus, data)])
-    updateBuffer f data = 
-      let (focus, data') = f frame.focus data 
-      in ({frame | focus = focus}, SetBufferData frame.bufferId data')
-    
-    update st a = 
-      Command.update (always a) frame.focus st
-  in 
-    case Array.get frame.bufferId buffers of
-      Just {data, language} -> 
-        case action of
-          
-          Replace str -> 
-            let 
-              parse : Grammar.ClausePath -> Maybe SyntaxTree
-              parse (clauseid, path) = 
-                List.foldl (\i -> Maybe.map (\a -> SyntaxTree.syntax i [a]))
-                  (Language.parse language clauseid str)
-                  path
+{- Movement -}
 
-              clausepaths = 
-                Language.reacableClauses language frame.focus data 
-                
-              options = 
-                List.map parse clausepaths
-                |> compress
-                |> List.map (update data) 
-            in 
-              (frame, SuggestBufferData frame.bufferId options)              
-          
-          SmartFocus dir -> 
-            let f = case dir of
-              Child -> 
-                Command.smartChild
-              Parrent -> 
-                Command.smartParrent
-              Next -> 
-                Command.smartNext
-              Prev -> 
-                Command.smartPrev
-            in ({ frame | focus = f data frame.focus }, NoOp)
+type alias Direction = Movement.Direction
 
-          Focus dir -> 
-            let f = case dir of
-              Child -> 
-                Command.child
-              Parrent -> 
-                Command.parrent
-              Next -> 
-                Command.next
-              Prev -> 
-                Command.prev
-            in ({ frame | focus = f data frame.focus }, NoOp)
+setFocus : Focus -> Frame -> Frame
+setFocus focus (Frame frame) =
+  Frame { frame | focus = focus } 
 
-          Delete -> 
-            updateBuffer Command.delete data
+moveSmartFocus : Direction -> Frame -> Buffer -> Frame
+moveSmartFocus dir (Frame {focus} as frame) =
+  Buffer.onData (Movement.moveSmartFocus dir focus)
+  >> flip setFocus frame
 
-          Change ->
-            let clause = Language.clause language frame.focus data 
-            in (frame, Fail <| "Not Implemented: " ++ clause)
+moveFocus : Direction -> Frame -> Buffer -> Frame
+moveFocus dir (Frame {focus} as frame) =
+  Buffer.onData (Movement.moveFocus dir focus)
+  >> flip setFocus frame
 
-      Nothing -> 
-        fail <| "No buffer " ++ toString frame.bufferId
+{- Modification -}
 
-view : { a |  buffers : Array Buffer } -> Frame -> Html msg
-view {buffers} frame = 
-  case Array.get frame.bufferId buffers of
-    Just buffer -> 
-      div [ class "frame" ] 
-        [ div [ class "frame-content" ] 
-          [ debug 
-            { focus = frame.focus
-            , grammar = (Language.getGrammar buffer.language)
-            , data = buffer.data
-            } 
-          ]
-        , div [ class "frame-line" ] 
-          [ p [] [ text <| Language.getName buffer.language]
-          ]
-        ]
-    Nothing -> 
-      div [ class "frame frame-no-buffer" ] 
-        [ text "No Buffer" ]
+type alias FocusUpdate 
+  = Int -> Int
+
+type alias BufferUpdate 
+  = List (FocusUpdate, Buffer) 
+
+{- Visiuals -}
+
+view : Frame -> Buffer -> Html msg
+view (Frame frame) (Buffer buffer) = 
+  div [ class "frame" ] 
+    [ div [ class "frame-content" ] 
+      [ debug 
+        { focus = frame.focus
+        , grammar = (Language.getGrammar buffer.language)
+        , data = buffer.data
+        } 
+      ]
+    , div [ class "frame-line" ] 
+      [ p [] [ text <| Language.getName buffer.language]
+      ]
+    ]
 
 debug {data, grammar, focus} = 
   let 
@@ -154,5 +126,6 @@ debug {data, grammar, focus} =
                 [ text str ]
             )
         )
-  in div [ class "ash-debug-tree" ] [ SyntaxTree.collect collector data ]
+  in div [ class "ash-debug-tree" ] 
+      [ SyntaxTree.collect collector data ]
 

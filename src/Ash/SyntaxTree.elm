@@ -7,7 +7,7 @@ import Ash.Grammar as Grammar exposing (..)
 import Utils exposing (..)
 
 type alias SNode a
-  = { kind : SyntaxId
+  = { kind : SyntaxKind
     , terms : List a
     , size : Int
     }
@@ -46,7 +46,7 @@ setTerms terms inner =
 
 
 syntax : 
-  SyntaxId
+  SyntaxKind
   -> List SyntaxTree 
   -> SyntaxTree
 syntax kind terms =
@@ -58,6 +58,8 @@ syntax kind terms =
 empty = syntax ("empty", 0) []
 
 -- Special functions from here
+
+type alias Focus = Int
 
 subIndecies : Int -> SyntaxTree -> List Int
 subIndecies id tree =
@@ -149,13 +151,11 @@ collect clt =
 collectS : (Int -> SyntaxTree -> SyntaxTree) -> SyntaxTree -> SyntaxTree
 collectS clt = 
   let
-    step : Int -> List SyntaxTree -> List SyntaxTree
     step i terms =
       case terms of 
         [] -> []
         term :: rest ->
           iterate i term :: step (term.size + i) rest 
-    iterate : Int -> SyntaxTree -> SyntaxTree
     iterate i tree = 
       clt (i + tree.size) (mapToS (List.map unfix >> step i) tree)
   in 

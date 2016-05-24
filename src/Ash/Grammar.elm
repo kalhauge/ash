@@ -6,7 +6,7 @@ module Ash.Grammar exposing
 
   , ClauseId
   , AlternativeId
-  , SyntaxId
+  , SyntaxKind
   
   , grammar
   , rule
@@ -41,7 +41,7 @@ type Term
 type alias ClauseId      = String
 type alias AlternativeId = Int
 
-type alias SyntaxId = (ClauseId, AlternativeId)
+type alias SyntaxKind = (ClauseId, AlternativeId)
 
 grammar : List (String, Rule) -> Grammar
 grammar = Dict.fromList
@@ -58,7 +58,7 @@ oneOf str =
 getRule : ClauseId -> Grammar -> Maybe Rule
 getRule = Dict.get 
 
-get : SyntaxId -> Grammar -> Maybe Alternative
+get : SyntaxKind -> Grammar -> Maybe Alternative
 get (clauseId, altId) grammar = 
   Dict.get clauseId grammar `Maybe.andThen` Array.get altId 
 
@@ -74,13 +74,13 @@ clauseIds =
   >> compress
 
 
-subClauses : Grammar -> SyntaxId -> List ClauseId
+subClauses : Grammar -> SyntaxKind -> List ClauseId
 subClauses grammar sid = 
   get sid grammar 
   |> Maybe.map clauseIds 
   |> Maybe.withDefault []
   
-type alias ClausePath = (ClauseId, List SyntaxId)
+type alias ClausePath = (ClauseId, List SyntaxKind)
 
 {-
 Return a list of clause paths, a clause path is a clauseid and 
@@ -111,26 +111,14 @@ reachableClauses grammar cid =
              ) <| Array.toIndexedList alts 
           Nothing -> 
             []
-  in [(cid, [])] ++ reachables Set.empty cid []
-  
-  -- let reachableClauses' visited cid = 
-  --   case getRule cid grammar of
-  --     Just array -> 
-  --       let 
-  --         subs = 
-  --           Set.fromList <| List.concatMap clauseIds (Array.toList array)
-  --           
-  --         unvisited = 
-  --           Set.diff visited subs
+  in reachables Set.empty cid []
 
-  --         visited' = 
-  --           Set.union visited subs
-  --           
-  --         visitor = 
-  --           reachableClauses' visited'
+{-
+Returns a list of syntax kinds directly reachable from the clause.
+-}
+reachableKinds : Grammar -> ClauseId -> List SyntaxKind
+reachableKinds grammar cid = 
+  getRule cid grammar 
+  |> Maybe.map (List.map (\(i, _) -> (cid, i)) << Array.toIndexedList)
+  |> Maybe.withDefault [] 
 
-  --       in 
-  --         List.concatMap visitor (Set.toList <| unvisited)
-  --         |> List.map (prepend cid) 
-  --     Nothing -> []
-  -- in reachableClauses' (Set.singleton cid) cid
