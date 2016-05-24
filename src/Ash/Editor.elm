@@ -165,7 +165,7 @@ doMsg msg model =
       case model.frame of
         Just frame -> 
           case Frame.update action frame of 
-            Frame.UpdateFrame frame' -> 
+            Frame.Update frame' -> 
               { model | frame = Just frame' }
             Frame.UpdateWithBuffer id fn -> 
               case Array.get id model.buffers of 

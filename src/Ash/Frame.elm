@@ -56,14 +56,28 @@ type Msg
   | SmartFocus Direction
 
 type Response
-  = UpdateFrame Frame
+  = Update Frame
   | UpdateWithBuffer Int (Buffer -> Frame)
   | UpdateBuffer Int (Buffer.Msg) 
   | Fail String
 
 update : Msg -> Frame -> Response
-update msg frame = 
-  case msg of
+update msg (Frame {focus, bufferId} as frame) = 
+  let 
+    updateWithBuffer fn = 
+      UpdateWithBuffer bufferId (fn frame)
+    updateBuffer fn = 
+      UpdateBuffer bufferId (fn focus)
+  in case msg of
+    Focus dir -> 
+      updateWithBuffer <| moveFocus dir 
+    
+    SmartFocus dir -> 
+      updateWithBuffer <| moveFocus dir 
+
+    Delete -> 
+      updateBuffer <| Buffer.Delete
+    
     _ -> Fail "Not implemented"
 
 {- Movement -}
@@ -84,15 +98,7 @@ moveFocus dir (Frame {focus} as frame) =
   Buffer.onData (Movement.moveFocus dir focus)
   >> flip setFocus frame
 
-{- Modification -}
-
-type alias FocusUpdate 
-  = Int -> Int
-
-type alias BufferUpdate 
-  = List (FocusUpdate, Buffer) 
-
-{- Visiuals -}
+{- Visuals -}
 
 view : Frame -> Buffer -> Html msg
 view (Frame frame) (Buffer buffer) = 

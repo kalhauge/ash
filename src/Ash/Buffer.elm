@@ -2,8 +2,11 @@ module Ash.Buffer exposing
   ( Buffer(..)
   , new
   , onData
-  , Msg (..)
   , setData
+
+  , Msg (..)
+  , Response (..)
+  , update
   )
 
 import Ash.Language as Language exposing (Language)
@@ -25,15 +28,30 @@ new language =
     , language = language
     }
 
-type Msg 
-  = NoOp 
-
 onData : (SyntaxTree -> a) -> Buffer -> a
 onData fn (Buffer {data}) =
   fn data
 
 setData : SyntaxTree -> Buffer -> Buffer
 setData data (Buffer b) = Buffer { b | data = data } 
+
+{- Actions -} 
+
+type Msg 
+  = Delete Focus
+
+type Response
+  = Options (List (Buffer, Int -> Int))
+
+update : Msg -> Buffer -> Response 
+update msg (Buffer {data, language} as buffer) = 
+  case msg of
+    Delete focus -> Options (delete focus buffer)
+
+
+delete : Focus -> Buffer -> List (Buffer, Int -> Int)
+delete focus buffer = 
+  Debug.crash "Has" 
 
 -- type Msg 
 --   = SetData SyntaxTree
