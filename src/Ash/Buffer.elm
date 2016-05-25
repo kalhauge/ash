@@ -81,37 +81,52 @@ replace focus str (Buffer {data, language} as buffer) =
     clause = Debug.log "parse" <| Language.clause language focus data
     grammar = Language.getGrammar language
     
-    parse : Grammar.ClausePath -> Maybe SyntaxTree
-    parse (clauseid, path) = 
+    parse : Grammar.ClauseId -> Maybe SyntaxTree
+    parse clauseid = 
       Language.parse language clauseid str
-      |> Maybe.map (applyPath path) 
+
+    parseP : (Grammar.ClauseId, Grammar.SyntaxKind) -> Maybe SyntaxTree
+    parseP (cid, kind) = 
+      Maybe.map (applyPath [kind]) <| Language.parse language cid str
+
+    parrans : Grammar.SyntaxKind -> Maybe (Grammar.ClauseId, Grammar.SyntaxKind)
+    parrans kind = 
+      Grammar.get kind grammar `Maybe.andThen` \alt -> 
+      if Grammar.isTransition alt then
+        Nothing
+      else 
+        case Grammar.clauseIds alt of
+          [subid] -> Just (subid, kind)
+          _ -> Nothing
 
     replace = 
       Command.trim grammar
       >> flip (put focus) buffer
 
-  in case parse (clause, []) of
+  in case parse clause of
     Just new -> replace new
     Nothing -> 
-      Debug.log "chsle" (List.filter (snd >> List.isEmpty >> not) (Grammar.reachableClauses grammar clause))
-      |> List.concatMap (parse >> Maybe.map replace >> Maybe.withDefault [])
+      Grammar.transitiveKinds grammar clause
+      |> List.map parrans
+      |> Utils.compress
+      |> List.concatMap (parseP >> Maybe.map replace >> Maybe.withDefault [])
 
 change : Focus -> Buffer -> List (Buffer, Focus -> Focus)
 change focus (Buffer {data, language} as buffer) = 
   let
     clause = Language.clause language focus data
     grammar = Language.getGrammar language
-    kinds = Debug.log "kinds" <| Grammar.reachableKinds grammar clause 
+    kinds = Debug.log "kinds" <| Grammar.transitiveKinds grammar clause 
 
-    toChange (kind, path) =
-      if List.isEmpty path && not (Grammar.isLexical (fst kind)) then
+    toChange kind =
+      if not (Grammar.isLexical (fst kind)) then
         case Grammar.get kind grammar of
           Just alt -> 
             if not (Grammar.isTransition alt) then
               let
                 st = SyntaxTree.syntax kind 
                   (List.map (always SyntaxTree.empty) <| Grammar.clauseIds alt)
-              in put focus (applyPath path st) buffer
+              in put focus st buffer
             else []
           Nothing -> 
             []

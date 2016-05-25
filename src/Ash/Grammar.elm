@@ -23,6 +23,10 @@ module Ash.Grammar exposing
   , subClauses
 
   , ClausePath
+  
+  , transitiveClauses
+  , transitiveKinds
+
   , reachableClauses
   , reachableKinds
   , kinds
@@ -95,13 +99,39 @@ subClauses grammar sid =
   get sid grammar 
   |> Maybe.map clauseIds 
   |> Maybe.withDefault []
+
+{-
+Transitive clauses is a list of clauses that can be reached with no
+extra syntax. 
+-}
+transitiveClauses : Grammar -> ClauseId -> List ClauseId
+transitiveClauses =
+  transitiveClauses' Set.empty
+
+transitiveClauses' : Set ClauseId -> Grammar -> ClauseId -> List ClauseId
+transitiveClauses' visited grammar cid = 
+  if cid `Set.member` visited then []
+  else
+    let visited' = Set.insert cid visited 
+    in cid :: case getRule cid grammar of
+        Just alts -> 
+          List.concatMap (\alt -> 
+            case clauseIds alt of 
+              [subcid] -> transitiveClauses' visited' grammar subcid 
+              _ -> [] 
+           ) <| List.filter isTransition
+             <| Array.toList alts 
+        Nothing -> []
+
+
+transitiveKinds : Grammar -> ClauseId -> List SyntaxKind
+transitiveKinds grammar cid =
+  transitiveClauses grammar cid
+  |> List.concatMap (kinds grammar)
+
   
 type alias ClausePath = (ClauseId, List SyntaxKind)
 
-{-
-Reachable clauses is a list of clauses that can be added with no
-extra syntax. 
--}
 reachableClauses : Grammar -> ClauseId -> List ClausePath
 reachableClauses grammar cid = 
   let 
