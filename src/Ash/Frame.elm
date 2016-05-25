@@ -50,9 +50,7 @@ getBufferId (Frame {bufferId}) = bufferId
 {- Actions & Handlers -} 
 
 type Msg 
-  = Replace String
-  | Change
-  | Delete
+  = OnBufferWithFocus (Int -> Buffer.Msg)
   | Focus Direction
   | SmartFocus Direction
 
@@ -67,8 +65,6 @@ update msg (Frame {focus, bufferId} as frame) =
   let 
     updateWithBuffer fn = 
       UpdateWithBuffer bufferId (fn frame)
-    updateBuffer fn = 
-      UpdateBuffer bufferId (fn focus)
   in case msg of
     Focus dir -> 
       updateWithBuffer <| moveFocus dir 
@@ -76,14 +72,9 @@ update msg (Frame {focus, bufferId} as frame) =
     SmartFocus dir -> 
       updateWithBuffer <| moveSmartFocus dir 
 
-    Delete -> 
-      updateBuffer <| Buffer.Delete
-
-    Replace str -> 
-      updateBuffer <| Buffer.Replace str
+    OnBufferWithFocus msg -> 
+      UpdateBuffer bufferId (msg focus)
     
-    _ -> Fail "Not implemented"
-
 {- Movement -}
 
 type alias Direction = Movement.Direction

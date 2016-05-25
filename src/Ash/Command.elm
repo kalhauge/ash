@@ -47,7 +47,7 @@ updatetor clt oldId tree itrId =
 
     (terms, mapping', newId) = helper tree.terms itrId 
   in
-     case clt oldId { tree | terms = Debug.log "terms" terms } of
+     case clt oldId { tree | terms = terms } of
        Just (SubTree {size} as st)  -> 
          (Just st, mapping' ++ [ itrId + size ])
        Nothing -> 
@@ -61,7 +61,7 @@ update clt st =
       collect (updatetor clt) st 0
     array = Array.fromList map
     mapping i = 
-      Array.get (i - 1) (Debug.log ("mapping " ++ toString i) array) 
+      Array.get (i - 1) array 
       |> Maybe.withDefault i
   in Maybe.map (\r -> (unfix r, mapping)) result
 
@@ -114,5 +114,5 @@ trimmer grammar i tree =
 
 trim : Grammar -> SyntaxTree -> SyntaxTree
 trim grammar st =
-  Debug.log "trim" <| collectS (trimmer grammar) st
+  collectS (trimmer grammar) st
 

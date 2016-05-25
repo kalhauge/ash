@@ -38,8 +38,4 @@ clause (Language {headExpr, grammar}) focus st =
   Maybe.withDefault headExpr
     <| SyntaxTree.clause grammar focus st
 
-reacableClauses : Language -> ClauseId -> List Grammar.ClausePath
-reacableClauses (Language {grammar} as l) clause = 
-  Grammar.reachableClauses grammar clause 
-
 

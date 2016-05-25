@@ -40,6 +40,7 @@ setData data (Buffer b) = Buffer { b | data = data }
 type Msg 
   = Delete Focus
   | Replace String Focus
+  | Change Focus
 
 type Response
   = Options (List (Buffer, Int -> Int))
@@ -49,71 +50,76 @@ update msg (Buffer {data, language} as buffer) =
   let fn = case msg of
     Delete focus -> delete focus
     Replace str focus -> replace focus str
+    Change focus -> change focus
   in Options (fn buffer)
-   
 
-delete : Focus -> Buffer -> List (Buffer, Focus -> Focus)
-delete focus (Buffer {data} as buffer) = 
-  Command.delete focus data
+lift : 
+  (SyntaxTree -> Maybe (SyntaxTree, Focus -> Focus)) 
+  -> Buffer 
+  -> List (Buffer, Focus -> Focus) 
+lift fn (Buffer {data} as buffer) = 
+  fn data
   |> Maybe.map (\(st, ff) -> (setData st buffer, ff))
   |> Utils.maybeToList
+
+delete : Focus -> Buffer -> List (Buffer, Focus -> Focus)
+delete focus = 
+  lift (Command.delete focus)
+    
+put : Focus -> SyntaxTree -> Buffer -> List (Buffer, Focus -> Focus)
+put focus st = 
+  lift 
+  <| Command.replace focus (always st)
+
+applyPath : List Grammar.SyntaxKind -> SyntaxTree -> SyntaxTree
+applyPath = 
+  flip <| List.foldl (\i a -> SyntaxTree.syntax i [a]) 
 
 replace : Focus -> String -> Buffer -> List (Buffer, Focus -> Focus)
 replace focus str (Buffer {data, language} as buffer) =
   let 
     clause = Debug.log "parse" <| Language.clause language focus data
+    grammar = Language.getGrammar language
     
     parse : Grammar.ClausePath -> Maybe SyntaxTree
     parse (clauseid, path) = 
-      List.foldl (\i -> Maybe.map (\a -> SyntaxTree.syntax i [a]))
-        (Language.parse language clauseid str)
-        path
+      Language.parse language clauseid str
+      |> Maybe.map (applyPath path) 
 
-    replace : SyntaxTree -> List (Buffer, Focus -> Focus)
-    replace st = 
-      Command.replace focus 
-        (always (Command.trim (Language.getGrammar language) st)) 
-        data
-      |> Maybe.map (\(st, ff) -> (setData st buffer, ff))
-      |> Utils.maybeToList
+    replace = 
+      Command.trim grammar
+      >> flip (put focus) buffer
 
   in case parse (clause, []) of
     Just new -> replace new
     Nothing -> 
-      Language.reacableClauses language clause
+      Debug.log "chsle" (List.filter (snd >> List.isEmpty >> not) (Grammar.reachableClauses grammar clause))
       |> List.concatMap (parse >> Maybe.map replace >> Maybe.withDefault [])
 
--- type Msg 
---   = SetData SyntaxTree
+change : Focus -> Buffer -> List (Buffer, Focus -> Focus)
+change focus (Buffer {data, language} as buffer) = 
+  let
+    clause = Language.clause language focus data
+    grammar = Language.getGrammar language
+    kinds = Debug.log "kinds" <| Grammar.reachableKinds grammar clause 
 
--- update : Msg -> Buffer -> Buffer
--- update msg (Buffer buffer) = 
---   case msg of
---     SetData data -> 
---       Buffer { buffer | data = data }
--- 
--- {-
--- Replaces the focused node in the buffer with the parsed content of the string
--- The alogrithm tries to be smart about it and will search for possible paths
--- in the grammar if the string did not parse in the first go. This allows for 
--- somthing like parrans to be inserted automatically.
--- -}
--- replace : Buffer -> Focus -> String -> List Msg 
--- replace {data, language} focus str = 
---   let 
---     clause = Language.clause language focus data
---     parse : Grammar.ClausePath -> Maybe SyntaxTree
---     parse (clauseid, path) = 
---       List.foldl (\i -> Maybe.map (\a -> SyntaxTree.syntax i [a]))
---         (Language.parse language clauseid str)
---         path
--- 
---     clausepaths = 
---       Language.reacableClauses language focus data 
---       
---     options = 
---       List.map parse clausepaths
---       |> Utils.compress
---       |> List.map (update data) 
---   in 
---     options
+    toChange (kind, path) =
+      if List.isEmpty path && not (Grammar.isLexical (fst kind)) then
+        case Grammar.get kind grammar of
+          Just alt -> 
+            if not (Grammar.isTransition alt) then
+              let
+                st = SyntaxTree.syntax kind 
+                  (List.map (always SyntaxTree.empty) <| Grammar.clauseIds alt)
+              in put focus (applyPath path st) buffer
+            else []
+          Nothing -> 
+            []
+      else 
+        []
+  in
+     List.concatMap toChange kinds
+
+
+
+

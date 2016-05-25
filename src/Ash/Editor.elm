@@ -78,10 +78,39 @@ fix settings model =
 
 debug : Settings -> Editor
 debug settings = 
-  let buffer = 
-    Buffer.Buffer { data = { kind = ("Exp",0), terms = [SubTree { kind = ("AddExp",0), terms = [SubTree { kind = ("AddExp",2), terms = [SubTree { kind = ("MulExp",2), terms = [SubTree { kind = ("ExpExp",1), terms = [SubTree { kind = ("PriExp",3), terms = [SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",1), terms = [], size = 1 },SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("number",1), terms = [SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 2 }], size = 4 }], size = 6 }], size = 7 }], size = 8 }], size = 9 }], size = 10 },SubTree { kind = ("MulExp",2), terms = [SubTree { kind = ("ExpExp",1), terms = [SubTree { kind = ("PriExp",3), terms = [SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("number",1), terms = [SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 2 }], size = 4 }], size = 5 }], size = 6 }], size = 7 }], size = 18 }], size = 19 }
-    , language = Language { name = "math", grammar = Dict.fromList [("AddExp",Array.fromList [[Ref "AddExp",Lex "+",Ref "MulExp"],[Ref "AddExp",Lex "-",Ref "MulExp"],[Ref "MulExp"]]),("Exp",Array.fromList [[Ref "AddExp"]]),("ExpExp",Array.fromList [[Ref "PriExp",Lex "^",Ref "ExpExp"],[Ref "PriExp"]]),("MulExp",Array.fromList [[Ref "MulExp",Lex "*",Ref "ExpExp"],[Ref "MulExp",Lex "/",Ref "ExpExp"],[Ref "ExpExp"]]),("PriExp",Array.fromList [[Lex "(",Ref "Exp",Lex ")"],[Lex "-",Ref "PriExp"],[Ref "ident"],[Ref "number"]]),("alpha",Array.fromList [[Lex "a"],[Lex "b"],[Lex "c"],[Lex "d"],[Lex "e"],[Lex "f"],[Lex "g"],[Lex "h"],[Lex "i"],[Lex "j"],[Lex "k"],[Lex "l"],[Lex "m"],[Lex "n"],[Lex "o"],[Lex "p"],[Lex "q"],[Lex "r"],[Lex "s"],[Lex "t"],[Lex "u"],[Lex "v"],[Lex "x"],[Lex "y"],[Lex "z"]]),("digit",Array.fromList [[Lex "0"],[Lex "1"],[Lex "2"],[Lex "3"],[Lex "4"],[Lex "5"],[Lex "6"],[Lex "7"],[Lex "8"],[Lex "9"]]),("ident",Array.fromList [[Ref "alpha",Ref "ident"],[Ref "alpha"]]),("number",Array.fromList [[Ref "digit",Ref "number"],[Ref "digit"]])], headExpr = "Exp" } 
-    }
+  let 
+    buffer = Buffer.Buffer 
+      { data = 
+          { kind = ("AddExp",0)
+          , terms = 
+            [ SubTree 
+              { kind = ("AddExp",0)
+              , terms = 
+                [ SubTree { kind = ("digit",1) , terms = [] , size = 1 } 
+                , SubTree 
+                  { kind = ("number",0)
+                  , terms = 
+                    [ SubTree { kind = ("digit",2) , terms = [] , size = 1 }
+                    , SubTree { kind = ("digit",3) , terms = [] , size = 1 }
+                    ]
+                  , size = 3 
+                  }
+                ]
+              , size = 5 
+              }
+            , SubTree 
+              { kind = ("number",0)
+              , terms = 
+                [ SubTree { kind = ("digit",4), terms = [], size = 1 }
+                , SubTree { kind = ("digit",5), terms = [], size = 1 }
+                ]
+              , size = 3 
+              }
+            ],
+          size = 9 
+          }
+        , language = Language { name = "math", grammar = Dict.fromList [("AddExp",Array.fromList [[Ref "AddExp",Lex "+",Ref "MulExp"],[Ref "AddExp",Lex "-",Ref "MulExp"],[Ref "MulExp"]]),("Exp",Array.fromList [[Ref "AddExp"]]),("ExpExp",Array.fromList [[Ref "PriExp",Lex "^",Ref "ExpExp"],[Ref "PriExp"]]),("MulExp",Array.fromList [[Ref "MulExp",Lex "*",Ref "ExpExp"],[Ref "MulExp",Lex "/",Ref "ExpExp"],[Ref "ExpExp"]]),("PriExp",Array.fromList [[Lex "(",Ref "Exp",Lex ")"],[Lex "-",Ref "PriExp"],[Ref "ident"],[Ref "number"]]),("alpha",Array.fromList [[Lex "a"],[Lex "b"],[Lex "c"],[Lex "d"],[Lex "e"],[Lex "f"],[Lex "g"],[Lex "h"],[Lex "i"],[Lex "j"],[Lex "k"],[Lex "l"],[Lex "m"],[Lex "n"],[Lex "o"],[Lex "p"],[Lex "q"],[Lex "r"],[Lex "s"],[Lex "t"],[Lex "u"],[Lex "v"],[Lex "x"],[Lex "y"],[Lex "z"]]),("digit",Array.fromList [[Lex "0"],[Lex "1"],[Lex "2"],[Lex "3"],[Lex "4"],[Lex "5"],[Lex "6"],[Lex "7"],[Lex "8"],[Lex "9"]]),("ident",Array.fromList [[Ref "alpha",Ref "ident"],[Ref "alpha"]]),("number",Array.fromList [[Ref "digit",Ref "number"],[Ref "digit"]])], headExpr = "Exp" } 
+        }
   in fix settings 
     { buffers = Array.fromList [ buffer ]
     , frame = Just <| Frame.new (0, buffer) 
@@ -107,7 +136,7 @@ type ChooseMsg
 
 realizeChoice : Editor -> Editor
 realizeChoice editor = 
-  case Debug.log "mode" <| editor.mode of  
+  case editor.mode of  
     Choose i v arr -> 
       case Array.get v arr of
         Just a -> activateBufferUpdate i a editor
@@ -243,14 +272,14 @@ parseMsg str model =
             "replace" -> 
               case rest of
                 [expr] -> 
-                  DoFrame (Frame.Replace expr)
+                  DoFrame (Frame.OnBufferWithFocus <| Buffer.Replace expr)
                 _ -> badArgs 
             
             "delete" -> 
-              DoFrame (Frame.Delete)
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Delete)
             
             "change" -> 
-              DoFrame (Frame.Change)
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Change)
 
             "focus" -> 
               case rest of 

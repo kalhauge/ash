@@ -16,11 +16,16 @@ module Ash.Grammar exposing
   , getRule
   , get
 
+  , isTransition
+  , isLexical
+
   , clauseIds
   , subClauses
 
   , ClausePath
   , reachableClauses
+  , reachableKinds
+  , kinds
   )
 
 import Utils exposing (..)
@@ -28,6 +33,7 @@ import Utils exposing (..)
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Set exposing (Set)
+import Char
 import Maybe
 import String
 
@@ -73,6 +79,16 @@ clauseIds =
   List.map getClauseId 
   >> compress
 
+isTransition : Alternative -> Bool
+isTransition alt = 
+  let len = List.length alt 
+  in len == 1 && len == List.length (clauseIds alt)
+
+isLexical : ClauseId -> Bool
+isLexical = 
+  String.toList >> List.head 
+  >> Maybe.map Char.isLower 
+  >> Maybe.withDefault False
 
 subClauses : Grammar -> SyntaxKind -> List ClauseId
 subClauses grammar sid = 
@@ -83,30 +99,27 @@ subClauses grammar sid =
 type alias ClausePath = (ClauseId, List SyntaxKind)
 
 {-
-Return a list of clause paths, a clause path is a clauseid and 
-a list of syntaxid's needed to create it.
+Reachable clauses is a list of clauses that can be added with no
+extra syntax. 
 -}
 reachableClauses : Grammar -> ClauseId -> List ClausePath
 reachableClauses grammar cid = 
   let 
     reachables visited cid depth = 
-      if cid `Set.member` visited 
-         then [] 
+      if cid `Set.member` visited then [] 
       else 
         let visited' = Set.insert cid visited 
-        in case getRule cid grammar of
+        in (cid, depth) :: case getRule cid grammar of
           Just alts -> 
             List.concatMap (\(i, alt) -> 
               case clauseIds alt of 
                 [] -> [] 
                 [subcid] -> 
-                  case alt of
-                    [] -> [] 
-                    [a] -> 
-                      reachables visited' subcid depth
-                    _ -> 
-                      let depth' = (cid, i) :: depth in
-                      (subcid, depth') :: reachables visited' subcid depth'
+                  if isTransition alt then
+                    reachables visited' subcid depth
+                  else
+                    let depth' = (cid, i) :: depth in
+                    reachables visited' subcid depth'
                 _ -> [] 
              ) <| Array.toIndexedList alts 
           Nothing -> 
@@ -116,9 +129,16 @@ reachableClauses grammar cid =
 {-
 Returns a list of syntax kinds directly reachable from the clause.
 -}
-reachableKinds : Grammar -> ClauseId -> List SyntaxKind
-reachableKinds grammar cid = 
+kinds : Grammar -> ClauseId -> List SyntaxKind
+kinds grammar cid = 
   getRule cid grammar 
   |> Maybe.map (List.map (\(i, _) -> (cid, i)) << Array.toIndexedList)
   |> Maybe.withDefault [] 
 
+reachableKinds : Grammar -> ClauseId -> List (SyntaxKind, List SyntaxKind)
+reachableKinds grammar cid =
+  let
+    helper (cid, cp) = 
+      List.map (\kind -> (kind, cp)) 
+      <| kinds grammar cid
+  in List.concatMap helper <| reachableClauses grammar cid
