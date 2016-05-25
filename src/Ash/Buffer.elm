@@ -4,6 +4,8 @@ module Ash.Buffer exposing
   , onData
   , setData
 
+  , findEmpty
+
   , Msg (..)
   , Response (..)
   , update
@@ -34,6 +36,12 @@ onData fn (Buffer {data}) =
 
 setData : SyntaxTree -> Buffer -> Buffer
 setData data (Buffer b) = Buffer { b | data = data } 
+
+{- Finds next empty syntax tree -} 
+findEmpty : Buffer -> Maybe Int
+findEmpty (Buffer {data}) = 
+  SyntaxTree.first (\i -> SyntaxTree.isEmpty >> Utils.maybeIf i) data
+
 
 {- Actions -} 
 

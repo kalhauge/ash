@@ -151,11 +151,29 @@ activateBufferUpdate i (buffer, update) editor =
   , frame = Maybe.map (Frame.updateFocus update) editor.frame
   }
 
+navigateToEmpty : Int -> Editor -> Editor
+navigateToEmpty i editor =
+  case Array.get i editor.buffers of 
+    Just buffer -> 
+      case Buffer.findEmpty buffer of
+        Just empty -> 
+          flip doMsg editor
+          <| DoAll 
+             [ DoFrame (Frame.SetFocus empty)
+             , DoFrame (Frame.OnBufferWithFocus Buffer.Change)
+             ]
+        Nothing ->
+          editor
+    Nothing -> 
+      failMode editor ("Could not find buffer " ++ toString i)
+
+failMode : Editor -> String -> Editor
+failMode model msg =
+  { model | mode = Failed msg model.mode }
 
 doMsg msg model = 
   let 
-    fail msg =
-      { model | mode = Failed msg model.mode }
+    fail = failMode model
   in case msg of
     DoAll actions -> 
       List.foldl doMsg model actions
@@ -172,7 +190,7 @@ doMsg msg model =
             Prev -> { model | mode = Choose i ((k - 1) % Array.length array) array }
             Done -> 
               let model' = realizeChoice model 
-              in { model' | mode = Normal }
+              in navigateToEmpty i { model' | mode = Normal }
         
         _ -> fail "Can not perform this action out of choose mode"
 
@@ -196,9 +214,10 @@ doMsg msg model =
           case Buffer.update msg buffer of
             Buffer.Options options -> 
               case options of 
-                [] -> fail "Action Not Possible"
+                [] -> 
+                  fail "Action Not Possible"
                 [a] -> 
-                  activateBufferUpdate id a model
+                  navigateToEmpty id <| activateBufferUpdate id a model
                 _ ->
                   { model | mode = Choose id 0 (Array.fromList options) }
         Nothing ->
@@ -400,7 +419,7 @@ onEnter tagger =
 
 keyHandler : Editor -> Keyboard.KeyCode -> Msg
 keyHandler editor key =
-  -- let key' = Debug.log "key" key in 
+  let key' = Debug.log "key" key in 
   case editor.mode of
     Normal -> 
       case key of
@@ -425,6 +444,11 @@ keyHandler editor key =
         14 -> ChooseMsg Next 
         16 -> ChooseMsg Prev 
         13 -> ChooseMsg Done
+
+        114 -> WithInput "=" (\text editor-> 
+          DoFrame (Frame.OnBufferWithFocus <| Buffer.Replace text)
+        ) 
+        
         _ -> NoOp
 
 specialKeyHandler : Editor -> Keyboard.KeyCode -> Msg

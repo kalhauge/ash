@@ -51,6 +51,7 @@ getBufferId (Frame {bufferId}) = bufferId
 
 type Msg 
   = OnBufferWithFocus (Int -> Buffer.Msg)
+  | SetFocus Int
   | Focus Direction
   | SmartFocus Direction
 
@@ -71,6 +72,9 @@ update msg (Frame {focus, bufferId} as frame) =
     
     SmartFocus dir -> 
       updateWithBuffer <| moveSmartFocus dir 
+
+    SetFocus focus -> 
+      Update (setFocus focus frame)
 
     OnBufferWithFocus msg -> 
       UpdateBuffer bufferId (msg focus)
@@ -122,7 +126,7 @@ debug {data, grammar, focus} =
         [ classes <| [ "ash-dnode"] ++ focusCls] <| 
         [ div 
           [ class "ash-dnode-header"]
-          [ text (fst tree.kind ++ " : " ++ toString id ++ " - " ++ toString tree.size)] 
+          [ text (fst tree.kind ++ "/" ++ toString id )] 
         ] ++ (
           Maybe.withDefault [ text "?" ] 
             <| SyntaxTree.translate grammar tree (\str -> 

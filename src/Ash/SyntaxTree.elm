@@ -63,6 +63,10 @@ setTermsS terms inner =
   SubTree <| syntax inner.kind (List.map unfix terms)
 
 
+isEmpty st = 
+  st.kind == ("empty", 0)
+
+
 empty = syntax ("empty", 0) []
 
 -- Special functions from here

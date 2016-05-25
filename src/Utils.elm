@@ -102,3 +102,7 @@ arrayUpdate i f array =
 
 for = flip List.map
 
+maybeIf : a -> Bool -> Maybe a
+maybeIf a b = 
+  if b then Just a else Nothing
+

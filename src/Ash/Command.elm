@@ -42,12 +42,12 @@ updatetor clt oldId tree itrId =
               in (Just st :: list, mapping ++ mapping', nid)
             (Nothing, mapping)  -> 
               let (list, mapping', nid) = helper rest id
-              in (Nothing :: list, (replaceL mapping (nid + 1)) ++ mapping', nid)
+              in (Nothing :: list, (replaceL mapping nid) ++ mapping', nid)
         [] -> ([], [], id)
 
     (terms, mapping', newId) = helper tree.terms itrId 
   in
-     case clt oldId { tree | terms = terms } of
+     Debug.log "hellp" <| case clt oldId { tree | terms = terms } of
        Just (SubTree {size} as st)  -> 
          (Just st, mapping' ++ [ itrId + size ])
        Nothing -> 
