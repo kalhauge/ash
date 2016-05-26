@@ -16,7 +16,7 @@ import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree, Focus)
 import Ash.Command as Command
 import Ash.Grammar as Grammar exposing (Grammar)
 
-import Utils
+import Utils exposing ((&>))
 
 type Buffer = Buffer
   { data : SyntaxTree
@@ -48,6 +48,8 @@ findEmpty (Buffer {data}) =
 type Msg 
   = Delete Focus
   | Replace String Focus
+  | Append Focus
+  | Insert Focus
   | Change Focus
 
 type Response
@@ -59,6 +61,8 @@ update msg (Buffer {data, language} as buffer) =
     Delete focus -> delete focus
     Replace str focus -> replace focus str
     Change focus -> change focus
+    Append focus -> append focus
+    Insert focus -> insert focus
   in Options (fn buffer)
 
 lift : 
@@ -119,30 +123,113 @@ replace focus str (Buffer {data, language} as buffer) =
       |> Utils.compress
       |> List.concatMap (parseP >> Maybe.map replace >> Maybe.withDefault [])
 
+template : Grammar -> Grammar.SyntaxKind -> Maybe SyntaxTree
+template grammar kind =
+  Grammar.get kind grammar `Maybe.andThen` \alt -> 
+  if not (Grammar.isTransition alt) then
+    Just 
+      <| SyntaxTree.syntax kind 
+      <| List.map (always SyntaxTree.empty) 
+      <| Grammar.clauseIds alt
+  else Nothing
+
 change : Focus -> Buffer -> List (Buffer, Focus -> Focus)
 change focus (Buffer {data, language} as buffer) = 
   let
     clause = Language.clause language focus data
     grammar = Language.getGrammar language
-    kinds = Debug.log "kinds" <| Grammar.transitiveKinds grammar clause 
+    kinds = 
+      Grammar.transitiveKinds grammar clause 
+      |> List.filter (fst >> Grammar.isLexical >> not)
+      |> Debug.log "kinds" 
 
     toChange kind =
-      if not (Grammar.isLexical (fst kind)) then
-        case Grammar.get kind grammar of
-          Just alt -> 
-            if not (Grammar.isTransition alt) then
-              let
-                st = SyntaxTree.syntax kind 
-                  (List.map (always SyntaxTree.empty) <| Grammar.clauseIds alt)
-              in put focus st buffer
-            else []
-          Nothing -> 
-            []
-      else 
-        []
+      template grammar kind 
+      |> Maybe.map (flip (put focus) buffer) 
+      |> Maybe.withDefault []
   in
      List.concatMap toChange kinds
 
+(?>) a b = 
+  if a then
+    b ()
+  else 
+    Nothing
 
+append : Focus -> Buffer -> List (Buffer, Focus -> Focus)
+append focus (Buffer {data, language} as buffer) =
+  let
+    clause = Language.clause language focus data
+    grammar = Language.getGrammar language
+    kinds = 
+      Grammar.transitiveKinds grammar clause 
+      |> List.filter (fst >> Grammar.isLexical >> not)
+      |> Debug.log "kinds" 
+
+    append' grammar tree kind =
+      Grammar.get kind grammar &> \alt -> 
+      
+      not (Grammar.isTransition alt) ?> \() -> 
+      
+      List.head (Grammar.clauseIds alt) &> \subclause -> 
+
+      let trans = Grammar.transitiveClauses grammar subclause in
+      
+      fst tree.kind `List.member` trans ?> \() -> 
+
+      template grammar kind &> \st -> 
+      
+      List.tail (SyntaxTree.getTerms st) &> \rest -> 
+        
+      Just (SyntaxTree.setTerms (tree :: rest) st)
+
+    toChange tree kind =
+      if not (Grammar.isLexical (fst kind)) then
+        append' grammar tree kind
+        |> Maybe.map (flip (put focus) buffer) 
+        |> Maybe.withDefault []
+      else []
+  in
+    case Command.get focus data of
+      Just tree -> List.concatMap (toChange tree) kinds
+      Nothing -> []
+
+insert : Focus -> Buffer -> List (Buffer, Focus -> Focus)
+insert focus (Buffer {data, language} as buffer) =
+  let
+    clause = Language.clause language focus data
+    grammar = Language.getGrammar language
+    kinds = 
+      Grammar.transitiveKinds grammar clause 
+      |> List.filter (fst >> Grammar.isLexical >> not)
+      |> Debug.log "kinds" 
+
+    insert' grammar tree kind =
+      Grammar.get kind grammar &> \alt -> 
+      
+      not (Grammar.isTransition alt) ?> \() -> 
+      
+      Utils.last (Grammar.clauseIds alt) &> \subclause -> 
+
+      let trans = Grammar.transitiveClauses grammar subclause in
+      
+      fst tree.kind `List.member` trans ?> \() -> 
+
+      template grammar kind &> \st -> 
+      
+      Utils.init (SyntaxTree.getTerms st) &> \rest -> 
+        
+      Just (SyntaxTree.setTerms (rest ++ [tree]) st)
+
+    toChange tree kind =
+      if not (Grammar.isLexical (fst kind)) then
+        insert' grammar tree kind
+        |> Maybe.map (flip (put focus) buffer) 
+        |> Maybe.withDefault []
+      else []
+  in
+    case Command.get focus data of
+      Just tree -> List.concatMap (toChange tree) kinds
+      Nothing -> []
 
 

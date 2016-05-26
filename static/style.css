@@ -102,7 +102,31 @@
     text-align: center;
 }
 
+.ash-simple-tree {
+    padding: 10px 10px;
+    font-size: 16px;
+}
+
 .ash-focus > .ash-dnode-term {
+    color: red;
+}
+
+.ash-snode {
+    display: inline-block;
+    text-align: center;
+}
+
+.ash-snode.ash-focus {
+    background-color: lightgray;
+}
+
+.ash-snode-term {
+    display: inline-block;
+    margin: 0px 1px;
+    text-align: center;
+}
+
+.ash-focus > .ash-snode-term {
     color: red;
 }
 

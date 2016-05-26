@@ -31,6 +31,8 @@ defaultSettings =
     , ('r', "withInput = replace")
     , ('d', "delete")
     , ('c', "change")
+    , ('a', "append")
+    , ('i', "insert")
     
     , (':', "withInput : command")
     ]

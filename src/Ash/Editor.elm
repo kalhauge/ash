@@ -6,8 +6,8 @@ This module contains the main data structure for controling the editor.
 
 import Html exposing (..)
 import Html.App exposing (program)
-import Html.Attributes exposing (class, autofocus, style, attribute)
-import Html.Events exposing (onInput, on)
+import Html.Attributes exposing (class, autofocus, style, attribute, value)
+import Html.Events exposing (onInput, on, onWithOptions, defaultOptions)
 
 import Style exposing (..)
 
@@ -127,12 +127,13 @@ type Msg
   | NewBuffer Language
   | SetMode Mode
   | State
-  | WithInput String (String -> Editor -> Msg)
+  | WithInput String String (String -> Editor -> Msg)
 
 type ChooseMsg 
   = Next
   | Prev
   | Done
+  | DoneWithInput String
 
 realizeChoice : Editor -> Editor
 realizeChoice editor = 
@@ -151,8 +152,8 @@ activateBufferUpdate i (buffer, update) editor =
   , frame = Maybe.map (Frame.updateFocus update) editor.frame
   }
 
-navigateToEmpty : Int -> Editor -> Editor
-navigateToEmpty i editor =
+navigateToEmptyAndDo : Int -> Msg -> Editor -> Editor
+navigateToEmptyAndDo i msg editor =
   case Array.get i editor.buffers of 
     Just buffer -> 
       case Buffer.findEmpty buffer of
@@ -160,7 +161,7 @@ navigateToEmpty i editor =
           flip doMsg editor
           <| DoAll 
              [ DoFrame (Frame.SetFocus empty)
-             , DoFrame (Frame.OnBufferWithFocus Buffer.Change)
+             , msg 
              ]
         Nothing ->
           editor
@@ -175,10 +176,10 @@ doMsg msg model =
   let 
     fail = failMode model
   in case msg of
+    NoOp -> model
+    
     DoAll actions -> 
       List.foldl doMsg model actions
-    
-    NoOp -> model
 
     State -> Debug.log "state" model
 
@@ -190,7 +191,17 @@ doMsg msg model =
             Prev -> { model | mode = Choose i ((k - 1) % Array.length array) array }
             Done -> 
               let model' = realizeChoice model 
-              in navigateToEmpty i { model' | mode = Normal }
+              in navigateToEmptyAndDo i 
+                (DoFrame (Frame.OnBufferWithFocus Buffer.Change))
+                { model' | mode = Normal }
+            DoneWithInput inpt -> 
+              let 
+                model' = realizeChoice model 
+              in navigateToEmptyAndDo i 
+                (WithInput "=" inpt (\text editor -> 
+                  DoFrame (Frame.OnBufferWithFocus (Buffer.Replace text))
+                ))
+                { model' | mode = Normal }
         
         _ -> fail "Can not perform this action out of choose mode"
 
@@ -217,7 +228,11 @@ doMsg msg model =
                 [] -> 
                   fail "Action Not Possible"
                 [a] -> 
-                  navigateToEmpty id <| activateBufferUpdate id a model
+                  navigateToEmptyAndDo id 
+                    (WithInput "=" "" (\text editor -> 
+                      DoFrame (Frame.OnBufferWithFocus (Buffer.Replace text))
+                    ))
+                    <| activateBufferUpdate id a model
                 _ ->
                   { model | mode = Choose id 0 (Array.fromList options) }
         Nothing ->
@@ -244,8 +259,10 @@ doMsg msg model =
     SetMode mode -> 
       { model | mode = mode }
 
-    WithInput pre f -> 
-      { model | mode = Command pre (\str -> DoAll [SetMode Normal, f str model]) }
+    WithInput pre input f -> 
+      { model 
+      | mode = Command pre input (\str -> DoAll [SetMode Normal, f str model]) 
+    }
 
 update : Msg -> Editor -> (Editor, Cmd Msg)
 update msg model = 
@@ -299,6 +316,12 @@ parseMsg str model =
             
             "change" -> 
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Change)
+            
+            "append" -> 
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Append)
+            
+            "insert" -> 
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Insert)
 
             "focus" -> 
               case rest of 
@@ -319,7 +342,7 @@ parseMsg str model =
             "withInput" -> 
               case rest of
                 pre :: rest -> 
-                  WithInput pre (\i -> parseMsg (String.join " " rest ++ " " ++ i))
+                  WithInput pre "" (\i -> parseMsg (String.join " " rest ++ " " ++ i))
                 _ -> badArgs
             
             "command" ->
@@ -337,7 +360,7 @@ parseMsg str model =
 type Mode
   = Normal 
   | Failed String Mode
-  | Command String (String -> Msg)
+  | Command String String (String -> Msg)
   | Choose Int Int (Array (Buffer, Focus -> Focus))
 
 view : Editor -> Html Msg 
@@ -383,12 +406,14 @@ cmdline size mode =
         div [ class "cmdline cmdline-failed", attr size ]
           [ p [] [text ("Failed: " ++ msg)] ]
     
-    Command pre f -> 
+    Command pre existing f -> 
       Just <| 
         div [ class "cmdline", attr size] 
           [ p [] [text pre]
           , input 
             [ onEnter f
+            , onInput (\i -> SetMode <| Command pre i f)
+            , value existing
             , autofocus True
             , attribute "data-autofocus" ""
             ] [] 
@@ -399,27 +424,31 @@ cmdline size mode =
         div [ class "cmdline", attr size] 
           [ p [] [text ("Choose ["++ toString (k + 1) ++ "/" ++ toString (Array.length arr) ++ "]" )] 
           ]
-    
 
-
-onEnter : (String -> msg) -> Attribute msg
-onEnter tagger = 
-  let 
-    onlyOnEnter = 
+valueOnKey : Keyboard.KeyCode -> (String -> msg) -> Attribute msg
+valueOnKey key tagger=
+  let
+    onlyOnKey = 
       Json.object2 (,) 
         Html.Events.keyCode 
         Html.Events.targetValue
-      `Json.andThen` (\(a,b) -> 
-        if a == 13 then 
-           Json.succeed b 
-        else 
-           Json.fail "only fire on enter"
-      )
-  in on "keyup" (Json.map tagger onlyOnEnter)
+        `Json.andThen` \(a,b) -> 
+      if a == key then 
+         Json.succeed b 
+      else 
+         Json.fail "only fire on key"
+      
+  in on "keyup" <| Json.map tagger onlyOnKey
+
+onEnter = 
+  valueOnKey 13 
+
+onCtrlN =
+  valueOnKey 14
 
 keyHandler : Editor -> Keyboard.KeyCode -> Msg
 keyHandler editor key =
-  let key' = Debug.log "key" key in 
+  -- let key' = Debug.log "key" key in 
   case editor.mode of
     Normal -> 
       case key of
@@ -434,7 +463,7 @@ keyHandler editor key =
         , keyHandler { editor | mode = mode } key
         ]
 
-    Command pre f ->
+    Command pre _ f ->
       case key of
         96 -> SetMode Normal
         _ -> NoOp
@@ -444,24 +473,30 @@ keyHandler editor key =
         14 -> ChooseMsg Next 
         16 -> ChooseMsg Prev 
         13 -> ChooseMsg Done
-
-        114 -> WithInput "=" (\text editor-> 
-          DoFrame (Frame.OnBufferWithFocus <| Buffer.Replace text)
-        ) 
-        
-        _ -> NoOp
+       
+        a -> 
+          ChooseMsg (DoneWithInput (String.fromChar (Char.fromCode a)))
 
 specialKeyHandler : Editor -> Keyboard.KeyCode -> Msg
 specialKeyHandler editor key =
-  --let key' = Debug.log "specialkey" key in 
+  -- let key' = Debug.log "specialkey" key in 
   case editor.mode of
-    Normal -> NoOp
+    Normal ->
+      case key of
+        37 -> DoFrame (Frame.SmartFocus Movement.Prev) -- left
+        38 -> DoFrame (Frame.SmartFocus Movement.Parrent) -- up 
+        39 -> DoFrame (Frame.SmartFocus Movement.Next) -- right
+        40 -> DoFrame (Frame.SmartFocus Movement.Child) -- down
+        _ -> NoOp
     Failed msg mode -> NoOp
-    Command pre f -> 
+    Command pre _ f -> 
       case key of
         27 -> SetMode Normal
         _ -> NoOp
-    Choose _ _ _ -> NoOp
+    Choose _ _ _ -> 
+      case key of
+        27 -> SetMode Normal
+        _ -> NoOp
 
 subscriptions editor = 
   Sub.batch 
@@ -476,4 +511,5 @@ editor settings =
     , subscriptions = subscriptions
     , update = update 
     , view = view 
-    }
+    
+  }

@@ -88,7 +88,16 @@ last list =
   case list of 
     [] -> Nothing
     [a] -> Just a
-    a :: rest -> last rest
+    a :: rest -> 
+      last rest
+
+init : List a -> Maybe (List a)
+init =
+  List.foldr (\a b -> 
+    case b of
+      Just b' -> Just (a :: b')
+      Nothing -> Just []
+  ) Nothing
 
 enumerate : List a -> List (Int, a) 
 enumerate = List.indexedMap (,) 

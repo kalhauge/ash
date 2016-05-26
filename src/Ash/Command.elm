@@ -47,7 +47,7 @@ updatetor clt oldId tree itrId =
 
     (terms, mapping', newId) = helper tree.terms itrId 
   in
-     Debug.log "hellp" <| case clt oldId { tree | terms = terms } of
+     case clt oldId { tree | terms = terms } of
        Just (SubTree {size} as st)  -> 
          (Just st, mapping' ++ [ itrId + size ])
        Nothing -> 

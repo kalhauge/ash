@@ -107,7 +107,7 @@ view : Frame -> Buffer -> Html msg
 view (Frame frame) (Buffer buffer) = 
   div [ class "frame" ] 
     [ div [ class "frame-content" ] 
-      [ debug 
+      [ simple 
         { focus = frame.focus
         , grammar = (Language.getGrammar buffer.language)
         , data = buffer.data
@@ -136,5 +136,20 @@ debug {data, grammar, focus} =
             )
         )
   in div [ class "ash-debug-tree" ] 
+      [ SyntaxTree.collect collector data ]
+
+simple {data, grammar, focus} =
+  let 
+    collector id tree =
+      let focusCls = if focus == id then ["ash-focus"] else []
+      in div 
+        [ classes <| [ "ash-snode"] ++ focusCls] 
+        <| Maybe.withDefault [ text "?" ] 
+        <| SyntaxTree.translate grammar tree (\str -> 
+              div 
+                [ class "ash-snode-term"] 
+                [ text str ]
+            )
+  in div [ class "ash-simple-tree" ] 
       [ SyntaxTree.collect collector data ]
 
