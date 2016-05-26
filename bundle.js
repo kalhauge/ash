@@ -8738,40 +8738,29 @@ var _user$project$Ash_SyntaxTree$setTermsS = F2(
 				A2(_elm_lang$core$List$map, _user$project$Ash_SyntaxTree$unfix, terms)));
 	});
 
-var _user$project$Ash_Serializer$default = function (_p0) {
+var _user$project$Ash_Serializer$simple = function (_p0) {
 	var _p1 = _p0;
-	var _p3 = _p1.focus;
 	var collector = F2(
 		function (id, tree) {
+			var focusCls = _elm_lang$core$Native_Utils.eq(_p1.focus, id) ? _elm_lang$core$Native_List.fromArray(
+				['ash-focus']) : _elm_lang$core$Native_List.fromArray(
+				[]);
 			return A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$style(
+						_user$project$Style$classes(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							_elm_lang$core$Native_List.fromArray(
-								[
-									{ctor: '_Tuple2', _0: 'display', _1: 'inline'}
-								]),
-							_elm_lang$core$Native_Utils.eq(id, _p3) ? _elm_lang$core$Native_List.fromArray(
-								[
-									{ctor: '_Tuple2', _0: 'background', _1: 'lightgray'}
-								]) : _elm_lang$core$Native_List.fromArray(
-								[])))
+								['ash-snode']),
+							focusCls))
 					]),
 				A2(
 					_elm_lang$core$Maybe$withDefault,
 					_elm_lang$core$Native_List.fromArray(
 						[
-							function () {
-							var _p2 = _p1.mode;
-							if (_p2.ctor === 'Change') {
-								return _elm_lang$html$Html$text(_p2._0);
-							} else {
-								return _elm_lang$html$Html$text('?');
-							}
-						}()
+							_elm_lang$html$Html$text('?')
 						]),
 					A3(
 						_user$project$Ash_SyntaxTree$translate,
@@ -8782,18 +8771,7 @@ var _user$project$Ash_Serializer$default = function (_p0) {
 								_elm_lang$html$Html$div,
 								_elm_lang$core$Native_List.fromArray(
 									[
-										_elm_lang$html$Html_Attributes$style(
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											_elm_lang$core$Native_List.fromArray(
-												[
-													{ctor: '_Tuple2', _0: 'display', _1: 'inline'}
-												]),
-											_elm_lang$core$Native_Utils.eq(id, _p3) ? _elm_lang$core$Native_List.fromArray(
-												[
-													{ctor: '_Tuple2', _0: 'color', _1: 'red'}
-												]) : _elm_lang$core$Native_List.fromArray(
-												[])))
+										_elm_lang$html$Html_Attributes$class('ash-snode-term')
 									]),
 								_elm_lang$core$Native_List.fromArray(
 									[
@@ -8801,31 +8779,34 @@ var _user$project$Ash_Serializer$default = function (_p0) {
 									]));
 						})));
 		});
-	return A2(_user$project$Ash_SyntaxTree$collect, collector, _p1.data);
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('ash-simple-tree')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(_user$project$Ash_SyntaxTree$collect, collector, _p1.data)
+			]));
 };
-var _user$project$Ash_Serializer$debug = function (_p4) {
-	var _p5 = _p4;
-	var _p6 = _p5.focus;
+var _user$project$Ash_Serializer$debug = function (_p2) {
+	var _p3 = _p2;
 	var collector = F2(
 		function (id, tree) {
+			var focusCls = _elm_lang$core$Native_Utils.eq(_p3.focus, id) ? _elm_lang$core$Native_List.fromArray(
+				['ash-focus']) : _elm_lang$core$Native_List.fromArray(
+				[]);
 			return A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$style(
+						_user$project$Style$classes(
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							_elm_lang$core$Native_List.fromArray(
-								[
-									{ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
-									{ctor: '_Tuple2', _0: 'margin', _1: '2px 2px 0px 2px'},
-									{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
-								]),
-							_elm_lang$core$Native_Utils.eq(_p6, id) ? _elm_lang$core$Native_List.fromArray(
-								[
-									{ctor: '_Tuple2', _0: 'background', _1: 'lightgray'}
-								]) : _elm_lang$core$Native_List.fromArray(
-								[])))
+								['ash-dnode']),
+							focusCls))
 					]),
 				A2(
 					_elm_lang$core$Basics_ops['++'],
@@ -8835,21 +8816,7 @@ var _user$project$Ash_Serializer$debug = function (_p4) {
 							_elm_lang$html$Html$div,
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html_Attributes$style(
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										_elm_lang$core$Native_List.fromArray(
-											[
-												{ctor: '_Tuple2', _0: 'font-size', _1: '6pt'}
-											]),
-										_elm_lang$core$Native_Utils.eq(_p6, id) ? _elm_lang$core$Native_List.fromArray(
-											[
-												{ctor: '_Tuple2', _0: 'background', _1: 'black'},
-												{ctor: '_Tuple2', _0: 'color', _1: 'lightblue'}
-											]) : _elm_lang$core$Native_List.fromArray(
-											[
-												{ctor: '_Tuple2', _0: 'background', _1: 'lightblue'}
-											])))
+									_elm_lang$html$Html_Attributes$class('ash-dnode-header')
 								]),
 							_elm_lang$core$Native_List.fromArray(
 								[
@@ -8859,7 +8826,7 @@ var _user$project$Ash_Serializer$debug = function (_p4) {
 										_elm_lang$core$Basics$fst(tree.kind),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											' : ',
+											'/',
 											_elm_lang$core$Basics$toString(id))))
 								]))
 						]),
@@ -8871,27 +8838,14 @@ var _user$project$Ash_Serializer$debug = function (_p4) {
 							]),
 						A3(
 							_user$project$Ash_SyntaxTree$translate,
-							_p5.grammar,
+							_p3.grammar,
 							tree,
 							function (str) {
 								return A2(
 									_elm_lang$html$Html$div,
 									_elm_lang$core$Native_List.fromArray(
 										[
-											_elm_lang$html$Html_Attributes$style(
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Native_List.fromArray(
-													[
-														{ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
-														{ctor: '_Tuple2', _0: 'margin', _1: '2px 2px 0px 2px'},
-														{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
-													]),
-												_elm_lang$core$Native_Utils.eq(_p6, id) ? _elm_lang$core$Native_List.fromArray(
-													[
-														{ctor: '_Tuple2', _0: 'color', _1: 'red'}
-													]) : _elm_lang$core$Native_List.fromArray(
-													[])))
+											_elm_lang$html$Html_Attributes$class('ash-dnode-term')
 										]),
 									_elm_lang$core$Native_List.fromArray(
 										[
@@ -8899,19 +8853,21 @@ var _user$project$Ash_Serializer$debug = function (_p4) {
 										]));
 							}))));
 		});
-	return A2(_user$project$Ash_SyntaxTree$collect, collector, _p5.data);
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('ash-debug-tree')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(_user$project$Ash_SyntaxTree$collect, collector, _p3.data)
+			]));
 };
-var _user$project$Ash_Serializer$ViewT = F4(
-	function (a, b, c, d) {
-		return {data: a, grammar: b, focus: c, mode: d};
+var _user$project$Ash_Serializer$ViewT = F3(
+	function (a, b, c) {
+		return {data: a, grammar: b, focus: c};
 	});
-var _user$project$Ash_Serializer$Choose = function (a) {
-	return {ctor: 'Choose', _0: a};
-};
-var _user$project$Ash_Serializer$Change = function (a) {
-	return {ctor: 'Change', _0: a};
-};
-var _user$project$Ash_Serializer$Normal = {ctor: 'Normal'};
 
 var _user$project$Ash_Parser$parse = F3(
 	function (grammar, entry, str) {
@@ -9386,21 +9342,56 @@ var _user$project$Ash_Language$parse = F2(
 				A3(_user$project$Ash_Parser$parse, _p9.grammar, cid, _p8));
 		};
 	});
-var _user$project$Ash_Language$getDefaultSerialzier = function (language) {
-	return _user$project$Ash_Serializer$default;
+var _user$project$Ash_Language$getSerializer$ = F3(
+	function (str, $default, serializers) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			$default,
+			A2(_elm_lang$core$Dict$get, str, serializers));
+	});
+var _user$project$Ash_Language$getDefaultSerializer = function (_p10) {
+	var _p11 = _p10;
+	return _p11._0.defaultSerializer;
 };
-var _user$project$Ash_Language$collect = function (_p10) {
+var _user$project$Ash_Language$getSerializer = F2(
+	function (str, _p12) {
+		var _p13 = _p12;
+		return A3(
+			_user$project$Ash_Language$getSerializer$,
+			str,
+			_user$project$Ash_Language$getDefaultSerializer(_p13),
+			_p13._0.serializers);
+	});
+var _user$project$Ash_Language$collect = function (_p14) {
 	return _elm_lang$core$Dict$fromList(
 		A2(
 			_elm_lang$core$List$map,
-			function (_p11) {
-				var _p12 = _p11;
-				return {ctor: '_Tuple2', _0: _p12._0.name, _1: _p12};
+			function (_p15) {
+				var _p16 = _p15;
+				return {ctor: '_Tuple2', _0: _p16._0.name, _1: _p16};
 			},
-			_p10));
+			_p14));
 };
 var _user$project$Ash_Language$Language = function (a) {
 	return {ctor: 'Language', _0: a};
+};
+var _user$project$Ash_Language$new = function (b) {
+	var serializers = _elm_lang$core$Dict$fromList(
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{ctor: '_Tuple2', _0: 'debug', _1: _user$project$Ash_Serializer$debug},
+					{ctor: '_Tuple2', _0: 'simple', _1: _user$project$Ash_Serializer$simple}
+				]),
+			b.serializers));
+	return _user$project$Ash_Language$Language(
+		_elm_lang$core$Native_Utils.update(
+			b,
+			{
+				serializers: serializers,
+				defaultSerializer: A3(_user$project$Ash_Language$getSerializer$, b.defaultSerializer, _user$project$Ash_Serializer$simple, serializers)
+			}));
 };
 
 var _user$project$Ash_Movement$smartChild = F2(
@@ -9863,6 +9854,10 @@ var _user$project$Ash_Buffer$onData = F2(
 		var _p4 = _p3;
 		return fn(_p4._0.data);
 	});
+var _user$project$Ash_Buffer$getLanguage = function (_p5) {
+	var _p6 = _p5;
+	return _p6._0.language;
+};
 var _user$project$Ash_Buffer$Buffer = function (a) {
 	return {ctor: 'Buffer', _0: a};
 };
@@ -9871,28 +9866,28 @@ var _user$project$Ash_Buffer$new = function (language) {
 		{data: _user$project$Ash_SyntaxTree$empty, language: language});
 };
 var _user$project$Ash_Buffer$setData = F2(
-	function (data, _p5) {
-		var _p6 = _p5;
+	function (data, _p7) {
+		var _p8 = _p7;
 		return _user$project$Ash_Buffer$Buffer(
 			_elm_lang$core$Native_Utils.update(
-				_p6._0,
+				_p8._0,
 				{data: data}));
 	});
 var _user$project$Ash_Buffer$lift = F2(
-	function (fn, _p7) {
-		var _p8 = _p7;
+	function (fn, _p9) {
+		var _p10 = _p9;
 		return _user$project$Utils$maybeToList(
 			A2(
 				_elm_lang$core$Maybe$map,
-				function (_p9) {
-					var _p10 = _p9;
+				function (_p11) {
+					var _p12 = _p11;
 					return {
 						ctor: '_Tuple2',
-						_0: A2(_user$project$Ash_Buffer$setData, _p10._0, _p8),
-						_1: _p10._1
+						_0: A2(_user$project$Ash_Buffer$setData, _p12._0, _p10),
+						_1: _p12._1
 					};
 				},
-				fn(_p8._0.data)));
+				fn(_p10._0.data)));
 	});
 var _user$project$Ash_Buffer$delete = function (focus) {
 	return _user$project$Ash_Buffer$lift(
@@ -9907,10 +9902,10 @@ var _user$project$Ash_Buffer$put = F2(
 				_elm_lang$core$Basics$always(st)));
 	});
 var _user$project$Ash_Buffer$keep = F2(
-	function (focus, _p11) {
-		var _p12 = _p11;
-		var _p13 = _p12._0.data;
-		var focus$ = A3(_user$project$Ash_Movement$moveSmartFocus, _user$project$Ash_Movement$Parrent, focus, _p13);
+	function (focus, _p13) {
+		var _p14 = _p13;
+		var _p15 = _p14._0.data;
+		var focus$ = A3(_user$project$Ash_Movement$moveSmartFocus, _user$project$Ash_Movement$Parrent, focus, _p15);
 		return A2(
 			_elm_lang$core$Maybe$withDefault,
 			_elm_lang$core$Native_List.fromArray(
@@ -9920,26 +9915,26 @@ var _user$project$Ash_Buffer$keep = F2(
 				A2(
 					_elm_lang$core$Basics$flip,
 					_user$project$Ash_Buffer$put(focus$),
-					_p12),
-				A2(_user$project$Ash_Command$get, focus, _p13)));
+					_p14),
+				A2(_user$project$Ash_Command$get, focus, _p15)));
 	});
 var _user$project$Ash_Buffer$replace = F3(
-	function (focus, str, _p14) {
-		var _p15 = _p14;
-		var _p22 = _p15._0.language;
-		var parseP = function (_p16) {
-			var _p17 = _p16;
+	function (focus, str, _p16) {
+		var _p17 = _p16;
+		var _p24 = _p17._0.language;
+		var parseP = function (_p18) {
+			var _p19 = _p18;
 			return A2(
 				_elm_lang$core$Maybe$map,
 				_user$project$Ash_Buffer$applyPath(
 					_elm_lang$core$Native_List.fromArray(
-						[_p17._1])),
-				A3(_user$project$Ash_Language$parse, _p22, _p17._0, str));
+						[_p19._1])),
+				A3(_user$project$Ash_Language$parse, _p24, _p19._0, str));
 		};
 		var parse = function (clauseid) {
-			return A3(_user$project$Ash_Language$parse, _p22, clauseid, str);
+			return A3(_user$project$Ash_Language$parse, _p24, clauseid, str);
 		};
-		var grammar = _user$project$Ash_Language$getGrammar(_p22);
+		var grammar = _user$project$Ash_Language$getGrammar(_p24);
 		var parrans = function (kind) {
 			return A2(
 				_elm_lang$core$Maybe$andThen,
@@ -9948,34 +9943,34 @@ var _user$project$Ash_Buffer$replace = F3(
 					if (_user$project$Ash_Grammar$isTransition(alt)) {
 						return _elm_lang$core$Maybe$Nothing;
 					} else {
-						var _p18 = _user$project$Ash_Grammar$clauseIds(alt);
-						if ((_p18.ctor === '::') && (_p18._1.ctor === '[]')) {
+						var _p20 = _user$project$Ash_Grammar$clauseIds(alt);
+						if ((_p20.ctor === '::') && (_p20._1.ctor === '[]')) {
 							return _elm_lang$core$Maybe$Just(
-								{ctor: '_Tuple2', _0: _p18._0, _1: kind});
+								{ctor: '_Tuple2', _0: _p20._0, _1: kind});
 						} else {
 							return _elm_lang$core$Maybe$Nothing;
 						}
 					}
 				});
 		};
-		var replace = function (_p19) {
+		var replace = function (_p21) {
 			return A3(
 				_elm_lang$core$Basics$flip,
 				_user$project$Ash_Buffer$put(focus),
-				_p15,
-				A2(_user$project$Ash_Command$trim, grammar, _p19));
+				_p17,
+				A2(_user$project$Ash_Command$trim, grammar, _p21));
 		};
 		var clause = A2(
 			_elm_lang$core$Debug$log,
 			'parse',
-			A3(_user$project$Ash_Language$clause, _p22, focus, _p15._0.data));
-		var _p20 = parse(clause);
-		if (_p20.ctor === 'Just') {
-			return replace(_p20._0);
+			A3(_user$project$Ash_Language$clause, _p24, focus, _p17._0.data));
+		var _p22 = parse(clause);
+		if (_p22.ctor === 'Just') {
+			return replace(_p22._0);
 		} else {
 			return A2(
 				_elm_lang$core$List$concatMap,
-				function (_p21) {
+				function (_p23) {
 					return A2(
 						_elm_lang$core$Maybe$withDefault,
 						_elm_lang$core$Native_List.fromArray(
@@ -9983,7 +9978,7 @@ var _user$project$Ash_Buffer$replace = F3(
 						A2(
 							_elm_lang$core$Maybe$map,
 							replace,
-							parseP(_p21)));
+							parseP(_p23)));
 				},
 				_user$project$Utils$compress(
 					A2(
@@ -9993,10 +9988,10 @@ var _user$project$Ash_Buffer$replace = F3(
 		}
 	});
 var _user$project$Ash_Buffer$change = F2(
-	function (focus, _p23) {
-		var _p24 = _p23;
-		var _p26 = _p24._0.language;
-		var grammar = _user$project$Ash_Language$getGrammar(_p26);
+	function (focus, _p25) {
+		var _p26 = _p25;
+		var _p28 = _p26._0.language;
+		var grammar = _user$project$Ash_Language$getGrammar(_p28);
 		var toChange = function (kind) {
 			return A2(
 				_elm_lang$core$Maybe$withDefault,
@@ -10007,28 +10002,28 @@ var _user$project$Ash_Buffer$change = F2(
 					A2(
 						_elm_lang$core$Basics$flip,
 						_user$project$Ash_Buffer$put(focus),
-						_p24),
+						_p26),
 					A2(_user$project$Ash_Buffer$template, grammar, kind)));
 		};
-		var clause = A3(_user$project$Ash_Language$clause, _p26, focus, _p24._0.data);
+		var clause = A3(_user$project$Ash_Language$clause, _p28, focus, _p26._0.data);
 		var kinds = A2(
 			_elm_lang$core$Debug$log,
 			'kinds',
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p25) {
+				function (_p27) {
 					return _elm_lang$core$Basics$not(
 						_user$project$Ash_Grammar$isLexical(
-							_elm_lang$core$Basics$fst(_p25)));
+							_elm_lang$core$Basics$fst(_p27)));
 				},
 				A2(_user$project$Ash_Grammar$transitiveKinds, grammar, clause)));
 		return A2(_elm_lang$core$List$concatMap, toChange, kinds);
 	});
 var _user$project$Ash_Buffer$append = F2(
-	function (focus, _p27) {
-		var _p28 = _p27;
-		var _p36 = _p28._0.language;
-		var _p35 = _p28._0.data;
+	function (focus, _p29) {
+		var _p30 = _p29;
+		var _p38 = _p30._0.language;
+		var _p37 = _p30._0.data;
 		var append$ = F3(
 			function (grammar, tree, kind) {
 				return A2(
@@ -10039,8 +10034,8 @@ var _user$project$Ash_Buffer$append = F2(
 							_user$project$Ash_Buffer_ops['?>'],
 							_elm_lang$core$Basics$not(
 								_user$project$Ash_Grammar$isTransition(alt)),
-							function (_p29) {
-								var _p30 = _p29;
+							function (_p31) {
+								var _p32 = _p31;
 								return A2(
 									_user$project$Utils_ops['&>'],
 									_elm_lang$core$List$head(
@@ -10053,8 +10048,8 @@ var _user$project$Ash_Buffer$append = F2(
 												_elm_lang$core$List$member,
 												_elm_lang$core$Basics$fst(tree.kind),
 												trans),
-											function (_p31) {
-												var _p32 = _p31;
+											function (_p33) {
+												var _p34 = _p33;
 												return A2(
 													_user$project$Utils_ops['&>'],
 													A2(_user$project$Ash_Buffer$template, grammar, kind),
@@ -10076,7 +10071,7 @@ var _user$project$Ash_Buffer$append = F2(
 							});
 					});
 			});
-		var grammar = _user$project$Ash_Language$getGrammar(_p36);
+		var grammar = _user$project$Ash_Language$getGrammar(_p38);
 		var toChange = F2(
 			function (tree, kind) {
 				return _elm_lang$core$Basics$not(
@@ -10090,27 +10085,27 @@ var _user$project$Ash_Buffer$append = F2(
 						A2(
 							_elm_lang$core$Basics$flip,
 							_user$project$Ash_Buffer$put(focus),
-							_p28),
+							_p30),
 						A3(append$, grammar, tree, kind))) : _elm_lang$core$Native_List.fromArray(
 					[]);
 			});
-		var clause = A3(_user$project$Ash_Language$clause, _p36, focus, _p35);
+		var clause = A3(_user$project$Ash_Language$clause, _p38, focus, _p37);
 		var kinds = A2(
 			_elm_lang$core$Debug$log,
 			'kinds',
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p33) {
+				function (_p35) {
 					return _elm_lang$core$Basics$not(
 						_user$project$Ash_Grammar$isLexical(
-							_elm_lang$core$Basics$fst(_p33)));
+							_elm_lang$core$Basics$fst(_p35)));
 				},
 				A2(_user$project$Ash_Grammar$transitiveKinds, grammar, clause)));
-		var _p34 = A2(_user$project$Ash_Command$get, focus, _p35);
-		if (_p34.ctor === 'Just') {
+		var _p36 = A2(_user$project$Ash_Command$get, focus, _p37);
+		if (_p36.ctor === 'Just') {
 			return A2(
 				_elm_lang$core$List$concatMap,
-				toChange(_p34._0),
+				toChange(_p36._0),
 				kinds);
 		} else {
 			return _elm_lang$core$Native_List.fromArray(
@@ -10118,10 +10113,10 @@ var _user$project$Ash_Buffer$append = F2(
 		}
 	});
 var _user$project$Ash_Buffer$insert = F2(
-	function (focus, _p37) {
-		var _p38 = _p37;
-		var _p46 = _p38._0.language;
-		var _p45 = _p38._0.data;
+	function (focus, _p39) {
+		var _p40 = _p39;
+		var _p48 = _p40._0.language;
+		var _p47 = _p40._0.data;
 		var insert$ = F3(
 			function (grammar, tree, kind) {
 				return A2(
@@ -10132,8 +10127,8 @@ var _user$project$Ash_Buffer$insert = F2(
 							_user$project$Ash_Buffer_ops['?>'],
 							_elm_lang$core$Basics$not(
 								_user$project$Ash_Grammar$isTransition(alt)),
-							function (_p39) {
-								var _p40 = _p39;
+							function (_p41) {
+								var _p42 = _p41;
 								return A2(
 									_user$project$Utils_ops['&>'],
 									_user$project$Utils$last(
@@ -10146,8 +10141,8 @@ var _user$project$Ash_Buffer$insert = F2(
 												_elm_lang$core$List$member,
 												_elm_lang$core$Basics$fst(tree.kind),
 												trans),
-											function (_p41) {
-												var _p42 = _p41;
+											function (_p43) {
+												var _p44 = _p43;
 												return A2(
 													_user$project$Utils_ops['&>'],
 													A2(_user$project$Ash_Buffer$template, grammar, kind),
@@ -10173,7 +10168,7 @@ var _user$project$Ash_Buffer$insert = F2(
 							});
 					});
 			});
-		var grammar = _user$project$Ash_Language$getGrammar(_p46);
+		var grammar = _user$project$Ash_Language$getGrammar(_p48);
 		var toChange = F2(
 			function (tree, kind) {
 				return _elm_lang$core$Basics$not(
@@ -10187,27 +10182,27 @@ var _user$project$Ash_Buffer$insert = F2(
 						A2(
 							_elm_lang$core$Basics$flip,
 							_user$project$Ash_Buffer$put(focus),
-							_p38),
+							_p40),
 						A3(insert$, grammar, tree, kind))) : _elm_lang$core$Native_List.fromArray(
 					[]);
 			});
-		var clause = A3(_user$project$Ash_Language$clause, _p46, focus, _p45);
+		var clause = A3(_user$project$Ash_Language$clause, _p48, focus, _p47);
 		var kinds = A2(
 			_elm_lang$core$Debug$log,
 			'kinds',
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p43) {
+				function (_p45) {
 					return _elm_lang$core$Basics$not(
 						_user$project$Ash_Grammar$isLexical(
-							_elm_lang$core$Basics$fst(_p43)));
+							_elm_lang$core$Basics$fst(_p45)));
 				},
 				A2(_user$project$Ash_Grammar$transitiveKinds, grammar, clause)));
-		var _p44 = A2(_user$project$Ash_Command$get, focus, _p45);
-		if (_p44.ctor === 'Just') {
+		var _p46 = A2(_user$project$Ash_Command$get, focus, _p47);
+		if (_p46.ctor === 'Just') {
 			return A2(
 				_elm_lang$core$List$concatMap,
-				toChange(_p44._0),
+				toChange(_p46._0),
 				kinds);
 		} else {
 			return _elm_lang$core$Native_List.fromArray(
@@ -10237,160 +10232,35 @@ var _user$project$Ash_Buffer$Options = function (a) {
 	return {ctor: 'Options', _0: a};
 };
 var _user$project$Ash_Buffer$update = F2(
-	function (msg, _p47) {
-		var _p48 = _p47;
+	function (msg, _p49) {
+		var _p50 = _p49;
 		var fn = function () {
-			var _p49 = msg;
-			switch (_p49.ctor) {
+			var _p51 = msg;
+			switch (_p51.ctor) {
 				case 'Delete':
-					return _user$project$Ash_Buffer$delete(_p49._0);
+					return _user$project$Ash_Buffer$delete(_p51._0);
 				case 'Replace':
-					return A2(_user$project$Ash_Buffer$replace, _p49._1, _p49._0);
+					return A2(_user$project$Ash_Buffer$replace, _p51._1, _p51._0);
 				case 'Change':
-					return _user$project$Ash_Buffer$change(_p49._0);
+					return _user$project$Ash_Buffer$change(_p51._0);
 				case 'Append':
-					return _user$project$Ash_Buffer$append(_p49._0);
+					return _user$project$Ash_Buffer$append(_p51._0);
 				case 'Insert':
-					return _user$project$Ash_Buffer$insert(_p49._0);
+					return _user$project$Ash_Buffer$insert(_p51._0);
 				default:
-					return _user$project$Ash_Buffer$keep(_p49._0);
+					return _user$project$Ash_Buffer$keep(_p51._0);
 			}
 		}();
 		return _user$project$Ash_Buffer$Options(
-			fn(_p48));
+			fn(_p50));
 	});
 
-var _user$project$Ash_Frame$simple = function (_p0) {
-	var _p1 = _p0;
-	var collector = F2(
-		function (id, tree) {
-			var focusCls = _elm_lang$core$Native_Utils.eq(_p1.focus, id) ? _elm_lang$core$Native_List.fromArray(
-				['ash-focus']) : _elm_lang$core$Native_List.fromArray(
-				[]);
-			return A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_user$project$Style$classes(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_elm_lang$core$Native_List.fromArray(
-								['ash-snode']),
-							focusCls))
-					]),
-				A2(
-					_elm_lang$core$Maybe$withDefault,
-					_elm_lang$core$Native_List.fromArray(
-						[
-							_elm_lang$html$Html$text('?')
-						]),
-					A3(
-						_user$project$Ash_SyntaxTree$translate,
-						_p1.grammar,
-						tree,
-						function (str) {
-							return A2(
-								_elm_lang$html$Html$div,
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html_Attributes$class('ash-snode-term')
-									]),
-								_elm_lang$core$Native_List.fromArray(
-									[
-										_elm_lang$html$Html$text(str)
-									]));
-						})));
-		});
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('ash-simple-tree')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(_user$project$Ash_SyntaxTree$collect, collector, _p1.data)
-			]));
-};
-var _user$project$Ash_Frame$debug = function (_p2) {
-	var _p3 = _p2;
-	var collector = F2(
-		function (id, tree) {
-			var focusCls = _elm_lang$core$Native_Utils.eq(_p3.focus, id) ? _elm_lang$core$Native_List.fromArray(
-				['ash-focus']) : _elm_lang$core$Native_List.fromArray(
-				[]);
-			return A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_user$project$Style$classes(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_elm_lang$core$Native_List.fromArray(
-								['ash-dnode']),
-							focusCls))
-					]),
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Native_List.fromArray(
-						[
-							A2(
-							_elm_lang$html$Html$div,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Attributes$class('ash-dnode-header')
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text(
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										_elm_lang$core$Basics$fst(tree.kind),
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											'/',
-											_elm_lang$core$Basics$toString(id))))
-								]))
-						]),
-					A2(
-						_elm_lang$core$Maybe$withDefault,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html$text('?')
-							]),
-						A3(
-							_user$project$Ash_SyntaxTree$translate,
-							_p3.grammar,
-							tree,
-							function (str) {
-								return A2(
-									_elm_lang$html$Html$div,
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$html$Html_Attributes$class('ash-dnode-term')
-										]),
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$html$Html$text(str)
-										]));
-							}))));
-		});
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('ash-debug-tree')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(_user$project$Ash_SyntaxTree$collect, collector, _p3.data)
-			]));
-};
 var _user$project$Ash_Frame$view = F2(
-	function (_p5, _p4) {
-		var _p6 = _p5;
-		var _p7 = _p4;
-		var _p8 = _p7._0;
+	function (_p1, _p0) {
+		var _p2 = _p1;
+		var _p5 = _p2._0;
+		var _p3 = _p0;
+		var _p4 = _p3._0;
 		return A2(
 			_elm_lang$html$Html$div,
 			_elm_lang$core$Native_List.fromArray(
@@ -10407,11 +10277,11 @@ var _user$project$Ash_Frame$view = F2(
 						]),
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Frame$simple(
+							_p5.serializer(
 							{
-								focus: _p6._0.focus,
-								grammar: _user$project$Ash_Language$getGrammar(_p8.language),
-								data: _p8.data
+								focus: _p5.focus,
+								grammar: _user$project$Ash_Language$getGrammar(_p4.language),
+								data: _p4.data
 							})
 						])),
 					A2(
@@ -10429,36 +10299,47 @@ var _user$project$Ash_Frame$view = F2(
 							_elm_lang$core$Native_List.fromArray(
 								[
 									_elm_lang$html$Html$text(
-									_user$project$Ash_Language$getName(_p8.language))
+									_user$project$Ash_Language$getName(_p4.language))
 								]))
 						]))
 				]));
 	});
-var _user$project$Ash_Frame$getBufferId = function (_p9) {
-	var _p10 = _p9;
-	return _p10._0.bufferId;
+var _user$project$Ash_Frame$getBufferId = function (_p6) {
+	var _p7 = _p6;
+	return _p7._0.bufferId;
 };
 var _user$project$Ash_Frame$Frame = function (a) {
 	return {ctor: 'Frame', _0: a};
 };
-var _user$project$Ash_Frame$new = function (_p11) {
-	var _p12 = _p11;
+var _user$project$Ash_Frame$new = function (_p8) {
+	var _p9 = _p8;
 	return _user$project$Ash_Frame$Frame(
 		{
-			focus: _p12._1._0.data.size,
-			bufferId: _p12._0,
-			serializer: _user$project$Ash_Language$getDefaultSerialzier(_p12._1._0.language)
+			focus: _p9._1._0.data.size,
+			bufferId: _p9._0,
+			serializer: _user$project$Ash_Language$getDefaultSerializer(_p9._1._0.language)
 		});
 };
-var _user$project$Ash_Frame$updateFocus = F2(
-	function (f, _p13) {
-		var _p14 = _p13;
-		var _p15 = _p14._0;
+var _user$project$Ash_Frame$setSerializer = F3(
+	function (str, _p10, buffer) {
+		var _p11 = _p10;
+		var lang = _user$project$Ash_Buffer$getLanguage(buffer);
 		return _user$project$Ash_Frame$Frame(
 			_elm_lang$core$Native_Utils.update(
-				_p15,
+				_p11._0,
 				{
-					focus: f(_p15.focus)
+					serializer: A2(_user$project$Ash_Language$getSerializer, str, lang)
+				}));
+	});
+var _user$project$Ash_Frame$updateFocus = F2(
+	function (f, _p12) {
+		var _p13 = _p12;
+		var _p14 = _p13._0;
+		return _user$project$Ash_Frame$Frame(
+			_elm_lang$core$Native_Utils.update(
+				_p14,
+				{
+					focus: f(_p14.focus)
 				}));
 	});
 var _user$project$Ash_Frame$setFocus = function (focus) {
@@ -10466,31 +10347,31 @@ var _user$project$Ash_Frame$setFocus = function (focus) {
 		_elm_lang$core$Basics$always(focus));
 };
 var _user$project$Ash_Frame$moveSmartFocus = F2(
-	function (dir, _p16) {
-		var _p17 = _p16;
-		return function (_p18) {
+	function (dir, _p15) {
+		var _p16 = _p15;
+		return function (_p17) {
 			return A3(
 				_elm_lang$core$Basics$flip,
 				_user$project$Ash_Frame$setFocus,
-				_p17,
+				_p16,
 				A2(
 					_user$project$Ash_Buffer$onData,
-					A2(_user$project$Ash_Movement$moveSmartFocus, dir, _p17._0.focus),
-					_p18));
+					A2(_user$project$Ash_Movement$moveSmartFocus, dir, _p16._0.focus),
+					_p17));
 		};
 	});
 var _user$project$Ash_Frame$moveFocus = F2(
-	function (dir, _p19) {
-		var _p20 = _p19;
-		return function (_p21) {
+	function (dir, _p18) {
+		var _p19 = _p18;
+		return function (_p20) {
 			return A3(
 				_elm_lang$core$Basics$flip,
 				_user$project$Ash_Frame$setFocus,
-				_p20,
+				_p19,
 				A2(
 					_user$project$Ash_Buffer$onData,
-					A2(_user$project$Ash_Movement$moveFocus, dir, _p20._0.focus),
-					_p21));
+					A2(_user$project$Ash_Movement$moveFocus, dir, _p19._0.focus),
+					_p20));
 		};
 	});
 var _user$project$Ash_Frame$SmartFocus = function (a) {
@@ -10498,6 +10379,9 @@ var _user$project$Ash_Frame$SmartFocus = function (a) {
 };
 var _user$project$Ash_Frame$Focus = function (a) {
 	return {ctor: 'Focus', _0: a};
+};
+var _user$project$Ash_Frame$SetSerializer = function (a) {
+	return {ctor: 'SetSerializer', _0: a};
 };
 var _user$project$Ash_Frame$SetFocus = function (a) {
 	return {ctor: 'SetFocus', _0: a};
@@ -10520,32 +10404,35 @@ var _user$project$Ash_Frame$Update = function (a) {
 	return {ctor: 'Update', _0: a};
 };
 var _user$project$Ash_Frame$update = F2(
-	function (msg, _p22) {
-		var _p23 = _p22;
-		var _p26 = _p23;
-		var _p25 = _p23._0.bufferId;
+	function (msg, _p21) {
+		var _p22 = _p21;
+		var _p25 = _p22;
+		var _p24 = _p22._0.bufferId;
 		var updateWithBuffer = function (fn) {
 			return A2(
 				_user$project$Ash_Frame$UpdateWithBuffer,
-				_p25,
-				fn(_p26));
+				_p24,
+				fn(_p25));
 		};
-		var _p24 = msg;
-		switch (_p24.ctor) {
+		var _p23 = msg;
+		switch (_p23.ctor) {
 			case 'Focus':
 				return updateWithBuffer(
-					_user$project$Ash_Frame$moveFocus(_p24._0));
+					_user$project$Ash_Frame$moveFocus(_p23._0));
 			case 'SmartFocus':
 				return updateWithBuffer(
-					_user$project$Ash_Frame$moveSmartFocus(_p24._0));
+					_user$project$Ash_Frame$moveSmartFocus(_p23._0));
 			case 'SetFocus':
 				return _user$project$Ash_Frame$Update(
-					A2(_user$project$Ash_Frame$setFocus, _p24._0, _p26));
-			default:
+					A2(_user$project$Ash_Frame$setFocus, _p23._0, _p25));
+			case 'OnBufferWithFocus':
 				return A2(
 					_user$project$Ash_Frame$UpdateBuffer,
-					_p25,
-					_p24._0(_p23._0.focus));
+					_p24,
+					_p23._0(_p22._0.focus));
+			default:
+				return updateWithBuffer(
+					_user$project$Ash_Frame$setSerializer(_p23._0));
 		}
 	});
 
@@ -10595,8 +10482,8 @@ var _user$project$Ash_Editor$realizeChoice = function (editor) {
 			return _elm_lang$core$Native_Utils.crashCase(
 				'Ash.Editor',
 				{
-					start: {line: 142, column: 7},
-					end: {line: 145, column: 42}
+					start: {line: 145, column: 7},
+					end: {line: 148, column: 42}
 				},
 				_p5)('Should Not Happen');
 		}
@@ -10667,12 +10554,12 @@ var _user$project$Ash_Editor$parseMsg = F2(
 			while (true) {
 				var _p8 = args;
 				if (_p8.ctor === '::') {
-					var _p22 = _p8._1;
-					var _p21 = _p8._0;
-					var _p9 = _p21;
+					var _p23 = _p8._1;
+					var _p22 = _p8._0;
+					var _p9 = _p22;
 					switch (_p9) {
 						case 'new':
-							var _p10 = _p22;
+							var _p10 = _p23;
 							if ((_p10.ctor === '::') && (_p10._1.ctor === '[]')) {
 								var _p12 = _p10._0;
 								var _p11 = A2(_elm_lang$core$Dict$get, _p12, model.languages);
@@ -10689,7 +10576,7 @@ var _user$project$Ash_Editor$parseMsg = F2(
 								return badArgs;
 							}
 						case 'replace':
-							var _p13 = _p22;
+							var _p13 = _p23;
 							if ((_p13.ctor === '::') && (_p13._1.ctor === '[]')) {
 								return _user$project$Ash_Editor$DoFrame(
 									_user$project$Ash_Frame$OnBufferWithFocus(
@@ -10713,7 +10600,7 @@ var _user$project$Ash_Editor$parseMsg = F2(
 							return _user$project$Ash_Editor$DoFrame(
 								_user$project$Ash_Frame$OnBufferWithFocus(_user$project$Ash_Buffer$Insert));
 						case 'focus':
-							var _p14 = _p22;
+							var _p14 = _p23;
 							if ((_p14.ctor === '::') && (_p14._1.ctor === '[]')) {
 								var _p16 = _p14._0;
 								return A3(
@@ -10732,7 +10619,7 @@ var _user$project$Ash_Editor$parseMsg = F2(
 								return badArgs;
 							}
 						case 'focus!':
-							var _p17 = _p22;
+							var _p17 = _p23;
 							if ((_p17.ctor === '::') && (_p17._1.ctor === '[]')) {
 								var _p19 = _p17._0;
 								return A3(
@@ -10751,7 +10638,7 @@ var _user$project$Ash_Editor$parseMsg = F2(
 								return badArgs;
 							}
 						case 'withInput':
-							var _p20 = _p22;
+							var _p20 = _p23;
 							if (_p20.ctor === '::') {
 								return A3(
 									_user$project$Ash_Editor$WithInput,
@@ -10768,9 +10655,17 @@ var _user$project$Ash_Editor$parseMsg = F2(
 								return badArgs;
 							}
 						case 'command':
-							var _v13 = _p22;
+							var _v13 = _p23;
 							args = _v13;
 							continue parseArgs;
+						case 'display':
+							var _p21 = _p23;
+							if ((_p21.ctor === '::') && (_p21._1.ctor === '[]')) {
+								return _user$project$Ash_Editor$DoFrame(
+									_user$project$Ash_Frame$SetSerializer(_p21._0));
+							} else {
+								return badArgs;
+							}
 						case 'state':
 							return _user$project$Ash_Editor$State;
 						default:
@@ -10778,7 +10673,7 @@ var _user$project$Ash_Editor$parseMsg = F2(
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'Unknown command \'',
-									A2(_elm_lang$core$Basics_ops['++'], _p21, '\'')));
+									A2(_elm_lang$core$Basics_ops['++'], _p22, '\'')));
 					}
 				} else {
 					return _user$project$Ash_Editor$NoOp;
@@ -10804,13 +10699,13 @@ var _user$project$Ash_Editor$fix = F2(
 			keymaps: _elm_lang$core$Dict$fromList(
 				A2(
 					_elm_lang$core$List$map,
-					function (_p23) {
-						var _p24 = _p23;
+					function (_p24) {
+						var _p25 = _p24;
 						return {
 							ctor: '_Tuple2',
-							_0: _elm_lang$core$Char$toCode(_p24._0),
+							_0: _elm_lang$core$Char$toCode(_p25._0),
 							_1: _user$project$Ash_Editor$KeyAction(
-								_user$project$Ash_Editor$parseMsg(_p24._1))
+								_user$project$Ash_Editor$parseMsg(_p25._1))
 						};
 					},
 					settings.keymaps))
@@ -10832,8 +10727,8 @@ var _user$project$Ash_Editor$Command = F3(
 	});
 var _user$project$Ash_Editor$cmdline = F2(
 	function (size, mode) {
-		var _p25 = mode;
-		switch (_p25.ctor) {
+		var _p26 = mode;
+		switch (_p26.ctor) {
 			case 'Normal':
 				return _elm_lang$core$Maybe$Nothing;
 			case 'Failed':
@@ -10854,12 +10749,12 @@ var _user$project$Ash_Editor$cmdline = F2(
 								_elm_lang$core$Native_List.fromArray(
 									[
 										_elm_lang$html$Html$text(
-										A2(_elm_lang$core$Basics_ops['++'], 'Failed: ', _p25._0))
+										A2(_elm_lang$core$Basics_ops['++'], 'Failed: ', _p26._0))
 									]))
 							])));
 			case 'Command':
-				var _p27 = _p25._0;
-				var _p26 = _p25._2;
+				var _p28 = _p26._0;
+				var _p27 = _p26._2;
 				return _elm_lang$core$Maybe$Just(
 					A2(
 						_elm_lang$html$Html$div,
@@ -10876,19 +10771,19 @@ var _user$project$Ash_Editor$cmdline = F2(
 									[]),
 								_elm_lang$core$Native_List.fromArray(
 									[
-										_elm_lang$html$Html$text(_p27)
+										_elm_lang$html$Html$text(_p28)
 									])),
 								A2(
 								_elm_lang$html$Html$input,
 								_elm_lang$core$Native_List.fromArray(
 									[
-										_user$project$Ash_Editor$onEnter(_p26),
+										_user$project$Ash_Editor$onEnter(_p27),
 										_elm_lang$html$Html_Events$onInput(
 										function (i) {
 											return _user$project$Ash_Editor$SetMode(
-												A3(_user$project$Ash_Editor$Command, _p27, i, _p26));
+												A3(_user$project$Ash_Editor$Command, _p28, i, _p27));
 										}),
-										_elm_lang$html$Html_Attributes$value(_p25._1),
+										_elm_lang$html$Html_Attributes$value(_p26._1),
 										_elm_lang$html$Html_Attributes$autofocus(true),
 										A2(_elm_lang$html$Html_Attributes$attribute, 'data-autofocus', '')
 									]),
@@ -10918,14 +10813,14 @@ var _user$project$Ash_Editor$cmdline = F2(
 											'Choose [',
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Basics$toString(_p25._1 + 1),
+												_elm_lang$core$Basics$toString(_p26._1 + 1),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
 													'/',
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														_elm_lang$core$Basics$toString(
-															_elm_lang$core$Array$length(_p25._2)),
+															_elm_lang$core$Array$length(_p26._2)),
 														']')))))
 									]))
 							])));
@@ -10971,15 +10866,18 @@ var _user$project$Ash_Editor$view = function (editor) {
 						return _elm_lang$core$Native_List.fromArray(
 							[
 								function () {
-								var _p28 = editor$.frame;
-								if (_p28.ctor === 'Just') {
-									var _p30 = _p28._0;
-									var _p29 = A2(
+								var _p29 = editor$.frame;
+								if (_p29.ctor === 'Just') {
+									var _p31 = _p29._0;
+									var _p30 = A2(
 										_elm_lang$core$Array$get,
-										_user$project$Ash_Frame$getBufferId(_p30),
+										_user$project$Ash_Frame$getBufferId(_p31),
 										editor$.buffers);
-									if (_p29.ctor === 'Just') {
-										return A2(_user$project$Ash_Frame$view, _p30, _p29._0);
+									if (_p30.ctor === 'Just') {
+										return A2(
+											_elm_lang$html$Html_App$map,
+											_elm_lang$core$Basics$always(_user$project$Ash_Editor$NoOp),
+											A2(_user$project$Ash_Frame$view, _p31, _p30._0));
 									} else {
 										return A2(
 											_elm_lang$html$Html$div,
@@ -11122,310 +11020,20 @@ var _user$project$Ash_Editor$debug = function (settings) {
 					]),
 				size: 9
 			},
-			language: _user$project$Ash_Language$Language(
-				{
-					name: 'math',
-					grammar: _elm_lang$core$Dict$fromList(
-						_elm_lang$core$Native_List.fromArray(
-							[
-								{
-								ctor: '_Tuple2',
-								_0: 'AddExp',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('AddExp'),
-												_user$project$Ash_Grammar$Lex('+'),
-												_user$project$Ash_Grammar$Ref('MulExp')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('AddExp'),
-												_user$project$Ash_Grammar$Lex('-'),
-												_user$project$Ash_Grammar$Ref('MulExp')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('MulExp')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'Exp',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('AddExp')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'ExpExp',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('PriExp'),
-												_user$project$Ash_Grammar$Lex('^'),
-												_user$project$Ash_Grammar$Ref('ExpExp')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('PriExp')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'MulExp',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('MulExp'),
-												_user$project$Ash_Grammar$Lex('*'),
-												_user$project$Ash_Grammar$Ref('ExpExp')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('MulExp'),
-												_user$project$Ash_Grammar$Lex('/'),
-												_user$project$Ash_Grammar$Ref('ExpExp')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('ExpExp')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'PriExp',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('('),
-												_user$project$Ash_Grammar$Ref('Exp'),
-												_user$project$Ash_Grammar$Lex(')')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('-'),
-												_user$project$Ash_Grammar$Ref('PriExp')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('ident')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('number')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'alpha',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('a')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('b')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('c')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('d')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('e')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('f')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('g')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('h')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('i')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('j')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('k')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('l')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('m')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('n')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('o')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('p')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('q')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('r')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('s')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('t')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('u')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('v')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('x')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('y')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('z')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'digit',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('0')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('1')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('2')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('3')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('4')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('5')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('6')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('7')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('8')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Lex('9')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'ident',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('alpha'),
-												_user$project$Ash_Grammar$Ref('ident')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('alpha')
-											])
-										]))
-							},
-								{
-								ctor: '_Tuple2',
-								_0: 'number',
-								_1: _elm_lang$core$Array$fromList(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('digit'),
-												_user$project$Ash_Grammar$Ref('number')
-											]),
-											_elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_Grammar$Ref('digit')
-											])
-										]))
-							}
-							])),
-					headExpr: 'Exp'
-				})
+			language: function () {
+				var _p32 = _elm_lang$core$List$head(settings.languages);
+				if (_p32.ctor === 'Just') {
+					return _p32._0;
+				} else {
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Ash.Editor',
+						{
+							start: {line: 112, column: 22},
+							end: {line: 114, column: 51}
+						},
+						_p32)('Where is math');
+				}
+			}()
 		});
 	return A2(
 		_user$project$Ash_Editor$fix,
@@ -11445,34 +11053,34 @@ var _user$project$Ash_Editor$doMsg = F2(
 		doMsg:
 		while (true) {
 			var fail = _user$project$Ash_Editor$failMode(model);
-			var _p31 = msg;
-			switch (_p31.ctor) {
+			var _p34 = msg;
+			switch (_p34.ctor) {
 				case 'NoOp':
 					return model;
 				case 'DoAll':
-					return A3(_elm_lang$core$List$foldl, _user$project$Ash_Editor$doMsg, model, _p31._0);
+					return A3(_elm_lang$core$List$foldl, _user$project$Ash_Editor$doMsg, model, _p34._0);
 				case 'State':
 					return A2(_elm_lang$core$Debug$log, 'state', model);
 				case 'ChooseMsg':
-					var _p32 = model.mode;
-					if (_p32.ctor === 'Choose') {
-						var _p36 = _p32._1;
-						var _p35 = _p32._0;
-						var _p34 = _p32._2;
-						var _p33 = _p31._0;
-						switch (_p33.ctor) {
+					var _p35 = model.mode;
+					if (_p35.ctor === 'Choose') {
+						var _p39 = _p35._1;
+						var _p38 = _p35._0;
+						var _p37 = _p35._2;
+						var _p36 = _p34._0;
+						switch (_p36.ctor) {
 							case 'Next':
 								return _elm_lang$core$Native_Utils.update(
 									model,
 									{
 										mode: A3(
 											_user$project$Ash_Editor$Choose,
-											_p35,
+											_p38,
 											A2(
 												_elm_lang$core$Basics_ops['%'],
-												_p36 + 1,
-												_elm_lang$core$Array$length(_p34)),
-											_p34)
+												_p39 + 1,
+												_elm_lang$core$Array$length(_p37)),
+											_p37)
 									});
 							case 'Prev':
 								return _elm_lang$core$Native_Utils.update(
@@ -11480,18 +11088,18 @@ var _user$project$Ash_Editor$doMsg = F2(
 									{
 										mode: A3(
 											_user$project$Ash_Editor$Choose,
-											_p35,
+											_p38,
 											A2(
 												_elm_lang$core$Basics_ops['%'],
-												_p36 - 1,
-												_elm_lang$core$Array$length(_p34)),
-											_p34)
+												_p39 - 1,
+												_elm_lang$core$Array$length(_p37)),
+											_p37)
 									});
 							case 'Done':
 								var model$ = _user$project$Ash_Editor$realizeChoice(model);
 								return A3(
 									_user$project$Ash_Editor$navigateToEmptyAndDo,
-									_p35,
+									_p38,
 									_user$project$Ash_Editor$DoFrame(
 										_user$project$Ash_Frame$OnBufferWithFocus(_user$project$Ash_Buffer$Change)),
 									_elm_lang$core$Native_Utils.update(
@@ -11501,11 +11109,11 @@ var _user$project$Ash_Editor$doMsg = F2(
 								var model$ = _user$project$Ash_Editor$realizeChoice(model);
 								return A3(
 									_user$project$Ash_Editor$navigateToEmptyAndDo,
-									_p35,
+									_p38,
 									A3(
 										_user$project$Ash_Editor$WithInput,
 										'=',
-										_p33._0,
+										_p36._0,
 										F2(
 											function (text, editor) {
 												return _user$project$Ash_Editor$DoFrame(
@@ -11520,9 +11128,9 @@ var _user$project$Ash_Editor$doMsg = F2(
 						return fail('Can not perform this action out of choose mode');
 					}
 				case 'Fail':
-					return fail(_p31._0);
+					return fail(_p34._0);
 				case 'NewBuffer':
-					var buffer = _user$project$Ash_Buffer$new(_p31._0);
+					var buffer = _user$project$Ash_Buffer$new(_p34._0);
 					var buffers = A2(_elm_lang$core$Array$push, buffer, model.buffers);
 					var frame = _user$project$Ash_Frame$new(
 						{
@@ -11537,19 +11145,19 @@ var _user$project$Ash_Editor$doMsg = F2(
 							frame: _elm_lang$core$Maybe$Just(frame)
 						});
 				case 'DoBuffer':
-					var _p41 = _p31._0;
-					var _p37 = A2(_elm_lang$core$Array$get, _p41, model.buffers);
-					if (_p37.ctor === 'Just') {
-						var _p38 = A2(_user$project$Ash_Buffer$update, _p31._1, _p37._0);
-						var _p40 = _p38._0;
-						var _p39 = _p40;
-						if (_p39.ctor === '[]') {
+					var _p44 = _p34._0;
+					var _p40 = A2(_elm_lang$core$Array$get, _p44, model.buffers);
+					if (_p40.ctor === 'Just') {
+						var _p41 = A2(_user$project$Ash_Buffer$update, _p34._1, _p40._0);
+						var _p43 = _p41._0;
+						var _p42 = _p43;
+						if (_p42.ctor === '[]') {
 							return fail('Action Not Possible');
 						} else {
-							if (_p39._1.ctor === '[]') {
+							if (_p42._1.ctor === '[]') {
 								return A3(
 									_user$project$Ash_Editor$navigateToEmptyAndDo,
-									_p41,
+									_p44,
 									A3(
 										_user$project$Ash_Editor$WithInput,
 										'=',
@@ -11560,16 +11168,16 @@ var _user$project$Ash_Editor$doMsg = F2(
 													_user$project$Ash_Frame$OnBufferWithFocus(
 														_user$project$Ash_Buffer$Replace(text)));
 											})),
-									A3(_user$project$Ash_Editor$activateBufferUpdate, _p41, _p39._0, model));
+									A3(_user$project$Ash_Editor$activateBufferUpdate, _p44, _p42._0, model));
 							} else {
 								return _elm_lang$core$Native_Utils.update(
 									model,
 									{
 										mode: A3(
 											_user$project$Ash_Editor$Choose,
-											_p41,
+											_p44,
 											0,
-											_elm_lang$core$Array$fromList(_p40))
+											_elm_lang$core$Array$fromList(_p43))
 									});
 							}
 						}
@@ -11580,40 +11188,40 @@ var _user$project$Ash_Editor$doMsg = F2(
 								'Could not find buffer \'',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_elm_lang$core$Basics$toString(_p41),
+									_elm_lang$core$Basics$toString(_p44),
 									'\'')));
 					}
 				case 'DoFrame':
-					var _p42 = model.frame;
-					if (_p42.ctor === 'Just') {
-						var _p43 = A2(_user$project$Ash_Frame$update, _p31._0, _p42._0);
-						switch (_p43.ctor) {
+					var _p45 = model.frame;
+					if (_p45.ctor === 'Just') {
+						var _p46 = A2(_user$project$Ash_Frame$update, _p34._0, _p45._0);
+						switch (_p46.ctor) {
 							case 'Update':
 								return _elm_lang$core$Native_Utils.update(
 									model,
 									{
-										frame: _elm_lang$core$Maybe$Just(_p43._0)
+										frame: _elm_lang$core$Maybe$Just(_p46._0)
 									});
 							case 'UpdateWithBuffer':
-								var _p44 = A2(_elm_lang$core$Array$get, _p43._0, model.buffers);
-								if (_p44.ctor === 'Just') {
+								var _p47 = A2(_elm_lang$core$Array$get, _p46._0, model.buffers);
+								if (_p47.ctor === 'Just') {
 									return _elm_lang$core$Native_Utils.update(
 										model,
 										{
 											frame: _elm_lang$core$Maybe$Just(
-												_p43._1(_p44._0))
+												_p46._1(_p47._0))
 										});
 								} else {
 									return fail('No buffer');
 								}
 							case 'UpdateBuffer':
-								var _v27 = A2(_user$project$Ash_Editor$DoBuffer, _p43._0, _p43._1),
-									_v28 = model;
-								msg = _v27;
-								model = _v28;
+								var _v29 = A2(_user$project$Ash_Editor$DoBuffer, _p46._0, _p46._1),
+									_v30 = model;
+								msg = _v29;
+								model = _v30;
 								continue doMsg;
 							default:
-								return fail(_p43._0);
+								return fail(_p46._0);
 						}
 					} else {
 						return fail('No active frame');
@@ -11621,21 +11229,21 @@ var _user$project$Ash_Editor$doMsg = F2(
 				case 'SetMode':
 					return _elm_lang$core$Native_Utils.update(
 						model,
-						{mode: _p31._0});
+						{mode: _p34._0});
 				default:
 					return _elm_lang$core$Native_Utils.update(
 						model,
 						{
 							mode: A3(
 								_user$project$Ash_Editor$Command,
-								_p31._0,
-								_p31._1,
+								_p34._0,
+								_p34._1,
 								function (str) {
 									return _user$project$Ash_Editor$DoAll(
 										_elm_lang$core$Native_List.fromArray(
 											[
 												_user$project$Ash_Editor$SetMode(_user$project$Ash_Editor$Normal),
-												A2(_p31._2, str, model)
+												A2(_p34._2, str, model)
 											]));
 								})
 						});
@@ -11644,10 +11252,10 @@ var _user$project$Ash_Editor$doMsg = F2(
 	});
 var _user$project$Ash_Editor$navigateToEmptyAndDo = F3(
 	function (i, msg, editor) {
-		var _p45 = A2(_elm_lang$core$Array$get, i, editor.buffers);
-		if (_p45.ctor === 'Just') {
-			var _p46 = _user$project$Ash_Buffer$findEmpty(_p45._0);
-			if (_p46.ctor === 'Just') {
+		var _p48 = A2(_elm_lang$core$Array$get, i, editor.buffers);
+		if (_p48.ctor === 'Just') {
+			var _p49 = _user$project$Ash_Buffer$findEmpty(_p48._0);
+			if (_p49.ctor === 'Just') {
 				return A3(
 					_elm_lang$core$Basics$flip,
 					_user$project$Ash_Editor$doMsg,
@@ -11656,7 +11264,7 @@ var _user$project$Ash_Editor$navigateToEmptyAndDo = F3(
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_user$project$Ash_Editor$DoFrame(
-								_user$project$Ash_Frame$SetFocus(_p46._0)),
+								_user$project$Ash_Frame$SetFocus(_p49._0)),
 								msg
 							])));
 			} else {
@@ -11682,43 +11290,43 @@ var _user$project$Ash_Editor$update = F2(
 	});
 var _user$project$Ash_Editor$keyHandler = F2(
 	function (editor, key) {
-		var _p47 = editor.mode;
-		switch (_p47.ctor) {
+		var _p50 = editor.mode;
+		switch (_p50.ctor) {
 			case 'Normal':
-				var _p48 = key;
+				var _p51 = key;
 				return A2(
 					_elm_lang$core$Maybe$withDefault,
 					_user$project$Ash_Editor$NoOp,
 					A2(
 						_elm_lang$core$Maybe$map,
-						function (_p49) {
-							var _p50 = _p49;
-							return _p50._0(editor);
+						function (_p52) {
+							var _p53 = _p52;
+							return _p53._0(editor);
 						},
-						A2(_elm_lang$core$Dict$get, _p48, editor.keymaps)));
+						A2(_elm_lang$core$Dict$get, _p51, editor.keymaps)));
 			case 'Failed':
-				var _p51 = _p47._1;
+				var _p54 = _p50._1;
 				return _user$project$Ash_Editor$DoAll(
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Editor$SetMode(_p51),
+							_user$project$Ash_Editor$SetMode(_p54),
 							A2(
 							_user$project$Ash_Editor$keyHandler,
 							_elm_lang$core$Native_Utils.update(
 								editor,
-								{mode: _p51}),
+								{mode: _p54}),
 							key)
 						]));
 			case 'Command':
-				var _p52 = key;
-				if (_p52 === 96) {
+				var _p55 = key;
+				if (_p55 === 96) {
 					return _user$project$Ash_Editor$SetMode(_user$project$Ash_Editor$Normal);
 				} else {
 					return _user$project$Ash_Editor$NoOp;
 				}
 			default:
-				var _p53 = key;
-				switch (_p53) {
+				var _p56 = key;
+				switch (_p56) {
 					case 14:
 						return _user$project$Ash_Editor$ChooseMsg(_user$project$Ash_Editor$Next);
 					case 16:
@@ -11729,17 +11337,17 @@ var _user$project$Ash_Editor$keyHandler = F2(
 						return _user$project$Ash_Editor$ChooseMsg(
 							_user$project$Ash_Editor$DoneWithInput(
 								_elm_lang$core$String$fromChar(
-									_elm_lang$core$Char$fromCode(_p53))));
+									_elm_lang$core$Char$fromCode(_p56))));
 				}
 		}
 	});
 var _user$project$Ash_Editor$specialKeyHandler = F2(
 	function (editor, key) {
-		var _p54 = editor.mode;
-		switch (_p54.ctor) {
+		var _p57 = editor.mode;
+		switch (_p57.ctor) {
 			case 'Normal':
-				var _p55 = key;
-				switch (_p55) {
+				var _p58 = key;
+				switch (_p58) {
 					case 37:
 						return _user$project$Ash_Editor$DoFrame(
 							_user$project$Ash_Frame$SmartFocus(_user$project$Ash_Movement$Prev));
@@ -11758,15 +11366,15 @@ var _user$project$Ash_Editor$specialKeyHandler = F2(
 			case 'Failed':
 				return _user$project$Ash_Editor$NoOp;
 			case 'Command':
-				var _p56 = key;
-				if (_p56 === 27) {
+				var _p59 = key;
+				if (_p59 === 27) {
 					return _user$project$Ash_Editor$SetMode(_user$project$Ash_Editor$Normal);
 				} else {
 					return _user$project$Ash_Editor$NoOp;
 				}
 			default:
-				var _p57 = key;
-				switch (_p57) {
+				var _p60 = key;
+				switch (_p60) {
 					case 38:
 						return _user$project$Ash_Editor$ChooseMsg(_user$project$Ash_Editor$Prev);
 					case 40:
@@ -11814,6 +11422,30 @@ var _user$project$Languages_Math$grammar = _user$project$Ash_Grammar$grammar(
 						_elm_lang$core$Native_List.fromArray(
 						[
 							_user$project$Ash_Grammar$Ref('AddExp')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('['),
+							_user$project$Ash_Grammar$Ref('ListOfExp'),
+							_user$project$Ash_Grammar$Lex(']')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'ListOfExp',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('Exp')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('Exp'),
+							_user$project$Ash_Grammar$Lex(','),
+							_user$project$Ash_Grammar$Ref('ListOfExp')
 						])
 					]))
 		},
@@ -11955,8 +11587,15 @@ var _user$project$Languages_Math$grammar = _user$project$Ash_Grammar$grammar(
 			_1: _user$project$Ash_Grammar$oneOf('0123456789')
 		}
 		]));
-var _user$project$Languages_Math$language = _user$project$Ash_Language$Language(
-	{name: 'math', grammar: _user$project$Languages_Math$grammar, headExpr: 'Exp'});
+var _user$project$Languages_Math$language = _user$project$Ash_Language$new(
+	{
+		name: 'math',
+		grammar: _user$project$Languages_Math$grammar,
+		headExpr: 'Exp',
+		serializers: _elm_lang$core$Native_List.fromArray(
+			[]),
+		defaultSerializer: 'simple'
+	});
 
 var _user$project$Ash$defaultSettings = {
 	after: _elm_lang$core$Platform_Cmd$none,
