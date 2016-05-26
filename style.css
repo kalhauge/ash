@@ -1,0 +1,169 @@
+
+.ash {
+    margin: 40px auto;
+    border: 1px solid black;
+}
+
+.ash .cmdline {
+    background: lightgray;
+    display: block;
+    vertical-align: middle;
+    font-size: 10pt;
+    font-family: monospace;
+}
+
+.ash .cmdline input, .ash .cmdline p {
+    margin: 0;
+    display: inline;
+    background: none;
+    border: none;
+    font-family: monospace;
+    font-size: 10pt;
+    outline: none;
+    vertical-align: middle;
+}
+.ash .cmdline p {
+    margin-left: 3pt;
+}
+
+.ash .cmdline-failed {
+    background: pink;
+}
+
+.ash .editor {
+    display: block;
+    font-family: monospace;
+}
+
+.ash .editor .no-frame {
+    padding: 40px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.ash .frame {
+    display: block;
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+.ash .frame .frame-content {
+}
+
+.ash .frame .frame-line {
+    background: lightblue;
+    width: 100%;
+    height: 20px;
+    position: absolute;
+    bottom: 0px;
+    display: block;
+    vertical-align: middle;
+    font-size: 10pt;
+    font-family: monospace;
+
+}
+
+.ash .frame .frame-line p {
+    margin: 0 3px;
+    display: inline;
+    background: none;
+    vertical-align: middle;
+}
+
+.ash-debug-tree {
+    text-align: center;
+    padding: 10px 0px;
+}
+
+.ash-dnode {
+    display: inline-block;
+    margin: 2px 2px 0px 2px;
+    text-align: center;
+}
+
+.ash-dnode.ash-focus {
+    background-color: lightgray;
+}
+
+.ash-dnode-header {
+    font-size: 8px;
+    background-color: lightblue;
+    color: black;
+}
+.ash-focus > .ash-dnode-header {
+    background-color: black;
+    color: lightblue;
+}
+
+.ash-dnode-term {
+    display: inline-block;
+    margin: 2px 2px 0px 2px;
+    text-align: center;
+}
+
+.ash-simple-tree {
+    padding: 10px 10px;
+    font-size: 16px;
+}
+
+.ash-focus > .ash-dnode-term {
+    color: red;
+}
+
+.ash-snode {
+    display: inline-block;
+    text-align: center;
+}
+
+.ash-snode.ash-focus {
+    background-color: lightgray;
+}
+
+.ash-snode-term {
+    display: inline-block;
+    margin: 0px 1px;
+    text-align: center;
+}
+
+.ash-focus > .ash-snode-term {
+    color: red;
+}
+
+
+/*.editor .mainView {
+    width: 100%;
+    table-layout: fixed;
+    margin: 0pt;
+    padding: 30pt;
+}
+
+.editor .mainView  td {
+    vertical-align: bottom;
+    text-align: center;
+}
+
+#editorBar {
+    background: lightblue;
+    height: 30px;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    vertical-align: middle;
+    font-size: 10pt;
+    font-family: monospace;
+    padding: 0 6px;
+}
+
+#editorBar .rightData {
+    width: 40px;
+    text-align: right;
+}
+
+#changeInputField {
+    background: none;
+    border: none;
+    font-family: monospace;
+    font-size: 10pt;
+    outline: none;
+}*/
