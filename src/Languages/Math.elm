@@ -3,20 +3,30 @@
 module Languages.Math exposing (..)
 
 import Ash.Grammar as Grammar exposing (..)
-import Ash.Language exposing (..)
+import Ash.Language as Language exposing (..)
 
 language : Language
-language = Language
+language = Language.new
   { name = "math"
   , grammar = grammar
   , headExpr = "Exp"
+  , serializers = []
+  , defaultSerializer = "simple"
   }
 
 grammar = 
   Grammar.grammar 
     [ ( "Exp"
       , rule 
-        [[ Ref "AddExp" ]]
+        [ [ Ref "AddExp" ] 
+        , [ Lex "[", Ref "ListOfExp", Lex "]" ]
+        ]
+      )
+    , ( "ListOfExp"
+      , rule 
+        [ [ Ref "Exp" ]
+        , [ Ref "Exp", Lex ",", Ref "ListOfExp" ]
+        ]
       )
     , ( "AddExp"
       , rule 

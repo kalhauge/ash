@@ -4,6 +4,8 @@ module Ash.Buffer exposing
   , onData
   , setData
 
+  , getLanguage
+
   , findEmpty
 
   , Msg (..)
@@ -30,6 +32,8 @@ new language =
     { data = SyntaxTree.empty
     , language = language
     }
+
+getLanguage (Buffer {language}) = language
 
 onData : (SyntaxTree -> a) -> Buffer -> a
 onData fn (Buffer {data}) =

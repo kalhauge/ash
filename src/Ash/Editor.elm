@@ -109,7 +109,10 @@ debug settings =
             ],
           size = 9 
           }
-        , language = Language { name = "math", grammar = Dict.fromList [("AddExp",Array.fromList [[Ref "AddExp",Lex "+",Ref "MulExp"],[Ref "AddExp",Lex "-",Ref "MulExp"],[Ref "MulExp"]]),("Exp",Array.fromList [[Ref "AddExp"]]),("ExpExp",Array.fromList [[Ref "PriExp",Lex "^",Ref "ExpExp"],[Ref "PriExp"]]),("MulExp",Array.fromList [[Ref "MulExp",Lex "*",Ref "ExpExp"],[Ref "MulExp",Lex "/",Ref "ExpExp"],[Ref "ExpExp"]]),("PriExp",Array.fromList [[Lex "(",Ref "Exp",Lex ")"],[Lex "-",Ref "PriExp"],[Ref "ident"],[Ref "number"]]),("alpha",Array.fromList [[Lex "a"],[Lex "b"],[Lex "c"],[Lex "d"],[Lex "e"],[Lex "f"],[Lex "g"],[Lex "h"],[Lex "i"],[Lex "j"],[Lex "k"],[Lex "l"],[Lex "m"],[Lex "n"],[Lex "o"],[Lex "p"],[Lex "q"],[Lex "r"],[Lex "s"],[Lex "t"],[Lex "u"],[Lex "v"],[Lex "x"],[Lex "y"],[Lex "z"]]),("digit",Array.fromList [[Lex "0"],[Lex "1"],[Lex "2"],[Lex "3"],[Lex "4"],[Lex "5"],[Lex "6"],[Lex "7"],[Lex "8"],[Lex "9"]]),("ident",Array.fromList [[Ref "alpha",Ref "ident"],[Ref "alpha"]]),("number",Array.fromList [[Ref "digit",Ref "number"],[Ref "digit"]])], headExpr = "Exp" } 
+        , language = case List.head settings.languages of
+            Just m -> m
+            Nothing -> Debug.crash "Where is math"
+
         }
   in fix settings 
     { buffers = Array.fromList [ buffer ]
@@ -351,6 +354,12 @@ parseMsg str model =
             "command" ->
               parseArgs rest 
 
+            "display" -> 
+              case rest of
+                [serializer] -> 
+                  DoFrame (Frame.SetSerializer serializer)
+                _ -> badArgs
+
             "state" -> State
             
             _ -> 
@@ -383,7 +392,8 @@ view editor =
           [ case editor'.frame of
               Just frame -> 
                 case Array.get (Frame.getBufferId frame) editor'.buffers of 
-                  Just buffer -> Frame.view frame buffer
+                  Just buffer -> 
+                    Html.App.map (always NoOp) <| Frame.view frame buffer
                   Nothing -> 
                     div [ class "frame" ] 
                       [ div 

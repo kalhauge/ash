@@ -41,7 +41,7 @@ new (i, Buffer {data, language}) =
   Frame
     { focus = data.size 
     , bufferId = i 
-    , serializer = Language.getDefaultSerialzier language
+    , serializer = Language.getDefaultSerializer language
     }
 
 getBufferId : Frame -> Int
@@ -52,6 +52,7 @@ getBufferId (Frame {bufferId}) = bufferId
 type Msg 
   = OnBufferWithFocus (Int -> Buffer.Msg)
   | SetFocus Int
+  | SetSerializer String 
   | Focus Direction
   | SmartFocus Direction
 
@@ -78,7 +79,19 @@ update msg (Frame {focus, bufferId} as frame) =
 
     OnBufferWithFocus msg -> 
       UpdateBuffer bufferId (msg focus)
-    
+
+    SetSerializer str -> 
+      updateWithBuffer <| setSerializer str
+      
+
+setSerializer : String -> Frame -> Buffer -> Frame
+setSerializer str (Frame frame) buffer =
+  let lang = Buffer.getLanguage buffer
+  in Frame 
+    { frame
+    | serializer = Language.getSerializer str lang 
+    }
+
 {- Movement -}
 
 type alias Direction = Movement.Direction
@@ -103,11 +116,11 @@ moveFocus dir (Frame {focus} as frame) =
 
 {- Visuals -}
 
-view : Frame -> Buffer -> Html msg
+view : Frame -> Buffer -> Html ()
 view (Frame frame) (Buffer buffer) = 
   div [ class "frame" ] 
     [ div [ class "frame-content" ] 
-      [ simple 
+      [ frame.serializer
         { focus = frame.focus
         , grammar = (Language.getGrammar buffer.language)
         , data = buffer.data
@@ -118,38 +131,4 @@ view (Frame frame) (Buffer buffer) =
       ]
     ]
 
-debug {data, grammar, focus} = 
-  let 
-    collector id tree =
-      let focusCls = if focus == id then ["ash-focus"] else []
-      in div 
-        [ classes <| [ "ash-dnode"] ++ focusCls] <| 
-        [ div 
-          [ class "ash-dnode-header"]
-          [ text (fst tree.kind ++ "/" ++ toString id )] 
-        ] ++ (
-          Maybe.withDefault [ text "?" ] 
-            <| SyntaxTree.translate grammar tree (\str -> 
-              div 
-                [ class "ash-dnode-term"] 
-                [ text str ]
-            )
-        )
-  in div [ class "ash-debug-tree" ] 
-      [ SyntaxTree.collect collector data ]
-
-simple {data, grammar, focus} =
-  let 
-    collector id tree =
-      let focusCls = if focus == id then ["ash-focus"] else []
-      in div 
-        [ classes <| [ "ash-snode"] ++ focusCls] 
-        <| Maybe.withDefault [ text "?" ] 
-        <| SyntaxTree.translate grammar tree (\str -> 
-              div 
-                [ class "ash-snode-term"] 
-                [ text str ]
-            )
-  in div [ class "ash-simple-tree" ] 
-      [ SyntaxTree.collect collector data ]
 
