@@ -9146,6 +9146,90 @@ var _user$project$Ash_Command$liftMaybe = F3(
 			},
 			_user$project$Utils$allOf(tree.terms));
 	});
+var _user$project$Ash_Command$updatetor2 = F4(
+	function (clt, oldId, tree, itrId) {
+		var helper = F2(
+			function (list, id) {
+				var _p2 = list;
+				if (_p2.ctor === '::') {
+					var _p3 = _p2._0(id);
+					var _p4 = A2(helper, _p2._1, id + _p3._0._0.size);
+					var list = _p4._0;
+					var mapping$ = _p4._1;
+					var nid = _p4._2;
+					return {
+						ctor: '_Tuple3',
+						_0: A2(
+							_elm_lang$core$List_ops['::'],
+							_user$project$Ash_SyntaxTree$unfix(_p3._0),
+							list),
+						_1: A2(_elm_lang$core$Basics_ops['++'], _p3._1, mapping$),
+						_2: nid
+					};
+				} else {
+					return {
+						ctor: '_Tuple3',
+						_0: _elm_lang$core$Native_List.fromArray(
+							[]),
+						_1: _elm_lang$core$Native_List.fromArray(
+							[]),
+						_2: id
+					};
+				}
+			});
+		var _p5 = A2(helper, tree.terms, itrId);
+		var terms = _p5._0;
+		var mapping$ = _p5._1;
+		var newId = _p5._2;
+		var st = _user$project$Ash_SyntaxTree$unfix(
+			A2(
+				clt,
+				oldId,
+				A2(_user$project$Ash_SyntaxTree$setTerms, terms, tree)));
+		return _elm_lang$core$Native_Utils.eq(st.kind, tree.kind) ? {
+			ctor: '_Tuple2',
+			_0: _user$project$Ash_SyntaxTree$SubTree(st),
+			_1: A2(
+				_elm_lang$core$Basics_ops['++'],
+				mapping$,
+				_elm_lang$core$Native_List.fromArray(
+					[itrId + st.size]))
+		} : {
+			ctor: '_Tuple2',
+			_0: _user$project$Ash_SyntaxTree$SubTree(st),
+			_1: A2(_elm_lang$core$List$repeat, tree.size, itrId + st.size)
+		};
+	});
+var _user$project$Ash_Command$update2 = F2(
+	function (clt, st) {
+		var _p6 = A3(
+			_user$project$Ash_SyntaxTree$collect,
+			_user$project$Ash_Command$updatetor2(clt),
+			st,
+			0);
+		var result = _p6._0;
+		var map = _p6._1;
+		var array = _elm_lang$core$Array$fromList(map);
+		var mapping = function (i) {
+			return A2(
+				_elm_lang$core$Maybe$withDefault,
+				i,
+				A2(_elm_lang$core$Array$get, i - 1, array));
+		};
+		return _elm_lang$core$Maybe$Just(
+			{
+				ctor: '_Tuple2',
+				_0: _user$project$Ash_SyntaxTree$unfix(result),
+				_1: mapping
+			});
+	});
+var _user$project$Ash_Command$replace = F3(
+	function (id, fn, tree) {
+		return A2(
+			_user$project$Ash_Command$update2,
+			A2(_user$project$Ash_Command$replacer, id, fn),
+			tree);
+	});
 var _user$project$Ash_Command$replaceL = F2(
 	function (l, i) {
 		return A2(
@@ -9157,35 +9241,35 @@ var _user$project$Ash_Command$updatetor = F4(
 	function (clt, oldId, tree, itrId) {
 		var helper = F2(
 			function (list, id) {
-				var _p2 = list;
-				if (_p2.ctor === '::') {
-					var _p6 = _p2._1;
-					var _p3 = _p2._0(id);
-					if (_p3._0.ctor === 'Just') {
-						var _p4 = A2(helper, _p6, id + _p3._0._0._0.size);
-						var list = _p4._0;
-						var mapping$ = _p4._1;
-						var nid = _p4._2;
+				var _p7 = list;
+				if (_p7.ctor === '::') {
+					var _p11 = _p7._1;
+					var _p8 = _p7._0(id);
+					if (_p8._0.ctor === 'Just') {
+						var _p9 = A2(helper, _p11, id + _p8._0._0._0.size);
+						var list = _p9._0;
+						var mapping$ = _p9._1;
+						var nid = _p9._2;
 						return {
 							ctor: '_Tuple3',
 							_0: A2(
 								_elm_lang$core$List_ops['::'],
-								_elm_lang$core$Maybe$Just(_p3._0._0),
+								_elm_lang$core$Maybe$Just(_p8._0._0),
 								list),
-							_1: A2(_elm_lang$core$Basics_ops['++'], _p3._1, mapping$),
+							_1: A2(_elm_lang$core$Basics_ops['++'], _p8._1, mapping$),
 							_2: nid
 						};
 					} else {
-						var _p5 = A2(helper, _p6, id);
-						var list = _p5._0;
-						var mapping$ = _p5._1;
-						var nid = _p5._2;
+						var _p10 = A2(helper, _p11, id);
+						var list = _p10._0;
+						var mapping$ = _p10._1;
+						var nid = _p10._2;
 						return {
 							ctor: '_Tuple3',
 							_0: A2(_elm_lang$core$List_ops['::'], _elm_lang$core$Maybe$Nothing, list),
 							_1: A2(
 								_elm_lang$core$Basics_ops['++'],
-								A2(_user$project$Ash_Command$replaceL, _p3._1, nid),
+								A2(_user$project$Ash_Command$replaceL, _p8._1, nid),
 								mapping$),
 							_2: nid
 						};
@@ -9201,25 +9285,25 @@ var _user$project$Ash_Command$updatetor = F4(
 					};
 				}
 			});
-		var _p7 = A2(helper, tree.terms, itrId);
-		var terms = _p7._0;
-		var mapping$ = _p7._1;
-		var newId = _p7._2;
-		var _p8 = A2(
+		var _p12 = A2(helper, tree.terms, itrId);
+		var terms = _p12._0;
+		var mapping$ = _p12._1;
+		var newId = _p12._2;
+		var _p13 = A2(
 			clt,
 			oldId,
 			_elm_lang$core$Native_Utils.update(
 				tree,
 				{terms: terms}));
-		if (_p8.ctor === 'Just') {
+		if (_p13.ctor === 'Just') {
 			return {
 				ctor: '_Tuple2',
-				_0: _elm_lang$core$Maybe$Just(_p8._0),
+				_0: _elm_lang$core$Maybe$Just(_p13._0),
 				_1: A2(
 					_elm_lang$core$Basics_ops['++'],
 					mapping$,
 					_elm_lang$core$Native_List.fromArray(
-						[itrId + _p8._0._0.size]))
+						[itrId + _p13._0._0.size]))
 			};
 		} else {
 			return {
@@ -9235,13 +9319,13 @@ var _user$project$Ash_Command$updatetor = F4(
 	});
 var _user$project$Ash_Command$update = F2(
 	function (clt, st) {
-		var _p9 = A3(
+		var _p14 = A3(
 			_user$project$Ash_SyntaxTree$collect,
 			_user$project$Ash_Command$updatetor(clt),
 			st,
 			0);
-		var result = _p9._0;
-		var map = _p9._1;
+		var result = _p14._0;
+		var map = _p14._1;
 		var array = _elm_lang$core$Array$fromList(map);
 		var mapping = function (i) {
 			return A2(
@@ -9259,14 +9343,6 @@ var _user$project$Ash_Command$update = F2(
 				};
 			},
 			result);
-	});
-var _user$project$Ash_Command$replace = F3(
-	function (id, fn, tree) {
-		return A2(
-			_user$project$Ash_Command$update,
-			_user$project$Ash_Command$liftMaybe(
-				A2(_user$project$Ash_Command$replacer, id, fn)),
-			tree);
 	});
 var _user$project$Ash_Command$delete = F2(
 	function (id, tree) {
@@ -9830,23 +9906,40 @@ var _user$project$Ash_Buffer$put = F2(
 				focus,
 				_elm_lang$core$Basics$always(st)));
 	});
-var _user$project$Ash_Buffer$replace = F3(
-	function (focus, str, _p11) {
+var _user$project$Ash_Buffer$keep = F2(
+	function (focus, _p11) {
 		var _p12 = _p11;
-		var _p19 = _p12._0.language;
-		var parseP = function (_p13) {
-			var _p14 = _p13;
+		var _p13 = _p12._0.data;
+		var focus$ = A3(_user$project$Ash_Movement$moveSmartFocus, _user$project$Ash_Movement$Parrent, focus, _p13);
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			A2(
+				_elm_lang$core$Maybe$map,
+				A2(
+					_elm_lang$core$Basics$flip,
+					_user$project$Ash_Buffer$put(focus$),
+					_p12),
+				A2(_user$project$Ash_Command$get, focus, _p13)));
+	});
+var _user$project$Ash_Buffer$replace = F3(
+	function (focus, str, _p14) {
+		var _p15 = _p14;
+		var _p22 = _p15._0.language;
+		var parseP = function (_p16) {
+			var _p17 = _p16;
 			return A2(
 				_elm_lang$core$Maybe$map,
 				_user$project$Ash_Buffer$applyPath(
 					_elm_lang$core$Native_List.fromArray(
-						[_p14._1])),
-				A3(_user$project$Ash_Language$parse, _p19, _p14._0, str));
+						[_p17._1])),
+				A3(_user$project$Ash_Language$parse, _p22, _p17._0, str));
 		};
 		var parse = function (clauseid) {
-			return A3(_user$project$Ash_Language$parse, _p19, clauseid, str);
+			return A3(_user$project$Ash_Language$parse, _p22, clauseid, str);
 		};
-		var grammar = _user$project$Ash_Language$getGrammar(_p19);
+		var grammar = _user$project$Ash_Language$getGrammar(_p22);
 		var parrans = function (kind) {
 			return A2(
 				_elm_lang$core$Maybe$andThen,
@@ -9855,34 +9948,34 @@ var _user$project$Ash_Buffer$replace = F3(
 					if (_user$project$Ash_Grammar$isTransition(alt)) {
 						return _elm_lang$core$Maybe$Nothing;
 					} else {
-						var _p15 = _user$project$Ash_Grammar$clauseIds(alt);
-						if ((_p15.ctor === '::') && (_p15._1.ctor === '[]')) {
+						var _p18 = _user$project$Ash_Grammar$clauseIds(alt);
+						if ((_p18.ctor === '::') && (_p18._1.ctor === '[]')) {
 							return _elm_lang$core$Maybe$Just(
-								{ctor: '_Tuple2', _0: _p15._0, _1: kind});
+								{ctor: '_Tuple2', _0: _p18._0, _1: kind});
 						} else {
 							return _elm_lang$core$Maybe$Nothing;
 						}
 					}
 				});
 		};
-		var replace = function (_p16) {
+		var replace = function (_p19) {
 			return A3(
 				_elm_lang$core$Basics$flip,
 				_user$project$Ash_Buffer$put(focus),
-				_p12,
-				A2(_user$project$Ash_Command$trim, grammar, _p16));
+				_p15,
+				A2(_user$project$Ash_Command$trim, grammar, _p19));
 		};
 		var clause = A2(
 			_elm_lang$core$Debug$log,
 			'parse',
-			A3(_user$project$Ash_Language$clause, _p19, focus, _p12._0.data));
-		var _p17 = parse(clause);
-		if (_p17.ctor === 'Just') {
-			return replace(_p17._0);
+			A3(_user$project$Ash_Language$clause, _p22, focus, _p15._0.data));
+		var _p20 = parse(clause);
+		if (_p20.ctor === 'Just') {
+			return replace(_p20._0);
 		} else {
 			return A2(
 				_elm_lang$core$List$concatMap,
-				function (_p18) {
+				function (_p21) {
 					return A2(
 						_elm_lang$core$Maybe$withDefault,
 						_elm_lang$core$Native_List.fromArray(
@@ -9890,7 +9983,7 @@ var _user$project$Ash_Buffer$replace = F3(
 						A2(
 							_elm_lang$core$Maybe$map,
 							replace,
-							parseP(_p18)));
+							parseP(_p21)));
 				},
 				_user$project$Utils$compress(
 					A2(
@@ -9900,10 +9993,10 @@ var _user$project$Ash_Buffer$replace = F3(
 		}
 	});
 var _user$project$Ash_Buffer$change = F2(
-	function (focus, _p20) {
-		var _p21 = _p20;
-		var _p23 = _p21._0.language;
-		var grammar = _user$project$Ash_Language$getGrammar(_p23);
+	function (focus, _p23) {
+		var _p24 = _p23;
+		var _p26 = _p24._0.language;
+		var grammar = _user$project$Ash_Language$getGrammar(_p26);
 		var toChange = function (kind) {
 			return A2(
 				_elm_lang$core$Maybe$withDefault,
@@ -9914,28 +10007,28 @@ var _user$project$Ash_Buffer$change = F2(
 					A2(
 						_elm_lang$core$Basics$flip,
 						_user$project$Ash_Buffer$put(focus),
-						_p21),
+						_p24),
 					A2(_user$project$Ash_Buffer$template, grammar, kind)));
 		};
-		var clause = A3(_user$project$Ash_Language$clause, _p23, focus, _p21._0.data);
+		var clause = A3(_user$project$Ash_Language$clause, _p26, focus, _p24._0.data);
 		var kinds = A2(
 			_elm_lang$core$Debug$log,
 			'kinds',
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p22) {
+				function (_p25) {
 					return _elm_lang$core$Basics$not(
 						_user$project$Ash_Grammar$isLexical(
-							_elm_lang$core$Basics$fst(_p22)));
+							_elm_lang$core$Basics$fst(_p25)));
 				},
 				A2(_user$project$Ash_Grammar$transitiveKinds, grammar, clause)));
 		return A2(_elm_lang$core$List$concatMap, toChange, kinds);
 	});
 var _user$project$Ash_Buffer$append = F2(
-	function (focus, _p24) {
-		var _p25 = _p24;
-		var _p33 = _p25._0.language;
-		var _p32 = _p25._0.data;
+	function (focus, _p27) {
+		var _p28 = _p27;
+		var _p36 = _p28._0.language;
+		var _p35 = _p28._0.data;
 		var append$ = F3(
 			function (grammar, tree, kind) {
 				return A2(
@@ -9946,8 +10039,8 @@ var _user$project$Ash_Buffer$append = F2(
 							_user$project$Ash_Buffer_ops['?>'],
 							_elm_lang$core$Basics$not(
 								_user$project$Ash_Grammar$isTransition(alt)),
-							function (_p26) {
-								var _p27 = _p26;
+							function (_p29) {
+								var _p30 = _p29;
 								return A2(
 									_user$project$Utils_ops['&>'],
 									_elm_lang$core$List$head(
@@ -9960,8 +10053,8 @@ var _user$project$Ash_Buffer$append = F2(
 												_elm_lang$core$List$member,
 												_elm_lang$core$Basics$fst(tree.kind),
 												trans),
-											function (_p28) {
-												var _p29 = _p28;
+											function (_p31) {
+												var _p32 = _p31;
 												return A2(
 													_user$project$Utils_ops['&>'],
 													A2(_user$project$Ash_Buffer$template, grammar, kind),
@@ -9983,7 +10076,7 @@ var _user$project$Ash_Buffer$append = F2(
 							});
 					});
 			});
-		var grammar = _user$project$Ash_Language$getGrammar(_p33);
+		var grammar = _user$project$Ash_Language$getGrammar(_p36);
 		var toChange = F2(
 			function (tree, kind) {
 				return _elm_lang$core$Basics$not(
@@ -9997,27 +10090,27 @@ var _user$project$Ash_Buffer$append = F2(
 						A2(
 							_elm_lang$core$Basics$flip,
 							_user$project$Ash_Buffer$put(focus),
-							_p25),
+							_p28),
 						A3(append$, grammar, tree, kind))) : _elm_lang$core$Native_List.fromArray(
 					[]);
 			});
-		var clause = A3(_user$project$Ash_Language$clause, _p33, focus, _p32);
+		var clause = A3(_user$project$Ash_Language$clause, _p36, focus, _p35);
 		var kinds = A2(
 			_elm_lang$core$Debug$log,
 			'kinds',
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p30) {
+				function (_p33) {
 					return _elm_lang$core$Basics$not(
 						_user$project$Ash_Grammar$isLexical(
-							_elm_lang$core$Basics$fst(_p30)));
+							_elm_lang$core$Basics$fst(_p33)));
 				},
 				A2(_user$project$Ash_Grammar$transitiveKinds, grammar, clause)));
-		var _p31 = A2(_user$project$Ash_Command$get, focus, _p32);
-		if (_p31.ctor === 'Just') {
+		var _p34 = A2(_user$project$Ash_Command$get, focus, _p35);
+		if (_p34.ctor === 'Just') {
 			return A2(
 				_elm_lang$core$List$concatMap,
-				toChange(_p31._0),
+				toChange(_p34._0),
 				kinds);
 		} else {
 			return _elm_lang$core$Native_List.fromArray(
@@ -10025,10 +10118,10 @@ var _user$project$Ash_Buffer$append = F2(
 		}
 	});
 var _user$project$Ash_Buffer$insert = F2(
-	function (focus, _p34) {
-		var _p35 = _p34;
-		var _p43 = _p35._0.language;
-		var _p42 = _p35._0.data;
+	function (focus, _p37) {
+		var _p38 = _p37;
+		var _p46 = _p38._0.language;
+		var _p45 = _p38._0.data;
 		var insert$ = F3(
 			function (grammar, tree, kind) {
 				return A2(
@@ -10039,8 +10132,8 @@ var _user$project$Ash_Buffer$insert = F2(
 							_user$project$Ash_Buffer_ops['?>'],
 							_elm_lang$core$Basics$not(
 								_user$project$Ash_Grammar$isTransition(alt)),
-							function (_p36) {
-								var _p37 = _p36;
+							function (_p39) {
+								var _p40 = _p39;
 								return A2(
 									_user$project$Utils_ops['&>'],
 									_user$project$Utils$last(
@@ -10053,8 +10146,8 @@ var _user$project$Ash_Buffer$insert = F2(
 												_elm_lang$core$List$member,
 												_elm_lang$core$Basics$fst(tree.kind),
 												trans),
-											function (_p38) {
-												var _p39 = _p38;
+											function (_p41) {
+												var _p42 = _p41;
 												return A2(
 													_user$project$Utils_ops['&>'],
 													A2(_user$project$Ash_Buffer$template, grammar, kind),
@@ -10080,7 +10173,7 @@ var _user$project$Ash_Buffer$insert = F2(
 							});
 					});
 			});
-		var grammar = _user$project$Ash_Language$getGrammar(_p43);
+		var grammar = _user$project$Ash_Language$getGrammar(_p46);
 		var toChange = F2(
 			function (tree, kind) {
 				return _elm_lang$core$Basics$not(
@@ -10094,33 +10187,36 @@ var _user$project$Ash_Buffer$insert = F2(
 						A2(
 							_elm_lang$core$Basics$flip,
 							_user$project$Ash_Buffer$put(focus),
-							_p35),
+							_p38),
 						A3(insert$, grammar, tree, kind))) : _elm_lang$core$Native_List.fromArray(
 					[]);
 			});
-		var clause = A3(_user$project$Ash_Language$clause, _p43, focus, _p42);
+		var clause = A3(_user$project$Ash_Language$clause, _p46, focus, _p45);
 		var kinds = A2(
 			_elm_lang$core$Debug$log,
 			'kinds',
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p40) {
+				function (_p43) {
 					return _elm_lang$core$Basics$not(
 						_user$project$Ash_Grammar$isLexical(
-							_elm_lang$core$Basics$fst(_p40)));
+							_elm_lang$core$Basics$fst(_p43)));
 				},
 				A2(_user$project$Ash_Grammar$transitiveKinds, grammar, clause)));
-		var _p41 = A2(_user$project$Ash_Command$get, focus, _p42);
-		if (_p41.ctor === 'Just') {
+		var _p44 = A2(_user$project$Ash_Command$get, focus, _p45);
+		if (_p44.ctor === 'Just') {
 			return A2(
 				_elm_lang$core$List$concatMap,
-				toChange(_p41._0),
+				toChange(_p44._0),
 				kinds);
 		} else {
 			return _elm_lang$core$Native_List.fromArray(
 				[]);
 		}
 	});
+var _user$project$Ash_Buffer$Keep = function (a) {
+	return {ctor: 'Keep', _0: a};
+};
 var _user$project$Ash_Buffer$Change = function (a) {
 	return {ctor: 'Change', _0: a};
 };
@@ -10141,25 +10237,27 @@ var _user$project$Ash_Buffer$Options = function (a) {
 	return {ctor: 'Options', _0: a};
 };
 var _user$project$Ash_Buffer$update = F2(
-	function (msg, _p44) {
-		var _p45 = _p44;
+	function (msg, _p47) {
+		var _p48 = _p47;
 		var fn = function () {
-			var _p46 = msg;
-			switch (_p46.ctor) {
+			var _p49 = msg;
+			switch (_p49.ctor) {
 				case 'Delete':
-					return _user$project$Ash_Buffer$delete(_p46._0);
+					return _user$project$Ash_Buffer$delete(_p49._0);
 				case 'Replace':
-					return A2(_user$project$Ash_Buffer$replace, _p46._1, _p46._0);
+					return A2(_user$project$Ash_Buffer$replace, _p49._1, _p49._0);
 				case 'Change':
-					return _user$project$Ash_Buffer$change(_p46._0);
+					return _user$project$Ash_Buffer$change(_p49._0);
 				case 'Append':
-					return _user$project$Ash_Buffer$append(_p46._0);
+					return _user$project$Ash_Buffer$append(_p49._0);
+				case 'Insert':
+					return _user$project$Ash_Buffer$insert(_p49._0);
 				default:
-					return _user$project$Ash_Buffer$insert(_p46._0);
+					return _user$project$Ash_Buffer$keep(_p49._0);
 			}
 		}();
 		return _user$project$Ash_Buffer$Options(
-			fn(_p45));
+			fn(_p48));
 	});
 
 var _user$project$Ash_Frame$simple = function (_p0) {
@@ -10608,6 +10706,9 @@ var _user$project$Ash_Editor$parseMsg = F2(
 						case 'append':
 							return _user$project$Ash_Editor$DoFrame(
 								_user$project$Ash_Frame$OnBufferWithFocus(_user$project$Ash_Buffer$Append));
+						case 'keep':
+							return _user$project$Ash_Editor$DoFrame(
+								_user$project$Ash_Frame$OnBufferWithFocus(_user$project$Ash_Buffer$Keep));
 						case 'insert':
 							return _user$project$Ash_Editor$DoFrame(
 								_user$project$Ash_Frame$OnBufferWithFocus(_user$project$Ash_Buffer$Insert));
@@ -11665,10 +11766,15 @@ var _user$project$Ash_Editor$specialKeyHandler = F2(
 				}
 			default:
 				var _p57 = key;
-				if (_p57 === 27) {
-					return _user$project$Ash_Editor$SetMode(_user$project$Ash_Editor$Normal);
-				} else {
-					return _user$project$Ash_Editor$NoOp;
+				switch (_p57) {
+					case 38:
+						return _user$project$Ash_Editor$ChooseMsg(_user$project$Ash_Editor$Prev);
+					case 40:
+						return _user$project$Ash_Editor$ChooseMsg(_user$project$Ash_Editor$Next);
+					case 27:
+						return _user$project$Ash_Editor$SetMode(_user$project$Ash_Editor$Normal);
+					default:
+						return _user$project$Ash_Editor$NoOp;
 				}
 		}
 	});
@@ -11922,6 +12028,11 @@ var _user$project$Ash$defaultSettings = {
 			ctor: '_Tuple2',
 			_0: _elm_lang$core$Native_Utils.chr('i'),
 			_1: 'insert'
+		},
+			{
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Native_Utils.chr('x'),
+			_1: 'keep'
 		},
 			{
 			ctor: '_Tuple2',
