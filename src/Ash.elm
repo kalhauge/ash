@@ -33,6 +33,7 @@ defaultSettings =
     , ('c', "change")
     , ('a', "append")
     , ('i', "insert")
+    , ('x', "keep")
     
     , (':', "withInput : command")
     ]

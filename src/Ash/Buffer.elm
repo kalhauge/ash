@@ -14,6 +14,7 @@ module Ash.Buffer exposing
 import Ash.Language as Language exposing (Language)
 import Ash.SyntaxTree as SyntaxTree exposing (SyntaxTree, Focus)
 import Ash.Command as Command
+import Ash.Movement as Movement
 import Ash.Grammar as Grammar exposing (Grammar)
 
 import Utils exposing ((&>))
@@ -51,6 +52,7 @@ type Msg
   | Append Focus
   | Insert Focus
   | Change Focus
+  | Keep Focus
 
 type Response
   = Options (List (Buffer, Int -> Int))
@@ -63,6 +65,7 @@ update msg (Buffer {data, language} as buffer) =
     Change focus -> change focus
     Append focus -> append focus
     Insert focus -> insert focus
+    Keep focus -> keep focus
   in Options (fn buffer)
 
 lift : 
@@ -77,6 +80,14 @@ lift fn (Buffer {data} as buffer) =
 delete : Focus -> Buffer -> List (Buffer, Focus -> Focus)
 delete focus = 
   lift (Command.delete focus)
+
+keep : Focus -> Buffer -> List (Buffer, Focus -> Focus)
+keep focus (Buffer {data} as buffer)= 
+  let focus' = Movement.moveSmartFocus Movement.Parrent focus data
+  in 
+    Command.get focus data 
+    |> Maybe.map (flip (put focus') buffer)
+    |> Maybe.withDefault []
     
 put : Focus -> SyntaxTree -> Buffer -> List (Buffer, Focus -> Focus)
 put focus st = 

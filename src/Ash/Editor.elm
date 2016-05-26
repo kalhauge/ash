@@ -319,6 +319,9 @@ parseMsg str model =
             
             "append" -> 
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Append)
+
+            "keep" -> 
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Keep)
             
             "insert" -> 
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Insert)
@@ -495,6 +498,8 @@ specialKeyHandler editor key =
         _ -> NoOp
     Choose _ _ _ -> 
       case key of
+        38 -> ChooseMsg Prev 
+        40 -> ChooseMsg Next 
         27 -> SetMode Normal
         _ -> NoOp
 

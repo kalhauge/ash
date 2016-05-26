@@ -52,7 +52,40 @@ updatetor clt oldId tree itrId =
          (Just st, mapping' ++ [ itrId + size ])
        Nothing -> 
          (Nothing,  mapping' ++ [ newId + 1] )
-  
+
+
+updatetor2 : 
+  TreeCollector SubTree 
+  -> TreeCollector (Int -> (SubTree, List Int))
+updatetor2 clt oldId tree itrId = 
+  let 
+    helper : 
+      List (Int -> (SubTree, List Int))
+      -> Int 
+      -> (List SyntaxTree, List Int, Int)
+    helper list id = 
+      case list of 
+        e :: rest -> 
+          case e id of 
+            (SubTree {size} as st, mapping) -> 
+              let (list, mapping', nid) = helper rest (id + size) 
+              in (unfix st :: list, mapping ++ mapping', nid)
+        [] -> ([], [], id)
+
+    (terms, mapping', newId) = helper tree.terms itrId 
+  in
+    let st = unfix <| clt oldId (setTerms terms tree)
+    in 
+      if st.kind == tree.kind 
+      then 
+        -- If the tree is the same; repspect the mapping and the sizes.
+        (SubTree st, mapping' ++ [ itrId + st.size ])  
+      else 
+        -- If the tree is not the same, all subtrees point to this 
+        -- tree.
+        (SubTree st, List.repeat tree.size (itrId + st.size))
+
+         
 
 update : TreeCollector (Maybe SubTree) -> SyntaxTree -> Maybe (SyntaxTree, Int -> Int)
 update clt st =
@@ -64,6 +97,17 @@ update clt st =
       Array.get (i - 1) array 
       |> Maybe.withDefault i
   in Maybe.map (\r -> (unfix r, mapping)) result
+
+update2 : TreeCollector SubTree -> SyntaxTree -> Maybe (SyntaxTree, Int -> Int)
+update2 clt st =
+  let 
+    (result, map) = 
+      collect (updatetor2 clt) st 0
+    array = Array.fromList map
+    mapping i = 
+      Array.get (i - 1) array 
+      |> Maybe.withDefault i
+  in Just (unfix result, mapping)
 
 liftMaybe : TreeCollector SubTree -> TreeCollector (Maybe SubTree)
 liftMaybe clt i tree= 
@@ -83,7 +127,7 @@ replace :
   -> SyntaxTree 
   -> Maybe (SyntaxTree, Int -> Int)
 replace id fn tree =
-  update (liftMaybe (replacer id fn)) tree
+  update2 (replacer id fn) tree
 
 deleteIterator : Focus -> TreeCollector (Maybe SubTree)
 deleteIterator id i tree =
