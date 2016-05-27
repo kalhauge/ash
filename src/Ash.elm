@@ -7,6 +7,7 @@ module Ash exposing
 import Ash.Editor
 
 import Languages.Math
+import Languages.F
 
 type alias Settings = Ash.Editor.Settings
 
@@ -16,6 +17,7 @@ defaultSettings =
   { after = Cmd.none
   , languages = 
     [ Languages.Math.language
+    , Languages.F.language
     ]
   , keymaps = 
     [ ('j', "focus! child")
