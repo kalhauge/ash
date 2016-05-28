@@ -117,7 +117,7 @@ printer {data, grammar, focus} =
 
           ("MulExp", 0) -> tree `take2` \a b -> 
             grp "multiply"
-              [ a, operator "*", b ] 
+              [ a, operator "⋅", b ] 
           
           ("MulExp", 1) -> tree `take2` \a b -> 
             grp "fraction"
