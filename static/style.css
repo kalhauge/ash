@@ -135,6 +135,8 @@
   padding: 10px 0px;
   font-family: Times, "Times New Roman", serif;
   font-size: 18pt;
+  color: lightgray;
+  border-color: lightgray;
 }
 
 .ash-math div {
@@ -142,7 +144,8 @@
 }
 
 .ash-math .ash-focus {
-  background-color: lightgray;
+  color: black;
+  border-color: black;
 }
 
 .ash-math empty {
@@ -155,16 +158,23 @@
 
 .ash-math paren {
   display: inline-block;
-  border-image: url('parens.png') 0 93 round stretch;
+  border-image: url('parens-lightgrey.png') 0 93 round stretch;
   border-width: 0 7pt;
   margin: 2px;
 }
 
-.ash-math power > exponent > paren,
+.ash-math .ash-focus paren, 
+.ash-math paren.ash-focus
+{
+  border-image: url('parens.png') 0 93 round stretch;
+}
+
+/* .ash-math power > exponent > paren,
 .ash-math fraction > numerator > paren,
 .ash-math fraction > denominator > paren {
   border-image: none;
 }
+*/
 
 .ash-math operator {
   margin: 0 4pt;
@@ -182,7 +192,7 @@
 
 .ash-math numerator {
   display: block;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid;
   padding: 0 4pt;
 }
 
