@@ -11520,7 +11520,7 @@ var _user$project$Languages_Math$printer = function (_p0) {
 													_elm_lang$core$Native_List.fromArray(
 														[
 															a,
-															operator('*'),
+															operator('⋅'),
 															b
 														]));
 											}));
