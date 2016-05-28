@@ -130,40 +130,72 @@
     color: red;
 }
 
-
-/*.editor .mainView {
-    width: 100%;
-    table-layout: fixed;
-    margin: 0pt;
-    padding: 30pt;
+.ash-math {
+  text-align: center;
+  padding: 10px 0px;
+  font-family: Times, "Times New Roman", serif;
+  font-size: 18pt;
 }
 
-.editor .mainView  td {
-    vertical-align: bottom;
-    text-align: center;
+.ash-math div {
+  display: inline;
 }
 
-#editorBar {
-    background: lightblue;
-    height: 30px;
-    position: absolute;
-    bottom: 0px;
-    width: 100%;
-    vertical-align: middle;
-    font-size: 10pt;
-    font-family: monospace;
-    padding: 0 6px;
+.ash-math .ash-focus {
+  background-color: lightgray;
 }
 
-#editorBar .rightData {
-    width: 40px;
-    text-align: right;
+.ash-math empty {
+  font-style: italic;
 }
 
-#changeInputField {
-    background: none;
-    border: none;
-    font-family: monospace;
-    font-size: 10pt;
-    outline: none;
-}*/
+.ash-math ident {
+  font-style: italic;
+}
+
+.ash-math paren {
+  display: inline-block;
+  border-image: url('parens.png') 0 93 round stretch;
+  border-width: 0 7pt;
+  margin: 2px;
+}
+
+.ash-math power > exponent > paren,
+.ash-math fraction > numerator > paren,
+.ash-math fraction > denominator > paren {
+  border-image: none;
+}
+
+.ash-math operator {
+  margin: 0 4pt;
+}
+
+.ash-math fraction {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ash-math numerator, .ash-math denominator {
+  padding: 0 4pt;
+}
+
+.ash-math numerator {
+  display: block;
+  border-bottom: 2px solid black;
+  padding: 0 4pt;
+}
+
+.ash-math denominator {
+  display: block;
+}
+
+.ash-math exponent {
+  font-size: 70%;
+  vertical-align: text-top;
+  line-height: 0;
+}
+
+.ash-math exponent > * {
+  line-height: 100%;
+}

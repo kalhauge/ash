@@ -11410,6 +11410,290 @@ var _user$project$Ash_Editor$editor = function (settings) {
 		});
 };
 
+var _user$project$Languages_Math$printer = function (_p0) {
+	var _p1 = _p0;
+	var mallformed = A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text('mallformed')
+			]));
+	var take1 = F2(
+		function (tree, f) {
+			var _p2 = tree.terms;
+			if ((_p2.ctor === '::') && (_p2._1.ctor === '[]')) {
+				return f(_p2._0);
+			} else {
+				return mallformed;
+			}
+		});
+	var take2 = F2(
+		function (tree, f) {
+			var _p3 = tree.terms;
+			if (((_p3.ctor === '::') && (_p3._1.ctor === '::')) && (_p3._1._1.ctor === '[]')) {
+				return A2(f, _p3._0, _p3._1._0);
+			} else {
+				return mallformed;
+			}
+		});
+	var collector = F2(
+		function (id, tree) {
+			var alphabeth = _elm_lang$core$Array$fromList(
+				A2(
+					_elm_lang$core$List$map,
+					_elm_lang$core$String$fromChar,
+					_elm_lang$core$String$toList('abcdefghijklmnopqrstuvxyz')));
+			var grp = function (name) {
+				return A2(
+					_elm_lang$html$Html$node,
+					name,
+					_elm_lang$core$Native_Utils.eq(id, _p1.focus) ? _elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$class('ash-focus')
+						]) : _elm_lang$core$Native_List.fromArray(
+						[]));
+			};
+			var operator = function (opr) {
+				return A2(
+					grp,
+					'operator',
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html$text(opr)
+						]));
+			};
+			var _p4 = tree.kind;
+			_v3_12:
+			do {
+				if (_p4.ctor === '_Tuple2') {
+					switch (_p4._0) {
+						case 'AddExp':
+							switch (_p4._1) {
+								case 0:
+									return A2(
+										take2,
+										tree,
+										F2(
+											function (a, b) {
+												return A2(
+													grp,
+													'add',
+													_elm_lang$core$Native_List.fromArray(
+														[
+															a,
+															operator('+'),
+															b
+														]));
+											}));
+								case 1:
+									return A2(
+										take2,
+										tree,
+										F2(
+											function (a, b) {
+												return A2(
+													grp,
+													'minus',
+													_elm_lang$core$Native_List.fromArray(
+														[
+															a,
+															operator('-'),
+															b
+														]));
+											}));
+								default:
+									break _v3_12;
+							}
+						case 'MulExp':
+							switch (_p4._1) {
+								case 0:
+									return A2(
+										take2,
+										tree,
+										F2(
+											function (a, b) {
+												return A2(
+													grp,
+													'multiply',
+													_elm_lang$core$Native_List.fromArray(
+														[
+															a,
+															operator('*'),
+															b
+														]));
+											}));
+								case 1:
+									return A2(
+										take2,
+										tree,
+										F2(
+											function (a, b) {
+												return A2(
+													grp,
+													'fraction',
+													_elm_lang$core$Native_List.fromArray(
+														[
+															A2(
+															grp,
+															'numerator',
+															_elm_lang$core$Native_List.fromArray(
+																[a])),
+															A2(
+															grp,
+															'denominator',
+															_elm_lang$core$Native_List.fromArray(
+																[b]))
+														]));
+											}));
+								default:
+									break _v3_12;
+							}
+						case 'ExpExp':
+							if (_p4._1 === 0) {
+								return A2(
+									take2,
+									tree,
+									F2(
+										function (a, b) {
+											return A2(
+												grp,
+												'power',
+												_elm_lang$core$Native_List.fromArray(
+													[
+														a,
+														A2(
+														grp,
+														'exponent',
+														_elm_lang$core$Native_List.fromArray(
+															[b]))
+													]));
+										}));
+							} else {
+								break _v3_12;
+							}
+						case 'PriExp':
+							switch (_p4._1) {
+								case 0:
+									return A2(
+										take1,
+										tree,
+										function (a) {
+											return A2(
+												grp,
+												'paren',
+												_elm_lang$core$Native_List.fromArray(
+													[a]));
+										});
+								case 1:
+									return A2(
+										take1,
+										tree,
+										function (a) {
+											return A2(
+												grp,
+												'negative',
+												_elm_lang$core$Native_List.fromArray(
+													[
+														operator('-'),
+														a
+													]));
+										});
+								default:
+									break _v3_12;
+							}
+						case 'number':
+							if (_p4._1 === 0) {
+								return A2(
+									take2,
+									tree,
+									F2(
+										function (a, b) {
+											return A2(
+												grp,
+												'number',
+												_elm_lang$core$Native_List.fromArray(
+													[a, b]));
+										}));
+							} else {
+								break _v3_12;
+							}
+						case 'digit':
+							return A2(
+								grp,
+								'digit',
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text(
+										_elm_lang$core$Basics$toString(_p4._1))
+									]));
+						case 'ident':
+							if (_p4._1 === 0) {
+								return A2(
+									take2,
+									tree,
+									F2(
+										function (a, b) {
+											return A2(
+												grp,
+												'ident',
+												_elm_lang$core$Native_List.fromArray(
+													[a, b]));
+										}));
+							} else {
+								break _v3_12;
+							}
+						case 'alpha':
+							return A2(
+								grp,
+								'digit',
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text(
+										function () {
+											var _p5 = A2(_elm_lang$core$Array$get, _p4._1, alphabeth);
+											if (_p5.ctor === 'Just') {
+												return _p5._0;
+											} else {
+												return '!';
+											}
+										}())
+									]));
+						case 'empty':
+							return A2(
+								grp,
+								'empty',
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('?')
+									]));
+						default:
+							break _v3_12;
+					}
+				} else {
+					break _v3_12;
+				}
+			} while(false);
+			return A2(
+				grp,
+				'err',
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('err')
+					]));
+		});
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('ash-math')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(_user$project$Ash_SyntaxTree$collect, collector, _p1.data)
+			]));
+};
 var _user$project$Languages_Math$grammar = _user$project$Ash_Grammar$grammar(
 	_elm_lang$core$Native_List.fromArray(
 		[
@@ -11422,30 +11706,6 @@ var _user$project$Languages_Math$grammar = _user$project$Ash_Grammar$grammar(
 						_elm_lang$core$Native_List.fromArray(
 						[
 							_user$project$Ash_Grammar$Ref('AddExp')
-						]),
-						_elm_lang$core$Native_List.fromArray(
-						[
-							_user$project$Ash_Grammar$Lex('['),
-							_user$project$Ash_Grammar$Ref('ListOfExp'),
-							_user$project$Ash_Grammar$Lex(']')
-						])
-					]))
-		},
-			{
-			ctor: '_Tuple2',
-			_0: 'ListOfExp',
-			_1: _user$project$Ash_Grammar$rule(
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$core$Native_List.fromArray(
-						[
-							_user$project$Ash_Grammar$Ref('Exp')
-						]),
-						_elm_lang$core$Native_List.fromArray(
-						[
-							_user$project$Ash_Grammar$Ref('Exp'),
-							_user$project$Ash_Grammar$Lex(','),
-							_user$project$Ash_Grammar$Ref('ListOfExp')
 						])
 					]))
 		},
@@ -11593,6 +11853,372 @@ var _user$project$Languages_Math$language = _user$project$Ash_Language$new(
 		grammar: _user$project$Languages_Math$grammar,
 		headExpr: 'Exp',
 		serializers: _elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'pretty', _1: _user$project$Languages_Math$printer}
+			]),
+		defaultSerializer: 'pretty'
+	});
+
+var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
+	_elm_lang$core$Native_List.fromArray(
+		[
+			{
+			ctor: '_Tuple2',
+			_0: 'Expr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('let'),
+							_user$project$Ash_Grammar$Ref('ident'),
+							_user$project$Ash_Grammar$Lex('='),
+							_user$project$Ash_Grammar$Ref('Expr'),
+							_user$project$Ash_Grammar$Lex('in'),
+							_user$project$Ash_Grammar$Ref('Expr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('fun'),
+							_user$project$Ash_Grammar$Ref('ident'),
+							_user$project$Ash_Grammar$Ref('Args'),
+							_user$project$Ash_Grammar$Lex('->'),
+							_user$project$Ash_Grammar$Ref('Expr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('if'),
+							_user$project$Ash_Grammar$Ref('Expr'),
+							_user$project$Ash_Grammar$Lex('then'),
+							_user$project$Ash_Grammar$Ref('Expr'),
+							_user$project$Ash_Grammar$Lex('else'),
+							_user$project$Ash_Grammar$Ref('Expr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('OrExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'OrExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('OrExpr'),
+							_user$project$Ash_Grammar$Lex('||'),
+							_user$project$Ash_Grammar$Ref('AndExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AndExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'AndExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AndExpr'),
+							_user$project$Ash_Grammar$Lex('&&'),
+							_user$project$Ash_Grammar$Ref('EqExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('EqExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'EqExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('RelExpr'),
+							_user$project$Ash_Grammar$Lex('='),
+							_user$project$Ash_Grammar$Ref('RelExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('RelExpr'),
+							_user$project$Ash_Grammar$Lex('!='),
+							_user$project$Ash_Grammar$Ref('RelExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('RelExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'RelExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AddExpr'),
+							_user$project$Ash_Grammar$Lex('<'),
+							_user$project$Ash_Grammar$Ref('AddExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AddExpr'),
+							_user$project$Ash_Grammar$Lex('>'),
+							_user$project$Ash_Grammar$Ref('AddExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AddExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'AddExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AddExpr'),
+							_user$project$Ash_Grammar$Lex('+'),
+							_user$project$Ash_Grammar$Ref('MulExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('AddExpr'),
+							_user$project$Ash_Grammar$Lex('-'),
+							_user$project$Ash_Grammar$Ref('MulExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('MulExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'MulExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('MulExpr'),
+							_user$project$Ash_Grammar$Lex('*'),
+							_user$project$Ash_Grammar$Ref('CallExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('MulExpr'),
+							_user$project$Ash_Grammar$Lex('/'),
+							_user$project$Ash_Grammar$Ref('CallExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('MulExpr'),
+							_user$project$Ash_Grammar$Lex('%'),
+							_user$project$Ash_Grammar$Ref('CallExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('CallExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'CallExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('UnExpr'),
+							_user$project$Ash_Grammar$Ref('PriExpr'),
+							_user$project$Ash_Grammar$Ref('CallArgs')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('UnExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'CallArgs',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('PriExpr'),
+							_user$project$Ash_Grammar$Ref('CallArgs')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('PriExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'UnExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('+'),
+							_user$project$Ash_Grammar$Ref('PriExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('-'),
+							_user$project$Ash_Grammar$Ref('PriExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('delay'),
+							_user$project$Ash_Grammar$Ref('PriExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('force'),
+							_user$project$Ash_Grammar$Ref('PriExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('PriExpr')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'PriExpr',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('('),
+							_user$project$Ash_Grammar$Ref('Expr'),
+							_user$project$Ash_Grammar$Lex(')')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('ident')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('number')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('true')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Lex('false')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'ident',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('alpha'),
+							_user$project$Ash_Grammar$Ref('identRest')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('alpha')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'identRest',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('alnum'),
+							_user$project$Ash_Grammar$Ref('identRest')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('alnum')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'alnum',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('alpha')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('number')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'alpha',
+			_1: _user$project$Ash_Grammar$oneOf('abcdefghijklmnopqrstuvxyz')
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'number',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('digit'),
+							_user$project$Ash_Grammar$Ref('number')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('digit')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
+			_0: 'digit',
+			_1: _user$project$Ash_Grammar$oneOf('0123456789')
+		}
+		]));
+var _user$project$Languages_F$language = _user$project$Ash_Language$new(
+	{
+		name: 'f',
+		grammar: _user$project$Languages_F$grammar,
+		headExpr: 'Expr',
+		serializers: _elm_lang$core$Native_List.fromArray(
 			[]),
 		defaultSerializer: 'simple'
 	});
@@ -11600,7 +12226,7 @@ var _user$project$Languages_Math$language = _user$project$Ash_Language$new(
 var _user$project$Ash$defaultSettings = {
 	after: _elm_lang$core$Platform_Cmd$none,
 	languages: _elm_lang$core$Native_List.fromArray(
-		[_user$project$Languages_Math$language]),
+		[_user$project$Languages_Math$language, _user$project$Languages_F$language]),
 	keymaps: _elm_lang$core$Native_List.fromArray(
 		[
 			{
@@ -11729,6 +12355,9 @@ _elm_lang$core$Native_Platform.addPublicModule(Elm['Ash']['Serializer'], 'Ash.Se
 Elm['Ash'] = Elm['Ash'] || {};
 Elm['Ash']['SyntaxTree'] = Elm['Ash']['SyntaxTree'] || {};
 _elm_lang$core$Native_Platform.addPublicModule(Elm['Ash']['SyntaxTree'], 'Ash.SyntaxTree', typeof _user$project$Ash_SyntaxTree$main === 'undefined' ? null : _user$project$Ash_SyntaxTree$main);
+Elm['Languages'] = Elm['Languages'] || {};
+Elm['Languages']['F'] = Elm['Languages']['F'] || {};
+_elm_lang$core$Native_Platform.addPublicModule(Elm['Languages']['F'], 'Languages.F', typeof _user$project$Languages_F$main === 'undefined' ? null : _user$project$Languages_F$main);
 Elm['Languages'] = Elm['Languages'] || {};
 Elm['Languages']['Math'] = Elm['Languages']['Math'] || {};
 _elm_lang$core$Native_Platform.addPublicModule(Elm['Languages']['Math'], 'Languages.Math', typeof _user$project$Languages_Math$main === 'undefined' ? null : _user$project$Languages_Math$main);
