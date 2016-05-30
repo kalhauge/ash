@@ -115,3 +115,16 @@ maybeIf : a -> Bool -> Maybe a
 maybeIf a b = 
   if b then Just a else Nothing
 
+either : (a -> c) -> (b -> c) -> Result a b -> c
+either f g result = 
+  case result of
+    Err a -> f a
+    Ok b -> g b 
+
+partitionResults : List (Result a b) -> (List a, List b)
+partitionResults = 
+  let
+    left  a (l, r) = (a::l, r)
+    right a (l, r) = (l, a::r)
+  in
+    List.foldr (either left right) ([],[])
