@@ -3,7 +3,9 @@ module Ash.Parser exposing (parse, suggest)
 import List 
 import Array
 import String
-import Lazy.List as Lizt exposing (LazyList)
+
+import Lazy.List as Lizt exposing (LazyList, (+++), (:::))
+import Lazy exposing (Lazy)
 
 import Utils exposing (..)
 
@@ -26,25 +28,32 @@ parse grammar entry str =
 suggest : Grammar -> ClauseId -> String -> LazyList SyntaxTree
 suggest grammar entry str = 
   suggestRule grammar entry str 
-  |> Lizt.keepIf (snd >> String.isEmpty)
+  |> Lizt.keepIf (snd >> Maybe.map (String.isEmpty) >> Maybe.withDefault True)
   |> Lizt.map fst
   |> Debug.log ("suggest " ++ entry)
 
-type alias Suggest a = LazyList (a, String)
+type alias Suggest a = LazyList (a, Maybe String)
 
 map : (a -> b) -> Suggest a -> Suggest b
 map f =
   Lizt.map (\(a, str) -> (f a, str))
 
-andThen : Suggest a -> (a -> String -> Suggest b) -> Suggest b
+andThen : Suggest a -> (a -> Maybe String -> Suggest b) -> Suggest b
 andThen sug f =
   Lizt.flatMap (\(a, str) -> f a str) sug
 
-batch : List (Suggest a) -> Suggest a
-batch list = 
-  Lizt.flatten (Lizt.fromList list)
+batch : LazyList (Suggest a) -> Suggest a
+batch = 
+  Lizt.flatten 
 
-only : a -> String -> Suggest a
+forever : (a -> Maybe String -> Suggest a) -> Suggest a -> Suggest a
+forever fn base = Lazy.lazy <| \() -> 
+  case Lazy.force base of 
+    Lizt.Nil -> Lizt.Nil 
+    Lizt.Cons a rest -> 
+      Lazy.force <| base +++ forever fn (base `andThen` fn)
+
+only : a -> Maybe String -> Suggest a
 only a str =
   Lizt.singleton (a, str)
 
@@ -61,7 +70,8 @@ suggestRule g clause str =
       Array.toIndexedList alts
       |> suggestAlts g clause str
     Nothing -> empty 
-    
+
+
 {- 
 Given a list
 -}
@@ -74,20 +84,22 @@ suggestAlts :
 suggestAlts g clause str alts = 
   let 
     (recursive, real) = devideAlts clause alts 
+
     leftTree : Suggest SyntaxTree
-    leftTree = batch <| List.map (suggestKind g str) real
+    leftTree = batch <| Lizt.map (suggestKind g str) real
   in 
-    batch 
-      [ leftTree
-      , leftTree `andThen` \tree str' ->
-        recursive
-        |> List.map (\(kind, terms) -> 
-            map 
-              (SyntaxTree.syntax kind << prepend tree) 
-              (suggestTerms' (Grammar.isLexical clause) g str' terms) 
-          )
-        |> batch
-      ]
+    flip forever leftTree <| \tree msg ->
+      case msg of 
+        Just str' ->
+          recursive
+          |> Lizt.map (\(kind, terms) -> 
+              map 
+                (SyntaxTree.syntax kind << prepend tree) 
+                (suggestTerms' (Grammar.isLexical clause) g str' terms) 
+            )
+          |> batch
+        Nothing ->
+          empty
 
 suggestKind : 
   Grammar 
@@ -108,41 +120,50 @@ can be between the terms.
 -} 
 suggestTerms : Grammar -> String -> List Term -> Suggest (List SyntaxTree)
 suggestTerms = 
-  suggestTerms' True
+  suggestTerms' False
 
 suggestLexicalTerms : Grammar -> String -> List Term -> Suggest (List SyntaxTree)
 suggestLexicalTerms = 
-  suggestTerms' False
+  suggestTerms' True
 
 suggestTerms' : Bool -> Grammar -> String -> List Term -> Suggest (List SyntaxTree)
 suggestTerms' isLexical g str terms =
   let 
-    helper term sugest = sugest `andThen` \trees str -> 
-        case term of
-          Lex lex -> 
-            if String.startsWith lex str then
-              only trees (String.dropLeft (String.length lex) str)
-            else if String.startsWith str lex then
-              only trees ""
-            else
-              empty
-          Ref clause -> 
-            if String.isEmpty str then 
-              if isLexical then
-                empty
+    helper term suggest = suggest `andThen` \trees msg -> 
+      case term of
+        Lex lex -> 
+          case msg of 
+            Just str -> 
+              if String.startsWith lex str then
+                only trees <| Maybe.map (String.dropLeft (String.length lex)) msg
+              else if String.startsWith str lex then
+                only trees Nothing
               else
-                only (SyntaxTree.empty :: trees) str
-            else
-              map (\t -> t :: trees) (suggestRule g clause str)
+                empty
+            Nothing -> 
+              only trees Nothing
+        Ref clause -> 
+          case msg of
+            Just str -> 
+              if String.isEmpty str then 
+                if isLexical then
+                  empty
+                else
+                  only (SyntaxTree.empty :: trees) msg
+              else
+                map (\t -> t :: trees) (suggestRule g clause str)
+            Nothing -> 
+              only (SyntaxTree.empty :: trees) msg
   in
-    List.foldl helper (only [] <| if isLexical then str else String.trimLeft str) terms
-    |> map (List.reverse)
+    List.foldl helper 
+      (only [] <| Just <| if isLexical then str else String.trimLeft str) terms
+    |> map (List.reverse << Debug.log (toString terms ++ " -> "))
 
 
 devideAlts : 
   ClauseId 
   -> List (Int, List Term) 
-  -> (List (SyntaxKind, List Term), List (SyntaxKind, List Term))
+  -> (LazyList (SyntaxKind, List Term), LazyList (SyntaxKind, List Term))
 devideAlts clause = 
   let 
     devide (i, alt) = 
@@ -158,3 +179,5 @@ devideAlts clause =
   in 
     List.map devide 
     >> Utils.partitionResults
+    >> \(xs, ys) -> (Lizt.fromList xs, Lizt.fromList ys)
+

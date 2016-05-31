@@ -127,4 +127,4 @@ partitionResults =
     left  a (l, r) = (a::l, r)
     right a (l, r) = (l, a::r)
   in
-    List.foldr (either left right) ([],[])
+    List.foldr (either left right) ([],[]) 

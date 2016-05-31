@@ -71,7 +71,7 @@ update msg (Buffer {data, language} as buffer) =
     case msg of
       Delete focus -> wb <| delete focus
       Replace str focus -> wb <| replace focus str
-      Change str focus -> LazyOptions (change2 focus str buffer)
+      Change str focus -> LazyOptions (change3 focus str buffer)
       Append focus -> wb <| append focus
       Insert focus -> wb <| insert focus
       Keep focus -> wb <| keep focus

@@ -35,16 +35,16 @@ grammar =
       )
     , ( "EqExpr"
       , rule
-        [ [ Ref "RelExpr", Lex "=", Ref "RelExpr" ]  -- eq
+        [ [ Ref "RelExpr" ]
+        , [ Ref "RelExpr", Lex "=", Ref "RelExpr" ]  -- eq
         , [ Ref "RelExpr", Lex "!=", Ref "RelExpr" ]  -- neq
-        , [ Ref "RelExpr" ]
         ]
       )
     , ( "RelExpr"
       , rule 
-        [ [ Ref "AddExpr", Lex "<", Ref "AddExpr" ]  -- lt
+        [ [ Ref "AddExpr" ]
+        , [ Ref "AddExpr", Lex "<", Ref "AddExpr" ]  -- lt
         , [ Ref "AddExpr", Lex ">", Ref "AddExpr" ]  -- gt
-        , [ Ref "AddExpr" ]
         ]
       )
     , ( "AddExpr"
@@ -64,14 +64,14 @@ grammar =
       )
     , ( "CallExpr"
       , rule 
-        [ [ Ref "UnExpr", Ref "PriExpr", Ref "CallArgs" ]   -- args
-        , [ Ref "UnExpr" ]
+        [ [ Ref "UnExpr" ]
+        , [ Ref "UnExpr", Ref "PriExpr", Ref "CallArgs" ]   -- args
         ]
       )
     , ( "CallArgs"
       , rule
-        [ [ Ref "PriExpr", Ref "CallArgs" ]
-        , [ Ref "PriExpr" ]
+        [ [ Ref "PriExpr" ]
+        , [ Ref "PriExpr", Ref "CallArgs" ]
         ]
       )
     , ( "UnExpr"
@@ -92,8 +92,8 @@ grammar =
         -- , [ ctor ~"("                                     -- emptyDatum
         , [ Ref "ident" ]                                    -- ident
         , [ Ref "number"]                                    -- number
-        , [ Lex "true"  ]                                    -- true
-        , [ Lex "false" ]                                    -- false
+        , [ Lex "True"  ]                                    -- true
+        , [ Lex "False" ]                                    -- false
         ]
       )
     , ( "ident"

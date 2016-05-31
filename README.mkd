@@ -30,3 +30,9 @@ to create, delete and move between nodes.
 -   Upgrade to javascript to show real-life editing. This might not be
     realistic within the time frame. But the result would be more
     compelling.
+
+
+
+## Notes
+
+- Order of syntax important, don't be greedy
