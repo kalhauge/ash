@@ -9936,8 +9936,16 @@ var _user$project$Ash_Parser$devideAlts = function (clause) {
 		}
 	};
 	return function (_p4) {
-		return _user$project$Utils$partitionResults(
-			A2(_elm_lang$core$List$map, devide, _p4));
+		return function (_p5) {
+			var _p6 = _p5;
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_community$elm_lazy_list$Lazy_List$fromList(_p6._0),
+				_1: _elm_community$elm_lazy_list$Lazy_List$fromList(_p6._1)
+			};
+		}(
+			_user$project$Utils$partitionResults(
+				A2(_elm_lang$core$List$map, devide, _p4)));
 	};
 };
 var _user$project$Ash_Parser$empty = _elm_community$elm_lazy_list$Lazy_List$empty;
@@ -9946,60 +9954,93 @@ var _user$project$Ash_Parser$only = F2(
 		return _elm_community$elm_lazy_list$Lazy_List$singleton(
 			{ctor: '_Tuple2', _0: a, _1: str});
 	});
-var _user$project$Ash_Parser$batch = function (list) {
-	return _elm_community$elm_lazy_list$Lazy_List$flatten(
-		_elm_community$elm_lazy_list$Lazy_List$fromList(list));
-};
+var _user$project$Ash_Parser$batch = _elm_community$elm_lazy_list$Lazy_List$flatten;
 var _user$project$Ash_Parser$andThen = F2(
 	function (sug, f) {
 		return A2(
 			_elm_community$elm_lazy_list$Lazy_List$flatMap,
-			function (_p5) {
-				var _p6 = _p5;
-				return A2(f, _p6._0, _p6._1);
+			function (_p7) {
+				var _p8 = _p7;
+				return A2(f, _p8._0, _p8._1);
 			},
 			sug);
 	});
+var _user$project$Ash_Parser$forever = F2(
+	function (fn, base) {
+		return _elm_lang$lazy$Lazy$lazy(
+			function (_p9) {
+				var _p10 = _p9;
+				var _p11 = _elm_lang$lazy$Lazy$force(base);
+				if (_p11.ctor === 'Nil') {
+					return _elm_community$elm_lazy_list$Lazy_List$Nil;
+				} else {
+					return _elm_lang$lazy$Lazy$force(
+						A2(
+							_elm_community$elm_lazy_list$Lazy_List_ops['+++'],
+							base,
+							A2(
+								_user$project$Ash_Parser$forever,
+								fn,
+								A2(_user$project$Ash_Parser$andThen, base, fn))));
+				}
+			});
+	});
 var _user$project$Ash_Parser$map = function (f) {
 	return _elm_community$elm_lazy_list$Lazy_List$map(
-		function (_p7) {
-			var _p8 = _p7;
+		function (_p12) {
+			var _p13 = _p12;
 			return {
 				ctor: '_Tuple2',
-				_0: f(_p8._0),
-				_1: _p8._1
+				_0: f(_p13._0),
+				_1: _p13._1
 			};
 		});
 };
 var _user$project$Ash_Parser$suggestTerms$ = F4(
 	function (isLexical, g, str, terms) {
 		var helper = F2(
-			function (term, sugest) {
+			function (term, suggest) {
 				return A2(
 					_user$project$Ash_Parser$andThen,
-					sugest,
+					suggest,
 					F2(
-						function (trees, str) {
-							var _p9 = term;
-							if (_p9.ctor === 'Lex') {
-								var _p10 = _p9._0;
-								return A2(_elm_lang$core$String$startsWith, _p10, str) ? A2(
-									_user$project$Ash_Parser$only,
-									trees,
-									A2(
-										_elm_lang$core$String$dropLeft,
-										_elm_lang$core$String$length(_p10),
-										str)) : (A2(_elm_lang$core$String$startsWith, str, _p10) ? A2(_user$project$Ash_Parser$only, trees, '') : _user$project$Ash_Parser$empty);
+						function (trees, msg) {
+							var _p14 = term;
+							if (_p14.ctor === 'Lex') {
+								var _p17 = _p14._0;
+								var _p15 = msg;
+								if (_p15.ctor === 'Just') {
+									var _p16 = _p15._0;
+									return A2(_elm_lang$core$String$startsWith, _p17, _p16) ? A2(
+										_user$project$Ash_Parser$only,
+										trees,
+										A2(
+											_elm_lang$core$Maybe$map,
+											_elm_lang$core$String$dropLeft(
+												_elm_lang$core$String$length(_p17)),
+											msg)) : (A2(_elm_lang$core$String$startsWith, _p16, _p17) ? A2(_user$project$Ash_Parser$only, trees, _elm_lang$core$Maybe$Nothing) : _user$project$Ash_Parser$empty);
+								} else {
+									return A2(_user$project$Ash_Parser$only, trees, _elm_lang$core$Maybe$Nothing);
+								}
 							} else {
-								return _elm_lang$core$String$isEmpty(str) ? (isLexical ? _user$project$Ash_Parser$empty : A2(
-									_user$project$Ash_Parser$only,
-									A2(_elm_lang$core$List_ops['::'], _user$project$Ash_SyntaxTree$empty, trees),
-									str)) : A2(
-									_user$project$Ash_Parser$map,
-									function (t) {
-										return A2(_elm_lang$core$List_ops['::'], t, trees);
-									},
-									A3(_user$project$Ash_Parser$suggestRule, g, _p9._0, str));
+								var _p18 = msg;
+								if (_p18.ctor === 'Just') {
+									var _p19 = _p18._0;
+									return _elm_lang$core$String$isEmpty(_p19) ? (isLexical ? _user$project$Ash_Parser$empty : A2(
+										_user$project$Ash_Parser$only,
+										A2(_elm_lang$core$List_ops['::'], _user$project$Ash_SyntaxTree$empty, trees),
+										msg)) : A2(
+										_user$project$Ash_Parser$map,
+										function (t) {
+											return A2(_elm_lang$core$List_ops['::'], t, trees);
+										},
+										A3(_user$project$Ash_Parser$suggestRule, g, _p14._0, _p19));
+								} else {
+									return A2(
+										_user$project$Ash_Parser$only,
+										A2(_elm_lang$core$List_ops['::'], _user$project$Ash_SyntaxTree$empty, trees),
+										msg);
+								}
 							}
 						}));
 			});
@@ -10013,106 +10054,107 @@ var _user$project$Ash_Parser$suggestTerms$ = F4(
 					_user$project$Ash_Parser$only,
 					_elm_lang$core$Native_List.fromArray(
 						[]),
-					isLexical ? str : _elm_lang$core$String$trimLeft(str)),
+					_elm_lang$core$Maybe$Just(
+						isLexical ? str : _elm_lang$core$String$trimLeft(str))),
 				terms));
 	});
 var _user$project$Ash_Parser$suggestRule = F3(
 	function (g, clause, str) {
-		var _p11 = A2(_user$project$Ash_Grammar$getRule, clause, g);
-		if (_p11.ctor === 'Just') {
+		var _p20 = A2(_user$project$Ash_Grammar$getRule, clause, g);
+		if (_p20.ctor === 'Just') {
 			return A4(
 				_user$project$Ash_Parser$suggestAlts,
 				g,
 				clause,
 				str,
-				_elm_lang$core$Array$toIndexedList(_p11._0));
+				_elm_lang$core$Array$toIndexedList(_p20._0));
 		} else {
 			return _user$project$Ash_Parser$empty;
 		}
 	});
 var _user$project$Ash_Parser$suggestAlts = F4(
 	function (g, clause, str, alts) {
-		var _p12 = A2(_user$project$Ash_Parser$devideAlts, clause, alts);
-		var recursive = _p12._0;
-		var real = _p12._1;
+		var _p21 = A2(_user$project$Ash_Parser$devideAlts, clause, alts);
+		var recursive = _p21._0;
+		var real = _p21._1;
 		var leftTree = _user$project$Ash_Parser$batch(
 			A2(
-				_elm_lang$core$List$map,
+				_elm_community$elm_lazy_list$Lazy_List$map,
 				A2(_user$project$Ash_Parser$suggestKind, g, str),
 				real));
-		return _user$project$Ash_Parser$batch(
-			_elm_lang$core$Native_List.fromArray(
-				[
-					leftTree,
-					A2(
-					_user$project$Ash_Parser$andThen,
-					leftTree,
-					F2(
-						function (tree, str$) {
-							return _user$project$Ash_Parser$batch(
-								A2(
-									_elm_lang$core$List$map,
-									function (_p13) {
-										var _p14 = _p13;
-										return A2(
-											_user$project$Ash_Parser$map,
-											function (_p15) {
-												return A2(
-													_user$project$Ash_SyntaxTree$syntax,
-													_p14._0,
-													A2(_user$project$Utils$prepend, tree, _p15));
-											},
-											A4(
-												_user$project$Ash_Parser$suggestTerms$,
-												_user$project$Ash_Grammar$isLexical(clause),
-												g,
-												str$,
-												_p14._1));
-									},
-									recursive));
-						}))
-				]));
+		return A3(
+			_elm_lang$core$Basics$flip,
+			_user$project$Ash_Parser$forever,
+			leftTree,
+			F2(
+				function (tree, msg) {
+					var _p22 = msg;
+					if (_p22.ctor === 'Just') {
+						return _user$project$Ash_Parser$batch(
+							A2(
+								_elm_community$elm_lazy_list$Lazy_List$map,
+								function (_p23) {
+									var _p24 = _p23;
+									return A2(
+										_user$project$Ash_Parser$map,
+										function (_p25) {
+											return A2(
+												_user$project$Ash_SyntaxTree$syntax,
+												_p24._0,
+												A2(_user$project$Utils$prepend, tree, _p25));
+										},
+										A4(
+											_user$project$Ash_Parser$suggestTerms$,
+											_user$project$Ash_Grammar$isLexical(clause),
+											g,
+											_p22._0,
+											_p24._1));
+								},
+								recursive));
+					} else {
+						return _user$project$Ash_Parser$empty;
+					}
+				}));
 	});
 var _user$project$Ash_Parser$suggestKind = F3(
-	function (g, str, _p16) {
-		var _p17 = _p16;
-		var _p18 = _p17._0;
+	function (g, str, _p26) {
+		var _p27 = _p26;
+		var _p28 = _p27._0;
 		return A2(
 			_user$project$Ash_Parser$map,
-			_user$project$Ash_SyntaxTree$syntax(_p18),
+			_user$project$Ash_SyntaxTree$syntax(_p28),
 			A4(
 				_user$project$Ash_Parser$suggestTerms$,
 				_user$project$Ash_Grammar$isLexical(
-					_elm_lang$core$Basics$fst(_p18)),
+					_elm_lang$core$Basics$fst(_p28)),
 				g,
 				str,
-				_p17._1));
+				_p27._1));
 	});
-var _user$project$Ash_Parser$suggestTerms = _user$project$Ash_Parser$suggestTerms$(true);
-var _user$project$Ash_Parser$suggestLexicalTerms = _user$project$Ash_Parser$suggestTerms$(false);
+var _user$project$Ash_Parser$suggestTerms = _user$project$Ash_Parser$suggestTerms$(false);
+var _user$project$Ash_Parser$suggestLexicalTerms = _user$project$Ash_Parser$suggestTerms$(true);
 var _user$project$Ash_Parser$suggest = F3(
 	function (grammar, entry, str) {
 		return A2(
-			_elm_lang$core$Debug$log,
-			A2(_elm_lang$core$Basics_ops['++'], 'suggest ', entry),
+			_elm_community$elm_lazy_list$Lazy_List$map,
+			_elm_lang$core$Basics$fst,
 			A2(
-				_elm_community$elm_lazy_list$Lazy_List$map,
-				_elm_lang$core$Basics$fst,
-				A2(
-					_elm_community$elm_lazy_list$Lazy_List$keepIf,
-					function (_p19) {
-						return _elm_lang$core$String$isEmpty(
-							_elm_lang$core$Basics$snd(_p19));
-					},
-					A3(_user$project$Ash_Parser$suggestRule, grammar, entry, str))));
+				_elm_community$elm_lazy_list$Lazy_List$keepIf,
+				function (_p29) {
+					return A2(
+						_elm_lang$core$Maybe$withDefault,
+						true,
+						A2(
+							_elm_lang$core$Maybe$map,
+							_elm_lang$core$String$isEmpty,
+							_elm_lang$core$Basics$snd(_p29)));
+				},
+				A3(_user$project$Ash_Parser$suggestRule, grammar, entry, str)));
 	});
 var _user$project$Ash_Parser$parse = F3(
 	function (grammar, entry, str) {
-		return A2(
-			_elm_lang$core$Debug$log,
-			'parse',
-			_elm_community$elm_lazy_list$Lazy_List$head(
-				A3(_user$project$Ash_Parser$suggest, grammar, entry, str)));
+		return _elm_community$elm_lazy_list$Lazy_List$head(
+			A3(_user$project$Ash_Parser$suggest, grammar, entry, str));
 	});
 
 var _user$project$Ash_Command$trimmer = F3(
@@ -13163,6 +13205,23 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 		},
 			{
 			ctor: '_Tuple2',
+			_0: 'Args',
+			_1: _user$project$Ash_Grammar$rule(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('ident')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$Ash_Grammar$Ref('Args'),
+							_user$project$Ash_Grammar$Ref('ident')
+						])
+					]))
+		},
+			{
+			ctor: '_Tuple2',
 			_0: 'OrExpr',
 			_1: _user$project$Ash_Grammar$rule(
 				_elm_lang$core$Native_List.fromArray(
@@ -13205,6 +13264,10 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 					[
 						_elm_lang$core$Native_List.fromArray(
 						[
+							_user$project$Ash_Grammar$Ref('RelExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
 							_user$project$Ash_Grammar$Ref('RelExpr'),
 							_user$project$Ash_Grammar$Lex('='),
 							_user$project$Ash_Grammar$Ref('RelExpr')
@@ -13213,10 +13276,6 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 						[
 							_user$project$Ash_Grammar$Ref('RelExpr'),
 							_user$project$Ash_Grammar$Lex('!='),
-							_user$project$Ash_Grammar$Ref('RelExpr')
-						]),
-						_elm_lang$core$Native_List.fromArray(
-						[
 							_user$project$Ash_Grammar$Ref('RelExpr')
 						])
 					]))
@@ -13229,6 +13288,10 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 					[
 						_elm_lang$core$Native_List.fromArray(
 						[
+							_user$project$Ash_Grammar$Ref('AddExpr')
+						]),
+						_elm_lang$core$Native_List.fromArray(
+						[
 							_user$project$Ash_Grammar$Ref('AddExpr'),
 							_user$project$Ash_Grammar$Lex('<'),
 							_user$project$Ash_Grammar$Ref('AddExpr')
@@ -13237,10 +13300,6 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 						[
 							_user$project$Ash_Grammar$Ref('AddExpr'),
 							_user$project$Ash_Grammar$Lex('>'),
-							_user$project$Ash_Grammar$Ref('AddExpr')
-						]),
-						_elm_lang$core$Native_List.fromArray(
-						[
 							_user$project$Ash_Grammar$Ref('AddExpr')
 						])
 					]))
@@ -13307,13 +13366,12 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 					[
 						_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Grammar$Ref('UnExpr'),
-							_user$project$Ash_Grammar$Ref('PriExpr'),
-							_user$project$Ash_Grammar$Ref('CallArgs')
+							_user$project$Ash_Grammar$Ref('UnExpr')
 						]),
 						_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Grammar$Ref('UnExpr')
+							_user$project$Ash_Grammar$Ref('UnExpr'),
+							_user$project$Ash_Grammar$Ref('CallArgs')
 						])
 					]))
 		},
@@ -13325,12 +13383,12 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 					[
 						_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Grammar$Ref('PriExpr'),
-							_user$project$Ash_Grammar$Ref('CallArgs')
+							_user$project$Ash_Grammar$Ref('PriExpr')
 						]),
 						_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Grammar$Ref('PriExpr')
+							_user$project$Ash_Grammar$Ref('PriExpr'),
+							_user$project$Ash_Grammar$Ref('CallArgs')
 						])
 					]))
 		},
@@ -13388,11 +13446,11 @@ var _user$project$Languages_F$grammar = _user$project$Ash_Grammar$grammar(
 						]),
 						_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Grammar$Lex('true')
+							_user$project$Ash_Grammar$Lex('True')
 						]),
 						_elm_lang$core$Native_List.fromArray(
 						[
-							_user$project$Ash_Grammar$Lex('false')
+							_user$project$Ash_Grammar$Lex('False')
 						])
 					]))
 		},
