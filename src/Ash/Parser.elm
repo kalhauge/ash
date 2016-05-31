@@ -43,6 +43,13 @@ batch : LazyList (Suggest a) -> Suggest a
 batch = 
   Lizt.flatten 
 
+
+first : LazyList (Suggest a) -> Suggest a
+first = 
+  Lizt.dropWhile (Lizt.isEmpty) 
+  >> Lizt.head
+  >> Maybe.withDefault (empty)
+
 forever : (a -> Maybe String -> Suggest a) -> Suggest a -> Suggest a
 forever fn base = Lazy.lazy <| \() -> 
   case Lazy.force base of 
@@ -82,22 +89,26 @@ suggestAlts g clause str alts =
   let 
     (recursive, real) = devideAlts clause alts 
 
+    isLexical = Grammar.isLexical clause
+
     leftTree : Suggest SyntaxTree
-    leftTree = batch <| Lizt.map (suggestKind g str) real
+    leftTree = (if isLexical then first else batch) <| Lizt.map (suggestKind g str) real
   in 
     flip forever leftTree <| \tree msg ->
-      case msg of 
+      case Debug.log "msg" <| msg of 
         Just str' ->
           recursive
           |> Lizt.map (\(kind, terms) -> 
               map 
                 (SyntaxTree.syntax kind << prepend tree) 
-                (suggestTerms' (Grammar.isLexical clause) g str' terms) 
+                (suggestTerms' isLexical g str' terms) 
             )
           |> batch
         Nothing ->
           empty
 
+{-
+-}
 suggestKind : 
   Grammar 
   -> String
@@ -130,9 +141,10 @@ suggestTerms' isLexical g str terms =
       case term of
         Lex lex -> 
           case msg of 
-            Just str -> 
+            Just msg' -> 
+              let str = if isLexical then msg' else String.trimLeft msg' in
               if String.startsWith lex str then
-                only trees <| Maybe.map (String.dropLeft (String.length lex)) msg
+                only trees <| Just (String.dropLeft (String.length lex) str)
               else if String.startsWith str lex then
                 only trees Nothing
               else
@@ -141,19 +153,20 @@ suggestTerms' isLexical g str terms =
               only trees Nothing
         Ref clause -> 
           case msg of
-            Just str -> 
+            Just msg' -> 
+              let str = if isLexical then msg' else String.trimLeft msg' in
               if String.isEmpty str then 
                 if isLexical then
                   empty
                 else
-                  only (SyntaxTree.empty :: trees) msg
+                  only (SyntaxTree.empty :: trees) Nothing
               else
                 map (\t -> t :: trees) (suggestRule g clause str)
             Nothing -> 
-              only (SyntaxTree.empty :: trees) msg
+              only (SyntaxTree.empty :: trees) Nothing
   in
     List.foldl helper 
-      (only [] <| Just <| if isLexical then str else String.trimLeft str) terms
+      (only [] <| Just <| str) terms
     |> map (List.reverse )
 
 

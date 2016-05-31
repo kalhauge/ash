@@ -242,19 +242,12 @@ append focus (Buffer {data, language} as buffer) =
 
     append' grammar tree kind =
       Grammar.get kind grammar &> \alt -> 
-      
       not (Grammar.isTransition alt) ?> \() -> 
-      
       List.head (Grammar.clauseIds alt) &> \subclause -> 
-
       let trans = Grammar.transitiveClauses grammar subclause in
-      
       fst tree.kind `List.member` trans ?> \() -> 
-
       template grammar kind &> \st -> 
-      
       List.tail (SyntaxTree.getTerms st) &> \rest -> 
-        
       Just (SyntaxTree.setTerms (tree :: rest) st)
 
     toChange tree kind =

@@ -80,14 +80,8 @@ grammar =
       )
     , ( "CallExpr"
       , rule 
-        [ [ Ref "UnExpr" ]
-        , [ Ref "UnExpr", Ref "CallArgs" ]   -- args
-        ]
-      )
-    , ( "CallArgs"
-      , rule
-        [ [ Ref "PriExpr" ]
-        , [ Ref "PriExpr", Ref "CallArgs" ]
+        [ [ Ref "CallExpr", Ref "PriExpr" ]   -- args
+        , [ Ref "UnExpr" ]
         ]
       )
     , ( "UnExpr"

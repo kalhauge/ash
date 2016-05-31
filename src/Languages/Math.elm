@@ -124,8 +124,8 @@ printer {data, grammar, focus} =
               [ grp "numerator" [ a ]
               , grp "denominator" [ b ]
               ] 
-
-          ("ExpExp", 0) -> tree `take2` \a b ->
+          
+          ("ExpExp", 1) -> tree `take2` \a b ->
             grp "power"
               [ a, grp "exponent" [ b ] ]
           
