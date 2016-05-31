@@ -21,7 +21,7 @@ language = Language.new
   , grammar = grammar
   , headExpr = "Exp"
   , serializers = [("pretty", printer)]
-  , defaultSerializer = "pretty"
+  , defaultSerializer = "simple"
   }
 
 grammar = 
@@ -47,8 +47,8 @@ grammar =
       )
     , ( "ExpExp"
       , rule 
-        [ [ Ref "PriExp", Lex "^", Ref "ExpExp" ]  -- power
-        , [ Ref "PriExp" ] 
+        [ [ Ref "PriExp" ] 
+        , [ Ref "PriExp", Lex "^", Ref "ExpExp" ]  -- power
         ]
       )
     , ( "PriExp"

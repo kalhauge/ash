@@ -19,6 +19,7 @@ import Ash.Command as Command
 import Ash.Movement as Movement
 import Ash.Grammar as Grammar exposing (Grammar)
 
+import Lazy.List as LazyList exposing (LazyList)
 import Utils exposing ((&>))
 
 type Buffer = Buffer
@@ -53,24 +54,27 @@ findEmpty (Buffer {data}) =
 type Msg 
   = Delete Focus
   | Replace String Focus
+  | Change String Focus
   | Append Focus
   | Insert Focus
-  | Change Focus
   | Keep Focus
 
 type Response
   = Options (List (Buffer, Int -> Int))
+  | LazyOptions (LazyList (Buffer, Int -> Int))
 
 update : Msg -> Buffer -> Response 
 update msg (Buffer {data, language} as buffer) = 
-  let fn = case msg of
-    Delete focus -> delete focus
-    Replace str focus -> replace focus str
-    Change focus -> change focus
-    Append focus -> append focus
-    Insert focus -> insert focus
-    Keep focus -> keep focus
-  in Options (fn buffer)
+  let 
+    wb f = Options (f buffer)
+  in 
+    case msg of
+      Delete focus -> wb <| delete focus
+      Replace str focus -> wb <| replace focus str
+      Change str focus -> LazyOptions (change2 focus str buffer)
+      Append focus -> wb <| append focus
+      Insert focus -> wb <| insert focus
+      Keep focus -> wb <| keep focus
 
 lift : 
   (SyntaxTree -> Maybe (SyntaxTree, Focus -> Focus)) 
@@ -148,6 +152,58 @@ template grammar kind =
       <| Grammar.clauseIds alt
   else Nothing
 
+change3 : Focus -> String -> Buffer -> LazyList (Buffer, Focus -> Focus)
+change3 focus str (Buffer {data, language} as buffer) =
+  let 
+    clause = Debug.log "parse" <| Language.clause language focus data
+    grammar = Language.getGrammar language
+
+    replace = 
+      Command.trim grammar
+      >> flip (put focus) buffer
+      >> LazyList.fromList
+  in LazyList.flatMap replace <| Language.suggest language clause str
+
+change2 : Focus -> String -> Buffer -> LazyList (Buffer, Focus -> Focus)
+change2 focus str (Buffer {data, language} as buffer) =
+  let 
+    clause = Debug.log "parse" <| Language.clause language focus data
+    grammar = Language.getGrammar language
+    
+    suggest : Grammar.ClauseId -> LazyList SyntaxTree
+    suggest clauseid = 
+      Language.suggest language clauseid str
+
+    suggestP : (Grammar.ClauseId, Grammar.SyntaxKind) -> LazyList SyntaxTree
+    suggestP (cid, kind) = 
+      LazyList.map (applyPath [kind]) <| suggest cid 
+
+    parrans : Grammar.SyntaxKind -> Maybe (Grammar.ClauseId, Grammar.SyntaxKind)
+    parrans kind = 
+      Grammar.get kind grammar `Maybe.andThen` \alt -> 
+      if Grammar.isTransition alt then
+        Nothing
+      else 
+        case Grammar.clauseIds alt of
+          [subid] -> Just (subid, kind)
+          _ -> Nothing
+
+    replace = 
+      Command.trim grammar
+      >> flip (put focus) buffer
+      >> LazyList.fromList
+
+    simple = suggest clause 
+  in 
+    if not <| LazyList.isEmpty simple then
+      LazyList.flatMap replace simple
+    else
+      Grammar.transitiveKinds grammar clause
+      |> List.map parrans
+      |> Utils.compress
+      |> LazyList.fromList
+      |> LazyList.flatMap (suggestP >> LazyList.flatMap replace)
+
 change : Focus -> Buffer -> List (Buffer, Focus -> Focus)
 change focus (Buffer {data, language} as buffer) = 
   let
@@ -164,6 +220,9 @@ change focus (Buffer {data, language} as buffer) =
       |> Maybe.withDefault []
   in
      List.concatMap toChange kinds
+
+
+
 
 (?>) a b = 
   if a then

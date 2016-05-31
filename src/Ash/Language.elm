@@ -2,6 +2,8 @@ module Ash.Language exposing (..)
 
 import Dict exposing (Dict)
 
+import Lazy.List as LazyList exposing (LazyList)
+
 import Ash.Grammar as Grammar exposing (..)
 
 import Ash.Serializer as Serializer exposing (Serializer, debug, simple)
@@ -45,6 +47,12 @@ parse : Language -> ClauseId -> String -> Maybe SyntaxTree
 parse (Language language) cid = 
   Parser.parse (language.grammar) cid
   >> Maybe.map (Command.trim language.grammar)
+
+suggest : Language -> ClauseId -> String -> LazyList SyntaxTree
+suggest (Language language) cid = 
+  Parser.suggest (language.grammar) cid
+  >> LazyList.map (Command.trim language.grammar)
+
 
 getGrammar : Language -> Grammar
 getGrammar (Language {grammar}) = grammar

@@ -26,6 +26,7 @@ parse grammar entry str =
 suggest : Grammar -> ClauseId -> String -> LazyList SyntaxTree
 suggest grammar entry str = 
   suggestRule grammar entry str 
+  |> Lizt.keepIf (snd >> String.isEmpty)
   |> Lizt.map fst
   |> Debug.log ("suggest " ++ entry)
 
@@ -55,14 +56,11 @@ empty = Lizt.empty
 -}
 suggestRule : Grammar -> ClauseId -> String -> Suggest SyntaxTree
 suggestRule g clause str = 
-  if String.isEmpty str then
-    empty
-  else
-    case Grammar.getRule clause g of
-      Just alts ->
-        Array.toIndexedList alts
-        |> suggestAlts g clause str
-      Nothing -> empty 
+  case Grammar.getRule clause g of
+    Just alts ->
+      Array.toIndexedList alts
+      |> suggestAlts g clause str
+    Nothing -> empty 
     
 {- 
 Given a list
@@ -86,7 +84,7 @@ suggestAlts g clause str alts =
         |> List.map (\(kind, terms) -> 
             map 
               (SyntaxTree.syntax kind << prepend tree) 
-              (suggestTerms' (not <| Grammar.isLexical clause) g str' terms) 
+              (suggestTerms' (Grammar.isLexical clause) g str' terms) 
           )
         |> batch
       ]

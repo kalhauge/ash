@@ -18,6 +18,9 @@ import Platform.Cmd exposing (Cmd(..), none, (!))
 
 import Keyboard exposing (presses)
 
+import Lazy.List as LazyList exposing (LazyList) 
+import Lazy
+
 import Char
 import String 
 import Array exposing (Array, fromList)
@@ -136,16 +139,16 @@ type ChooseMsg
   = Next
   | Prev
   | Done
-  | DoneWithInput String
+  | UpdateInput String
 
-realizeChoice : Editor -> Editor
-realizeChoice editor = 
+realizeChange : Editor -> Editor
+realizeChange editor = 
   case editor.mode of  
-    Choose i v arr -> 
-      case Array.get v arr of
-        Just a -> activateBufferUpdate i a editor
+    Change opts -> 
+      case Array.get opts.index opts.options of
+        Just a -> activateBufferUpdate opts.bufferId a editor
         Nothing -> 
-          Debug.crash "Should Not Happen"
+          editor
     _ -> editor
 
 activateBufferUpdate : Int -> (Buffer, Int -> Int) -> Editor -> Editor
@@ -177,7 +180,10 @@ failMode model msg =
 
 doMsg msg model = 
   let 
-    fail = failMode model
+    fail = 
+      failMode model
+    setMode mode = 
+      { model | mode = mode }
   in case msg of
     NoOp -> model
     
@@ -188,25 +194,43 @@ doMsg msg model =
 
     ChooseMsg msg -> 
       case model.mode of 
-        Choose i k array -> 
+        Change opts -> 
           case msg of 
-            Next -> { model | mode = Choose i ((k + 1) % Array.length array) array }
-            Prev -> { model | mode = Choose i ((k - 1) % Array.length array) array }
+            Next -> 
+              if opts.index + 1 == Array.length opts.options then
+                case Lazy.force opts.more of
+                  LazyList.Cons e more -> 
+                    setMode 
+                      (Change 
+                        { opts 
+                        | index = (opts.index + 1) 
+                        , more = more
+                        , options = Array.push e opts.options
+                        }
+                      )
+                  LazyList.Nil ->
+                    setMode 
+                      (Change {opts | index = (opts.index + 1) % Array.length opts.options})
+              else
+                if not <| Array.isEmpty opts.options then
+                  setMode (Change {opts | index = (opts.index + 1) % Array.length opts.options})
+                else
+                  model
+            Prev -> 
+              if not <| Array.isEmpty opts.options then
+                setMode (Change {opts | index = (opts.index - 1) % Array.length opts.options})
+              else
+                model 
             Done -> 
-              let model' = realizeChoice model 
-              in navigateToEmptyAndDo i 
-                (DoFrame (Frame.OnBufferWithFocus Buffer.Change))
+              let model' = realizeChange model 
+              in navigateToEmptyAndDo opts.bufferId
+                (DoFrame (Frame.OnBufferWithFocus (Buffer.Change "")))
                 { model' | mode = Normal }
-            DoneWithInput inpt -> 
-              let 
-                model' = realizeChoice model 
-              in navigateToEmptyAndDo i 
-                (WithInput "=" inpt (\text editor -> 
-                  DoFrame (Frame.OnBufferWithFocus (Buffer.Replace text))
-                ))
-                { model' | mode = Normal }
+            UpdateInput i -> 
+              setMode (Change { opts | input = i })
+              |> doMsg (DoFrame <| Frame.OnBufferWithFocus <| Buffer.Change i) 
         
-        _ -> fail "Can not perform this action out of choose mode"
+        _ -> fail "Can not perform this action out of change mode"
 
     Fail msg -> 
       fail msg
@@ -227,17 +251,47 @@ doMsg msg model =
         Just buffer -> 
           case Buffer.update msg buffer of
             Buffer.Options options -> 
-              case options of 
-                [] -> 
-                  fail "Action Not Possible"
-                [a] -> 
-                  navigateToEmptyAndDo id 
-                    (WithInput "=" "" (\text editor -> 
-                      DoFrame (Frame.OnBufferWithFocus (Buffer.Replace text))
-                    ))
-                    <| activateBufferUpdate id a model
-                _ ->
-                  { model | mode = Choose id 0 (Array.fromList options) }
+              case model.mode of
+                Change opts -> 
+                  setMode <| Change 
+                    { opts 
+                    | index = 0
+                    , more = LazyList.empty
+                    , options = Array.fromList options 
+                    }
+                _ -> 
+                  case options of 
+                    [] -> fail "not possible"
+                    [a] -> 
+                      activateBufferUpdate id a model
+                    _ ->
+                      setMode <| Change 
+                        { index = 0
+                        , input = ""
+                        , bufferId = id
+                        , more = LazyList.empty
+                        , options = Array.fromList options
+                        }
+            Buffer.LazyOptions options -> 
+                case model.mode of
+                  Change opts -> 
+                    setMode <| Change 
+                      { opts
+                      | index = 0
+                      , bufferId = id
+                      , more = LazyList.drop 1 options
+                      , options = LazyList.toArray <| LazyList.take 1 options
+                      }
+                  _ -> 
+                    setMode <| Change 
+                      { index = 0
+                      , input = ""
+                      , bufferId = id
+                      , more = LazyList.drop 1 options
+                      , options = LazyList.toArray <| LazyList.take 1 options
+                      }
+
+
         Nothing ->
           fail <| "Could not find buffer '" ++ toString id ++ "'"
 
@@ -260,12 +314,10 @@ doMsg msg model =
           fail "No active frame" 
 
     SetMode mode -> 
-      { model | mode = mode }
+      setMode mode
 
     WithInput pre input f -> 
-      { model 
-      | mode = Command pre input (\str -> DoAll [SetMode Normal, f str model]) 
-    }
+      setMode <| Command pre input (\str -> DoAll [SetMode Normal, f str model]) 
 
 update : Msg -> Editor -> (Editor, Cmd Msg)
 update msg model = 
@@ -318,7 +370,7 @@ parseMsg str model =
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Delete)
             
             "change" -> 
-              DoFrame (Frame.OnBufferWithFocus <| Buffer.Change)
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Change "")
             
             "append" -> 
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Append)
@@ -373,7 +425,23 @@ type Mode
   = Normal 
   | Failed String Mode
   | Command String String (String -> Msg)
-  | Choose Int Int (Array (Buffer, Focus -> Focus))
+  | Change 
+    { input : String
+    , bufferId : Int
+    , index : Int
+    , options : Array (Buffer, Focus -> Focus)
+    , more : LazyList (Buffer, Focus -> Focus)
+    }
+
+changeMode : Int -> String -> LazyList (Buffer, Focus -> Focus) -> Mode
+changeMode id input more =
+  Change 
+    { input = input 
+    , bufferId = id 
+    , index = 0 
+    , options = Array.empty 
+    , more = more 
+    }
 
 view : Editor -> Html Msg 
 view editor = 
@@ -387,7 +455,7 @@ view editor =
       [ class "editor"
       , attr { size | height = size.height - cmdlineSize.height } 
       ] 
-      ( let editor' = realizeChoice editor
+      ( let editor' = realizeChange editor
         in 
           [ case editor'.frame of
               Just frame -> 
@@ -432,14 +500,27 @@ cmdline size mode =
             ] [] 
           ]
 
-    Choose i k arr -> 
+    Change opts -> 
       Just <| 
         div [ class "cmdline", attr size] 
-          [ p [] [text ("Choose ["++ toString (k + 1) ++ "/" ++ toString (Array.length arr) ++ "]" )] 
+          [ p [] [ text "CHANGE:" ]
+          , input 
+            [ onEnter (always (ChooseMsg Done))
+            , onInput (\i -> (ChooseMsg (UpdateInput i)))
+            , value opts.input
+            , autofocus True
+            , attribute "data-autofocus" ""
+            ] [] 
+          , p [] 
+            [ text ("["++ toString (opts.index + 1) 
+                ++ "/" ++ toString (Array.length opts.options) ++ 
+                if not <| LazyList.isEmpty opts.more then "+]" else "]"
+              )
+            ] 
           ]
 
 valueOnKey : Keyboard.KeyCode -> (String -> msg) -> Attribute msg
-valueOnKey key tagger=
+valueOnKey key tagger =
   let
     onlyOnKey = 
       Json.object2 (,) 
@@ -451,7 +532,10 @@ valueOnKey key tagger=
       else 
          Json.fail "only fire on key"
       
-  in on "keyup" <| Json.map tagger onlyOnKey
+  in onWithOptions "keydown" 
+        { stopPropagation = True
+        , preventDefault = True } 
+      <| Json.map tagger onlyOnKey
 
 onEnter = 
   valueOnKey 13 
@@ -480,15 +564,14 @@ keyHandler editor key =
       case key of
         96 -> SetMode Normal
         _ -> NoOp
-
-    Choose i k array -> 
+    
+    Change opts -> 
       case key of
         14 -> ChooseMsg Next 
         16 -> ChooseMsg Prev 
         13 -> ChooseMsg Done
-       
-        a -> 
-          ChooseMsg (DoneWithInput (String.fromChar (Char.fromCode a)))
+        _ -> NoOp
+
 
 specialKeyHandler : Editor -> Keyboard.KeyCode -> Msg
 specialKeyHandler editor key =
@@ -506,8 +589,10 @@ specialKeyHandler editor key =
       case key of
         27 -> SetMode Normal
         _ -> NoOp
-    Choose _ _ _ -> 
+    Change _ -> 
       case key of
+        14 -> ChooseMsg Next 
+        16 -> ChooseMsg Prev 
         38 -> ChooseMsg Prev 
         40 -> ChooseMsg Next 
         27 -> SetMode Normal
