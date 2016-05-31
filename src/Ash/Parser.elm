@@ -22,15 +22,12 @@ parse : Grammar -> ClauseId -> String -> Maybe SyntaxTree
 parse grammar entry str = 
   suggest grammar entry str 
   |> Lizt.head
-  |> Debug.log "parse"
-
 
 suggest : Grammar -> ClauseId -> String -> LazyList SyntaxTree
 suggest grammar entry str = 
   suggestRule grammar entry str 
   |> Lizt.keepIf (snd >> Maybe.map (String.isEmpty) >> Maybe.withDefault True)
   |> Lizt.map fst
-  |> Debug.log ("suggest " ++ entry)
 
 type alias Suggest a = LazyList (a, Maybe String)
 
@@ -157,7 +154,7 @@ suggestTerms' isLexical g str terms =
   in
     List.foldl helper 
       (only [] <| Just <| if isLexical then str else String.trimLeft str) terms
-    |> map (List.reverse << Debug.log (toString terms ++ " -> "))
+    |> map (List.reverse )
 
 
 devideAlts : 

@@ -16,6 +16,7 @@ type alias ViewT =
   , focus : Int 
   } 
 
+
 type alias Serializer = 
   ViewT
   -> Html () 

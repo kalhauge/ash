@@ -1,5 +1,15 @@
 module Languages.F exposing (language)
 
+import Html exposing (..)
+import Html.Attributes exposing (class)
+
+import Style exposing (classes)
+
+import Array
+import String
+
+import Ash.SyntaxTree as SyntaxTree
+
 import Ash.Grammar as Grammar exposing (..)
 import Ash.Language as Language
 
@@ -19,6 +29,12 @@ grammar =
         , [ Lex "fun", Ref "ident", Ref "Args", Lex "->", Ref "Expr" ] 
         , [ Lex "if", Ref "Expr", Lex "then", Ref "Expr", Lex "else", Ref "Expr" ]
         , [ Ref "OrExpr" ]
+        ]
+      )
+    , ( "Args"
+      , rule 
+        [ [ Ref "ident" ]
+        , [ Ref "Args", Ref "ident" ]
         ]
       )
     , ( "OrExpr"
@@ -65,7 +81,7 @@ grammar =
     , ( "CallExpr"
       , rule 
         [ [ Ref "UnExpr" ]
-        , [ Ref "UnExpr", Ref "PriExpr", Ref "CallArgs" ]   -- args
+        , [ Ref "UnExpr", Ref "CallArgs" ]   -- args
         ]
       )
     , ( "CallArgs"
@@ -127,3 +143,25 @@ grammar =
       , oneOf "0123456789" 
       )
     ]
+
+-- printer {date, grammar, focus} = 
+--   let 
+--     collector id tree =
+--       let 
+--         grp name = 
+--           node name (if id == focus then [ class "ash-focus"] else [])
+--       
+--         operator opr =
+--           grp "operator" [ text opr ]
+-- 
+--         alphabeth = 
+--           Array.fromList (String.toList "abcdefghijklmnopqrstuvxyz" |> List.map String.fromChar)
+--       
+--       in 
+--         case tree.kind of
+--           _ -> div [] []
+-- 
+--   in div 
+--       [ class "ash-math" ] 
+--       [ SyntaxTree.collect collector data ]
+
