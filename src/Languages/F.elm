@@ -25,11 +25,14 @@ grammar =
   Grammar.grammar
     [ ( "Expr"
       , rule 
-        [ [ Lex "let", Ref "ident", Lex "=", Ref "Expr", Lex "in", Ref "Expr" ] 
-        , [ Lex "fun", Ref "ident", Ref "Args", Lex "->", Ref "Expr" ] 
+        [ [ Lex "let", Ref "LetAssign", Lex "in", Ref "Expr" ] 
+        , [ Lex "fun", Ref "Args", Lex "->", Ref "Expr" ] 
         , [ Lex "if", Ref "Expr", Lex "then", Ref "Expr", Lex "else", Ref "Expr" ]
         , [ Ref "OrExpr" ]
         ]
+      )
+    , ( "LetAssign"
+      , rule [ [ Ref "ident", Lex "=", Ref "Expr" ] ]
       )
     , ( "Args"
       , rule 
