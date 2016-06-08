@@ -57,7 +57,7 @@ type Msg
   | Replace String Focus
   | Change String Focus
   | Append String Focus
-  | Insert Focus
+  | Insert String Focus
   | Keep Focus
 
 type Response
@@ -73,8 +73,8 @@ update msg (Buffer {data, language} as buffer) =
       Delete focus -> wb <| delete focus
       Replace str focus -> wb <| replace focus str
       Change str focus -> LazyOptions Change (change focus str buffer)
-      Append str focus -> LazyOptions Append (append2 focus str buffer)
-      Insert focus -> wb <| insert focus
+      Append str focus -> LazyOptions Append (append focus str buffer)
+      Insert str focus -> LazyOptions Insert (insert focus str buffer)
       Keep focus -> wb <| keep focus
 
 lift : 
@@ -91,12 +91,26 @@ delete focus =
   lift (Command.delete focus)
 
 keep : Focus -> Buffer -> List (Buffer, Focus -> Focus)
-keep focus (Buffer {data} as buffer)= 
-  let focus' = Movement.moveSmartFocus Movement.Parrent focus data
-  in 
-    Command.get focus data 
-    |> Maybe.map (flip (put focus') buffer)
-    |> Maybe.withDefault []
+keep focus (Buffer {data, language} as buffer)= 
+  let 
+    parrents = SyntaxTree.collectPathIds focus data
+    grammar = Language.getGrammar language
+    clause = Language.clause language focus data
+    keeper focus'= 
+      if clause `List.member` 
+         Grammar.transitiveClauses grammar 
+           (Language.clause language focus' data)
+      then 
+        Command.get focus data 
+        |> Maybe.map (flip (put focus') buffer)
+        |> Maybe.withDefault []
+      else
+        []
+  in
+    case List.tail (List.reverse parrents) of
+      Just focuci ->  
+        List.concatMap keeper focuci 
+      Nothing -> []
     
 put : Focus -> SyntaxTree -> Buffer -> List (Buffer, Focus -> Focus)
 put focus st = 
@@ -110,7 +124,7 @@ applyPath =
 replace : Focus -> String -> Buffer -> List (Buffer, Focus -> Focus)
 replace focus str (Buffer {data, language} as buffer) =
   let 
-    clause = Debug.log "parse" <| Language.clause language focus data
+    clause = Language.clause language focus data
     grammar = Language.getGrammar language
     
     parse : Grammar.ClauseId -> Maybe SyntaxTree
@@ -194,15 +208,14 @@ change focus str buffer =
   suggestions focus str buffer
   |> LazyList.flatMap (replaceInBuffer focus buffer)
 
-append2 : Focus -> String -> Buffer -> LazyList (Buffer, Focus -> Focus)
-append2 focus str (Buffer {data, language} as buffer) = 
+append : Focus -> String -> Buffer -> LazyList (Buffer, Focus -> Focus)
+append focus str (Buffer {data, language} as buffer) = 
   let
     grammar = Language.getGrammar language
     clause = Language.clause language focus data
     replaceLeftEmpty tree st = 
       let 
-        empties = Debug.log "whu" <| 
-          Command.empties grammar clause st 
+        empties = Command.empties grammar clause st 
         replaceEmpty (id, clauseid) = 
           if fst tree.kind `List.member` 
              Grammar.transitiveClauses grammar clauseid 
@@ -226,79 +239,36 @@ append2 focus str (Buffer {data, language} as buffer) =
       Nothing -> 
         LazyList.empty
 
-(?>) a b = 
-  if a then
-    b ()
-  else 
-    Nothing
 
-append : Focus -> Buffer -> List (Buffer, Focus -> Focus)
-append focus (Buffer {data, language} as buffer) =
+insert : Focus -> String -> Buffer -> LazyList (Buffer, Focus -> Focus)
+insert focus str (Buffer {data, language} as buffer) = 
   let
-    clause = Language.clause language focus data
     grammar = Language.getGrammar language
-    kinds = 
-      Grammar.transitiveKinds grammar clause 
-      |> List.filter (fst >> Grammar.isLexical >> not)
-      |> Debug.log "kinds" 
+    clause = Language.clause language focus data
+    replaceLeftEmpty tree st = 
+      let 
+        empties = List.reverse <| Command.empties grammar clause st 
+        replaceEmpty (id, clauseid) = 
+          if fst tree.kind `List.member` 
+             Grammar.transitiveClauses grammar clauseid 
+          then
+            Maybe.map fst <| Command.replace id (always <| 
+              Debug.log "tree" tree) (Debug.log "st" st)
+          else
+            Nothing
+      in 
+        case Utils.oneOfMap replaceEmpty empties of
+          Just x -> LazyList.singleton x
+          Nothing -> LazyList.empty
 
-    append' grammar tree kind =
-      Grammar.get kind grammar &> \alt -> 
-      not (Grammar.isTransition alt) ?> \() -> 
-      List.head (Grammar.clauseIds alt) &> \subclause -> 
-      let trans = Grammar.transitiveClauses grammar subclause in
-      fst tree.kind `List.member` trans ?> \() -> 
-      template grammar kind &> \st -> 
-      List.tail (SyntaxTree.getTerms st) &> \rest -> 
-      Just (SyntaxTree.setTerms (tree :: rest) st)
-
-    toChange tree kind =
-      if not (Grammar.isLexical (fst kind)) then
-        append' grammar tree kind
-        |> Maybe.map (flip (put focus) buffer) 
-        |> Maybe.withDefault []
-      else []
   in
     case Command.get focus data of
-      Just tree -> List.concatMap (toChange tree) kinds
-      Nothing -> []
+      Just tree -> 
+        suggestions focus str buffer
+        |> LazyList.flatMap (replaceLeftEmpty tree)
+        |> LazyList.flatMap (replaceInBuffer focus buffer)
 
-insert : Focus -> Buffer -> List (Buffer, Focus -> Focus)
-insert focus (Buffer {data, language} as buffer) =
-  let
-    clause = Language.clause language focus data
-    grammar = Language.getGrammar language
-    kinds = 
-      Grammar.transitiveKinds grammar clause 
-      |> List.filter (fst >> Grammar.isLexical >> not)
-      |> Debug.log "kinds" 
-
-    insert' grammar tree kind =
-      Grammar.get kind grammar &> \alt -> 
-      
-      not (Grammar.isTransition alt) ?> \() -> 
-      
-      Utils.last (Grammar.clauseIds alt) &> \subclause -> 
-
-      let trans = Grammar.transitiveClauses grammar subclause in
-      
-      fst tree.kind `List.member` trans ?> \() -> 
-
-      template grammar kind &> \st -> 
-      
-      Utils.init (SyntaxTree.getTerms st) &> \rest -> 
-        
-      Just (SyntaxTree.setTerms (rest ++ [tree]) st)
-
-    toChange tree kind =
-      if not (Grammar.isLexical (fst kind)) then
-        insert' grammar tree kind
-        |> Maybe.map (flip (put focus) buffer) 
-        |> Maybe.withDefault []
-      else []
-  in
-    case Command.get focus data of
-      Just tree -> List.concatMap (toChange tree) kinds
-      Nothing -> []
+      Nothing -> 
+        LazyList.empty
 
 

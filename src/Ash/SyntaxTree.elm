@@ -191,7 +191,13 @@ collectPath id default clt =
   in 
     iterate 0 
 
-
+collectPathIds : Int -> SyntaxTree -> List Int
+collectPathIds id =
+  let 
+      collector : TreeCollector (List Int)
+      collector i tree = 
+        i :: List.concat (tree.terms)
+  in collectPath id (\i s -> []) collector 
 
 {- 
 Finds the clause of the a tree in focus. To work with the trim function, and 

@@ -85,7 +85,7 @@ debug settings =
     languages = Language.collect settings.languages
     buffer = Buffer.Buffer 
       { data = 
-        { kind = ("Expr",2), terms = [SubTree { kind = ("Expr",0), terms = [SubTree { kind = ("LetAssign",0), terms = [SubTree { kind = ("alpha",0), terms = [], size = 1 },SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 3 }], size = 5 },SubTree { kind = ("alpha",0), terms = [], size = 1 }], size = 7 },SubTree { kind = ("alpha",0), terms = [], size = 1 },SubTree { kind = ("alpha",0), terms = [], size = 1 }], size = 10 }
+        { kind = ("Expr",0), terms = [SubTree { kind = ("LetAssign",0), terms = [SubTree { kind = ("ident",0), terms = [SubTree { kind = ("alpha",5), terms = [], size = 1 },SubTree { kind = ("identRest",0), terms = [SubTree { kind = ("alpha",8), terms = [], size = 1 },SubTree { kind = ("alpha",1), terms = [], size = 1 }], size = 3 }], size = 5 },SubTree { kind = ("Expr",1), terms = [SubTree { kind = ("alpha",13), terms = [], size = 1 },SubTree { kind = ("Expr",2), terms = [SubTree { kind = ("RelExpr",1), terms = [SubTree { kind = ("alpha",13), terms = [], size = 1 },SubTree { kind = ("digit",2), terms = [], size = 1 }], size = 3 },SubTree { kind = ("alpha",13), terms = [], size = 1 },SubTree { kind = ("AddExpr",0), terms = [SubTree { kind = ("CallExpr",0), terms = [SubTree { kind = ("ident",0), terms = [SubTree { kind = ("alpha",5), terms = [], size = 1 },SubTree { kind = ("identRest",0), terms = [SubTree { kind = ("alpha",8), terms = [], size = 1 },SubTree { kind = ("alpha",1), terms = [], size = 1 }], size = 3 }], size = 5 },SubTree { kind = ("PriExpr",0), terms = [SubTree { kind = ("AddExpr",1), terms = [SubTree { kind = ("alpha",13), terms = [], size = 1 },SubTree { kind = ("digit",1), terms = [], size = 1 }], size = 3 }], size = 4 }], size = 10 },SubTree { kind = ("CallExpr",0), terms = [SubTree { kind = ("ident",0), terms = [SubTree { kind = ("alpha",5), terms = [], size = 1 },SubTree { kind = ("identRest",0), terms = [SubTree { kind = ("alpha",8), terms = [], size = 1 },SubTree { kind = ("alpha",1), terms = [], size = 1 }], size = 3 }], size = 5 },SubTree { kind = ("PriExpr",0), terms = [SubTree { kind = ("AddExpr",1), terms = [SubTree { kind = ("alpha",13), terms = [], size = 1 },SubTree { kind = ("digit",2), terms = [], size = 1 }], size = 3 }], size = 4 }], size = 10 }], size = 21 }], size = 26 }], size = 28 }], size = 34 },SubTree { kind = ("CallExpr",0), terms = [SubTree { kind = ("ident",0), terms = [SubTree { kind = ("alpha",5), terms = [], size = 1 },SubTree { kind = ("identRest",0), terms = [SubTree { kind = ("alpha",8), terms = [], size = 1 },SubTree { kind = ("alpha",1), terms = [], size = 1 }], size = 3 }], size = 5 },SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",1), terms = [], size = 1 },SubTree { kind = ("digit",0), terms = [], size = 1 }], size = 3 }], size = 9 }], size = 44 }
       , language = case Dict.get "f" languages of
           Just m -> m
           Nothing -> Debug.crash "Where is math"
@@ -355,7 +355,7 @@ parseMsg str model =
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Keep)
             
             "insert" -> 
-              DoFrame (Frame.OnBufferWithFocus <| Buffer.Insert)
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Insert "")
 
             "focus" -> 
               case rest of 

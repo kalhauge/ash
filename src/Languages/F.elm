@@ -27,10 +27,16 @@ grammar =
   Grammar.grammar "?"
     [ ( "Expr"
       , rule 
-        [ [ Lex "let", Ref "LetAssign", Lex "in", Ref "Expr" ] 
+        [ [ Lex "let", Ref "LetAssigns", Lex "in", Ref "Expr" ] 
         , [ Lex "fun", Ref "Args", Lex "->", Ref "Expr" ] 
         , [ Lex "if", Ref "Expr", Lex "then", Ref "Expr", Lex "else", Ref "Expr" ]
         , [ Ref "OrExpr" ]
+        ]
+      )
+    , ( "LetAssigns"
+      , rule 
+        [ [ Ref "LetAssign" ]
+        , [ Ref "LetAssign", Ref "LetAssigns" ] 
         ]
       )
     , ( "LetAssign"
@@ -204,6 +210,10 @@ encoder =
               , Group 1 [ else_] 
               ]
             _ -> [ Error ]
+        
+        ("LetAssigns", 1) -> tree `take2` \fst rst ->
+          Syntax id 
+            [ Group 0 [fst], rst ] 
         
         ("LetAssign", 0) -> tree `take2` \idnt expr ->
           Syntax id 

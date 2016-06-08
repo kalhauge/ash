@@ -53,7 +53,6 @@ suggest (Language language) cid =
   Parser.suggest (language.grammar) cid
   >> LazyList.map (Command.trim language.grammar)
 
-
 getGrammar : Language -> Grammar
 getGrammar (Language {grammar}) = grammar
 
@@ -65,4 +64,7 @@ clause (Language {headExpr, grammar}) focus st =
   Maybe.withDefault headExpr
     <| SyntaxTree.clause grammar focus st
 
+isValid : Language -> SyntaxTree -> Bool
+isValid (Language {grammar, headExpr}) st =
+  True
 
