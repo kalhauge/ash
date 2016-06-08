@@ -53,8 +53,14 @@ type alias AlternativeId = Int
 
 type alias SyntaxKind = (ClauseId, AlternativeId)
 
-grammar : List (String, Rule) -> Grammar
-grammar = Dict.fromList
+grammar : String -> List (String, Rule) -> Grammar
+grammar empty list = 
+  Dict.fromList 
+    ( List.map 
+      (\(str, rule) -> (str, Array.push ([Ref "empty"]) rule))
+       list
+      ++ [( "empty", rule [[ Lex empty ]] )]
+    )
 
 rule : List Alternative -> Rule
 rule = Array.fromList

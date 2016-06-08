@@ -24,7 +24,7 @@ language = Language.new
   }
 
 grammar = 
-  Grammar.grammar
+  Grammar.grammar "?"
     [ ( "Expr"
       , rule 
         [ [ Lex "let", Ref "LetAssign", Lex "in", Ref "Expr" ] 

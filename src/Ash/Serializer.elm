@@ -37,7 +37,7 @@ encode encoder {data, grammar, focus} =
       encoder data
 
     joinTokens tokens = 
-      List.intersperse (text " ") tokens
+      List.intersperse (span [] [ text " " ]) tokens
 
     printer encoding = 
       case encoding of 

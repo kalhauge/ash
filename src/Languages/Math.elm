@@ -25,7 +25,7 @@ language = Language.new
   }
 
 grammar = 
-  Grammar.grammar 
+  Grammar.grammar "?"
     [ ( "Exp"
       , rule 
         [ [ Ref "AddExp" ] 
