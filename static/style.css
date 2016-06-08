@@ -71,6 +71,26 @@
     vertical-align: middle;
 }
 
+.ash-encoding {
+}
+
+.ash-encoding pre {
+    margin: 0;
+}
+
+.ash-encoding div {
+    display: inline-block; 
+    vertical-align: text-top;
+}
+
+.ash-encoding .group {
+    display: block; 
+}
+
+.ash-encoding .focus {
+    background: lightgray;
+}
+
 .ash-debug-tree {
     text-align: center;
     padding: 10px 0px;

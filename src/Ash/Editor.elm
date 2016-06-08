@@ -82,41 +82,14 @@ fix settings model =
 debug : Settings -> Editor
 debug settings = 
   let 
+    languages = Language.collect settings.languages
     buffer = Buffer.Buffer 
       { data = 
-          { kind = ("AddExp",0)
-          , terms = 
-            [ SubTree 
-              { kind = ("AddExp",0)
-              , terms = 
-                [ SubTree { kind = ("digit",1) , terms = [] , size = 1 } 
-                , SubTree 
-                  { kind = ("number",0)
-                  , terms = 
-                    [ SubTree { kind = ("digit",2) , terms = [] , size = 1 }
-                    , SubTree { kind = ("digit",3) , terms = [] , size = 1 }
-                    ]
-                  , size = 3 
-                  }
-                ]
-              , size = 5 
-              }
-            , SubTree 
-              { kind = ("number",0)
-              , terms = 
-                [ SubTree { kind = ("digit",4), terms = [], size = 1 }
-                , SubTree { kind = ("digit",5), terms = [], size = 1 }
-                ]
-              , size = 3 
-              }
-            ],
-          size = 9 
-          }
-        , language = case List.head settings.languages of
-            Just m -> m
-            Nothing -> Debug.crash "Where is math"
-
-        }
+        { kind = ("Expr",2), terms = [SubTree { kind = ("Expr",0), terms = [SubTree { kind = ("LetAssign",0), terms = [SubTree { kind = ("alpha",0), terms = [], size = 1 },SubTree { kind = ("number",0), terms = [SubTree { kind = ("digit",2), terms = [], size = 1 },SubTree { kind = ("digit",3), terms = [], size = 1 }], size = 3 }], size = 5 },SubTree { kind = ("alpha",0), terms = [], size = 1 }], size = 7 },SubTree { kind = ("alpha",0), terms = [], size = 1 },SubTree { kind = ("alpha",0), terms = [], size = 1 }], size = 10 }
+      , language = case Dict.get "f" languages of
+          Just m -> m
+          Nothing -> Debug.crash "Where is math"
+      }
   in fix settings 
     { buffers = Array.fromList [ buffer ]
     , frame = Just <| Frame.new (0, buffer) 
@@ -191,7 +164,7 @@ doMsg msg model =
       List.foldl doMsg model actions
 
     State -> Debug.log "state" model
-
+    
     ChooseMsg msg -> 
       case model.mode of 
         Change opts -> 
@@ -413,6 +386,8 @@ parseMsg str model =
                 _ -> badArgs
 
             "state" -> State
+            
+            "dump" -> DoFrame Frame.DumpData
             
             _ -> 
               Fail <| "Unknown command '" ++ cmd ++ "'"

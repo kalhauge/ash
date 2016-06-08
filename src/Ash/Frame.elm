@@ -55,6 +55,7 @@ type Msg
   | SetSerializer String 
   | Focus Direction
   | SmartFocus Direction
+  | DumpData
 
 type Response
   = Update Frame
@@ -68,6 +69,8 @@ update msg (Frame {focus, bufferId} as frame) =
     updateWithBuffer fn = 
       UpdateWithBuffer bufferId (fn frame)
   in case msg of
+    DumpData -> 
+      updateWithBuffer (\f b -> let b' = Buffer.onData (Debug.log "buffer") b in f )
     Focus dir -> 
       updateWithBuffer <| moveFocus dir 
     
