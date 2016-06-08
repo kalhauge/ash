@@ -201,7 +201,7 @@ doMsg msg model =
                 { model' | mode = Normal }
             UpdateInput i -> 
               setMode (Change { opts | input = i })
-              |> doMsg (DoFrame <| Frame.OnBufferWithFocus <| Buffer.Change i) 
+              |> doMsg (DoFrame <| Frame.OnBufferWithFocus <| opts.msg i) 
         
         _ -> fail "Can not perform this action out of change mode"
 
@@ -241,17 +241,19 @@ doMsg msg model =
                       setMode <| Change 
                         { index = 0
                         , input = ""
+                        , msg = Buffer.Change
                         , bufferId = id
                         , more = LazyList.empty
                         , options = Array.fromList options
                         }
-            Buffer.LazyOptions options -> 
+            Buffer.LazyOptions msg options -> 
                 case model.mode of
                   Change opts -> 
                     setMode <| Change 
                       { opts
                       | index = 0
                       , bufferId = id
+                      , msg = msg
                       , more = LazyList.drop 1 options
                       , options = LazyList.toArray <| LazyList.take 1 options
                       }
@@ -259,6 +261,7 @@ doMsg msg model =
                     setMode <| Change 
                       { index = 0
                       , input = ""
+                      , msg = msg 
                       , bufferId = id
                       , more = LazyList.drop 1 options
                       , options = LazyList.toArray <| LazyList.take 1 options
@@ -346,7 +349,7 @@ parseMsg str model =
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Change "")
             
             "append" -> 
-              DoFrame (Frame.OnBufferWithFocus <| Buffer.Append)
+              DoFrame (Frame.OnBufferWithFocus <| Buffer.Append "")
 
             "keep" -> 
               DoFrame (Frame.OnBufferWithFocus <| Buffer.Keep)
@@ -404,18 +407,9 @@ type Mode
     { input : String
     , bufferId : Int
     , index : Int
+    , msg : String -> Focus -> Buffer.Msg
     , options : Array (Buffer, Focus -> Focus)
     , more : LazyList (Buffer, Focus -> Focus)
-    }
-
-changeMode : Int -> String -> LazyList (Buffer, Focus -> Focus) -> Mode
-changeMode id input more =
-  Change 
-    { input = input 
-    , bufferId = id 
-    , index = 0 
-    , options = Array.empty 
-    , more = more 
     }
 
 view : Editor -> Html Msg 

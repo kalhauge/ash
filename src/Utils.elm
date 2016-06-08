@@ -67,7 +67,6 @@ oneOfScan fn val list =
         Err val' -> oneOfScan fn val' rest
         Ok item -> Just item
 
-
 onlyOne : List (Maybe a) -> Maybe a
 onlyOne list = 
   case list of
@@ -128,3 +127,16 @@ partitionResults =
     right a (l, r) = (l, a::r)
   in
     List.foldr (either left right) ([],[]) 
+
+joinResults : List (Result a a) -> List a
+joinResults =
+    List.foldr (either (::) (::)) [] 
+
+lefts = 
+  partitionResults >> fst
+
+rights = 
+  partitionResults >> snd
+
+
+

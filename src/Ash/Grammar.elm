@@ -30,6 +30,8 @@ module Ash.Grammar exposing
   , reachableClauses
   , reachableKinds
   , kinds
+  
+  , parens
   )
 
 import Utils exposing (..)
@@ -161,6 +163,26 @@ reachableClauses grammar cid =
           Nothing -> 
             []
   in reachables Set.empty cid []
+
+{-
+If the syntax kind is a paran, only one child, return the
+clause allowed inside the parans and the kind itself and the 
+-}
+paren : Grammar -> SyntaxKind -> Maybe (ClauseId, SyntaxKind)
+paren grammar kind = 
+  get kind grammar `Maybe.andThen` \alt -> 
+  if isTransition alt then
+    Nothing
+  else 
+    case clauseIds alt of
+      [subid] -> Just (subid, kind)
+      _ -> Nothing
+
+parens : Grammar -> ClauseId -> List (ClauseId, SyntaxKind)
+parens grammar clause = 
+  transitiveKinds grammar clause
+  |> List.map (paren grammar)
+  |> Utils.compress
 
 {-
 Returns a list of syntax kinds directly reachable from the clause.

@@ -170,7 +170,6 @@ collectS : TreeCollector SubTree -> SyntaxTree -> SyntaxTree
 collectS clt =
   collect' mapS clt >> unfix
 
-
 {-
 CollectPath only touches the nodes that are direct parrents
 to the indcies given. Because of this we need a way to map a 

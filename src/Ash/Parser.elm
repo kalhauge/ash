@@ -95,7 +95,7 @@ suggestAlts g clause str alts =
     leftTree = (if isLexical then first else batch) <| Lizt.map (suggestKind g str) real
   in 
     flip forever leftTree <| \tree msg ->
-      case Debug.log "msg" <| msg of 
+      case msg of 
         Just str' ->
           recursive
           |> Lizt.map (\(kind, terms) -> 

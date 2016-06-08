@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Maybe exposing (withDefault)
 
 import Ash.SyntaxTree exposing (..)
-import Ash.Grammar exposing (..)
+import Ash.Grammar as Grammar exposing (..)
 
 import Utils exposing (..)
 
@@ -146,7 +146,7 @@ delete id tree =
 
 trimmer : Grammar -> TreeCollector SubTree
 trimmer grammar i tree =
-  Ash.Grammar.get tree.kind grammar
+  Grammar.get tree.kind grammar
     |> flip Maybe.andThen (\alt -> 
         if List.length alt == 1 then 
           head tree.terms 
@@ -160,3 +160,23 @@ trim : Grammar -> SyntaxTree -> SyntaxTree
 trim grammar st =
   collectS (trimmer grammar) st
 
+empties : Grammar -> ClauseId -> SyntaxTree -> List (Int, ClauseId)
+empties grammar clauseid tree =
+  let
+    collector : TreeCollector (Result Int (List (Int, ClauseId)))
+    collector id tree = 
+      if isEmpty tree then
+        Err id
+      else
+        Ok (
+          List.concat
+          <| Utils.joinResults
+          <| List.map2 
+             (\sc -> Result.formatError (\id -> [(id, sc)]))
+             (Grammar.subClauses grammar tree.kind)
+             (tree.terms)
+        )
+  in 
+    case collect collector tree of
+      Ok list -> list
+      Err id -> [(id, clauseid)]
