@@ -12329,305 +12329,20 @@ var _user$project$Ash_Editor$debug = function (settings) {
 	var buffer = _user$project$Ash_Buffer$Buffer(
 		{
 			data: {
-				kind: {ctor: '_Tuple2', _0: 'Expr', _1: 0},
+				kind: {ctor: '_Tuple2', _0: 'AddExp', _1: 0},
 				terms: _elm_lang$core$Native_List.fromArray(
 					[
 						_user$project$Ash_SyntaxTree$SubTree(
 						{
-							kind: {ctor: '_Tuple2', _0: 'LetAssign', _1: 0},
+							kind: {ctor: '_Tuple2', _0: 'AddExp', _1: 0},
 							terms: _elm_lang$core$Native_List.fromArray(
 								[
 									_user$project$Ash_SyntaxTree$SubTree(
 									{
-										kind: {ctor: '_Tuple2', _0: 'ident', _1: 0},
+										kind: {ctor: '_Tuple2', _0: 'digit', _1: 1},
 										terms: _elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_SyntaxTree$SubTree(
-												{
-													kind: {ctor: '_Tuple2', _0: 'alpha', _1: 5},
-													terms: _elm_lang$core$Native_List.fromArray(
-														[]),
-													size: 1
-												}),
-												_user$project$Ash_SyntaxTree$SubTree(
-												{
-													kind: {ctor: '_Tuple2', _0: 'identRest', _1: 0},
-													terms: _elm_lang$core$Native_List.fromArray(
-														[
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'alpha', _1: 8},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[]),
-																size: 1
-															}),
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'alpha', _1: 1},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[]),
-																size: 1
-															})
-														]),
-													size: 3
-												})
-											]),
-										size: 5
-									}),
-									_user$project$Ash_SyntaxTree$SubTree(
-									{
-										kind: {ctor: '_Tuple2', _0: 'Expr', _1: 1},
-										terms: _elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_SyntaxTree$SubTree(
-												{
-													kind: {ctor: '_Tuple2', _0: 'alpha', _1: 13},
-													terms: _elm_lang$core$Native_List.fromArray(
-														[]),
-													size: 1
-												}),
-												_user$project$Ash_SyntaxTree$SubTree(
-												{
-													kind: {ctor: '_Tuple2', _0: 'Expr', _1: 2},
-													terms: _elm_lang$core$Native_List.fromArray(
-														[
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'RelExpr', _1: 1},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[
-																		_user$project$Ash_SyntaxTree$SubTree(
-																		{
-																			kind: {ctor: '_Tuple2', _0: 'alpha', _1: 13},
-																			terms: _elm_lang$core$Native_List.fromArray(
-																				[]),
-																			size: 1
-																		}),
-																		_user$project$Ash_SyntaxTree$SubTree(
-																		{
-																			kind: {ctor: '_Tuple2', _0: 'digit', _1: 2},
-																			terms: _elm_lang$core$Native_List.fromArray(
-																				[]),
-																			size: 1
-																		})
-																	]),
-																size: 3
-															}),
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'alpha', _1: 13},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[]),
-																size: 1
-															}),
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'AddExpr', _1: 0},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[
-																		_user$project$Ash_SyntaxTree$SubTree(
-																		{
-																			kind: {ctor: '_Tuple2', _0: 'CallExpr', _1: 0},
-																			terms: _elm_lang$core$Native_List.fromArray(
-																				[
-																					_user$project$Ash_SyntaxTree$SubTree(
-																					{
-																						kind: {ctor: '_Tuple2', _0: 'ident', _1: 0},
-																						terms: _elm_lang$core$Native_List.fromArray(
-																							[
-																								_user$project$Ash_SyntaxTree$SubTree(
-																								{
-																									kind: {ctor: '_Tuple2', _0: 'alpha', _1: 5},
-																									terms: _elm_lang$core$Native_List.fromArray(
-																										[]),
-																									size: 1
-																								}),
-																								_user$project$Ash_SyntaxTree$SubTree(
-																								{
-																									kind: {ctor: '_Tuple2', _0: 'identRest', _1: 0},
-																									terms: _elm_lang$core$Native_List.fromArray(
-																										[
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'alpha', _1: 8},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											}),
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'alpha', _1: 1},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											})
-																										]),
-																									size: 3
-																								})
-																							]),
-																						size: 5
-																					}),
-																					_user$project$Ash_SyntaxTree$SubTree(
-																					{
-																						kind: {ctor: '_Tuple2', _0: 'PriExpr', _1: 0},
-																						terms: _elm_lang$core$Native_List.fromArray(
-																							[
-																								_user$project$Ash_SyntaxTree$SubTree(
-																								{
-																									kind: {ctor: '_Tuple2', _0: 'AddExpr', _1: 1},
-																									terms: _elm_lang$core$Native_List.fromArray(
-																										[
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'alpha', _1: 13},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											}),
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'digit', _1: 1},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											})
-																										]),
-																									size: 3
-																								})
-																							]),
-																						size: 4
-																					})
-																				]),
-																			size: 10
-																		}),
-																		_user$project$Ash_SyntaxTree$SubTree(
-																		{
-																			kind: {ctor: '_Tuple2', _0: 'CallExpr', _1: 0},
-																			terms: _elm_lang$core$Native_List.fromArray(
-																				[
-																					_user$project$Ash_SyntaxTree$SubTree(
-																					{
-																						kind: {ctor: '_Tuple2', _0: 'ident', _1: 0},
-																						terms: _elm_lang$core$Native_List.fromArray(
-																							[
-																								_user$project$Ash_SyntaxTree$SubTree(
-																								{
-																									kind: {ctor: '_Tuple2', _0: 'alpha', _1: 5},
-																									terms: _elm_lang$core$Native_List.fromArray(
-																										[]),
-																									size: 1
-																								}),
-																								_user$project$Ash_SyntaxTree$SubTree(
-																								{
-																									kind: {ctor: '_Tuple2', _0: 'identRest', _1: 0},
-																									terms: _elm_lang$core$Native_List.fromArray(
-																										[
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'alpha', _1: 8},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											}),
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'alpha', _1: 1},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											})
-																										]),
-																									size: 3
-																								})
-																							]),
-																						size: 5
-																					}),
-																					_user$project$Ash_SyntaxTree$SubTree(
-																					{
-																						kind: {ctor: '_Tuple2', _0: 'PriExpr', _1: 0},
-																						terms: _elm_lang$core$Native_List.fromArray(
-																							[
-																								_user$project$Ash_SyntaxTree$SubTree(
-																								{
-																									kind: {ctor: '_Tuple2', _0: 'AddExpr', _1: 1},
-																									terms: _elm_lang$core$Native_List.fromArray(
-																										[
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'alpha', _1: 13},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											}),
-																											_user$project$Ash_SyntaxTree$SubTree(
-																											{
-																												kind: {ctor: '_Tuple2', _0: 'digit', _1: 2},
-																												terms: _elm_lang$core$Native_List.fromArray(
-																													[]),
-																												size: 1
-																											})
-																										]),
-																									size: 3
-																								})
-																							]),
-																						size: 4
-																					})
-																				]),
-																			size: 10
-																		})
-																	]),
-																size: 21
-															})
-														]),
-													size: 26
-												})
-											]),
-										size: 28
-									})
-								]),
-							size: 34
-						}),
-						_user$project$Ash_SyntaxTree$SubTree(
-						{
-							kind: {ctor: '_Tuple2', _0: 'CallExpr', _1: 0},
-							terms: _elm_lang$core$Native_List.fromArray(
-								[
-									_user$project$Ash_SyntaxTree$SubTree(
-									{
-										kind: {ctor: '_Tuple2', _0: 'ident', _1: 0},
-										terms: _elm_lang$core$Native_List.fromArray(
-											[
-												_user$project$Ash_SyntaxTree$SubTree(
-												{
-													kind: {ctor: '_Tuple2', _0: 'alpha', _1: 5},
-													terms: _elm_lang$core$Native_List.fromArray(
-														[]),
-													size: 1
-												}),
-												_user$project$Ash_SyntaxTree$SubTree(
-												{
-													kind: {ctor: '_Tuple2', _0: 'identRest', _1: 0},
-													terms: _elm_lang$core$Native_List.fromArray(
-														[
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'alpha', _1: 8},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[]),
-																size: 1
-															}),
-															_user$project$Ash_SyntaxTree$SubTree(
-															{
-																kind: {ctor: '_Tuple2', _0: 'alpha', _1: 1},
-																terms: _elm_lang$core$Native_List.fromArray(
-																	[]),
-																size: 1
-															})
-														]),
-													size: 3
-												})
-											]),
-										size: 5
+											[]),
+										size: 1
 									}),
 									_user$project$Ash_SyntaxTree$SubTree(
 									{
@@ -12636,14 +12351,14 @@ var _user$project$Ash_Editor$debug = function (settings) {
 											[
 												_user$project$Ash_SyntaxTree$SubTree(
 												{
-													kind: {ctor: '_Tuple2', _0: 'digit', _1: 1},
+													kind: {ctor: '_Tuple2', _0: 'digit', _1: 2},
 													terms: _elm_lang$core$Native_List.fromArray(
 														[]),
 													size: 1
 												}),
 												_user$project$Ash_SyntaxTree$SubTree(
 												{
-													kind: {ctor: '_Tuple2', _0: 'digit', _1: 0},
+													kind: {ctor: '_Tuple2', _0: 'digit', _1: 3},
 													terms: _elm_lang$core$Native_List.fromArray(
 														[]),
 													size: 1
@@ -12652,13 +12367,35 @@ var _user$project$Ash_Editor$debug = function (settings) {
 										size: 3
 									})
 								]),
-							size: 9
+							size: 5
+						}),
+						_user$project$Ash_SyntaxTree$SubTree(
+						{
+							kind: {ctor: '_Tuple2', _0: 'number', _1: 0},
+							terms: _elm_lang$core$Native_List.fromArray(
+								[
+									_user$project$Ash_SyntaxTree$SubTree(
+									{
+										kind: {ctor: '_Tuple2', _0: 'digit', _1: 4},
+										terms: _elm_lang$core$Native_List.fromArray(
+											[]),
+										size: 1
+									}),
+									_user$project$Ash_SyntaxTree$SubTree(
+									{
+										kind: {ctor: '_Tuple2', _0: 'digit', _1: 5},
+										terms: _elm_lang$core$Native_List.fromArray(
+											[]),
+										size: 1
+									})
+								]),
+							size: 3
 						})
 					]),
-				size: 44
+				size: 9
 			},
 			language: function () {
-				var _p33 = A2(_elm_lang$core$Dict$get, 'f', languages);
+				var _p33 = A2(_elm_lang$core$Dict$get, 'math', languages);
 				if (_p33.ctor === 'Just') {
 					return _p33._0;
 				} else {

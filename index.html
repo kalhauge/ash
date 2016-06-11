@@ -2,17 +2,578 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Main</title>
+    <title>Ash: A Syntactic Editor</title>
     <style> 
       html,head,body { padding:0; margin:0; }
       body { font-family: calibri, helvetica, arial, sans-serif; }
     </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <link rel="stylesheet" href="style.css">
   <script src="bundle.js"></script>
   </head>
   <body>
+    <div id="editor">
+    </div>
+    <div id="content">
+      <h1>Ash: A Syn­tac­tic Ed­i­tor</h1>
+      <div id="authorship">
+        <div class="authors">
+          Chris­t­ian Gram Kalhauge
+        </div>
+        <div class="affiliation">
+          UCLA
+        </div>
+      </div>
+      <h2 id="-what-is-this-madness-https-youtu-be-qkws9pixeke-t-144-"><a href="https://youtu.be/QkWS9PiXekE?t=144">What is this mad­ness?!</a></h2>
+<p>Full dis­clo­sure, I&#39;m an able user of Vi. I love Vi for two rea­sons: It
+has modes, sorry Larry, and it en­able nav­i­ga­tion and edit­ing us­ing text
+ob­jects. In Vi you don&#39;t edit text, you edit para­graphs, sen­tences,
+and words. This means that you can &quot;talk&quot; to your ed­i­tor; &quot;please
+delete the next 3 words&quot; or &quot;copy the para­graph&quot;. When you
+learn to talk the lan­guage, there is clear com­mu­ni­ca­tion be­tween you
+and the ed­i­tor. Thought there is a prob­lem. The prob­lem is that code is
+not sen­tences and words, it&#39;s func­tions, ex­pres­sions and de­c­la­ra­tions.
+So even thought, you are able to talk to your ed­i­tor, it has no idea
+what it&#39;s do­ing. Of cause, many peo­ple have tried to ban­dage the sys­tem,
+and the ed­i­tor might get to know about a func­tion in one pro­gram­ming
+lan­guage, and that might work well in some cases, but deep down it&#39;s
+noth­ing but char­ac­ters in a string. </p>
+<p>This in­ter­nal rep­re­sen­ta­tion is why we can&#39;t have nice things. If
+plug-in builders has to rein­vent the wheel, by more or less try­ing to
+learn your ed­i­tor to read code every time they want to add a new
+fea­ture, then it&#39;s not so strange that each plug-in can only be 
+so ad­vanced, and that the plug-ins does not nec­es­sar­ily talk to­gether. </p>
+<p>Ash tries to fix this. Ash is a syn­tac­tic ed­i­tor. This means that the
+in­ner rep­re­sen­ta­tion of a file or buffer is not a string of char­ac­ters, 
+but a syn­tax tree. For ex­am­ple, the ex­pres­sion you saw in the
+ed­i­tor as you opened the page, were <code>1+23+45</code>. <em>By the way the box in the
+be­gin­ning of this blog, is the full ed­i­tor, feel free to play around
+with it.</em> That ex­pres­sion is rep­re­sented like a tree in Ash. </p>
+<figure>
+<img src="report/debug-expr.png" alt="The Expresion">
+<div class="caption"> 
+You can see this for your­self by writ­ing <code>:display debug</code>; to get back
+write <code>:display simple</code>.
+</div>
+</figure>
+
+<p> This dif­fer­ent in­ter­nal rep­re­sen­ta­tion al­lows us to do a lot of cool
+ things, that we can&#39;t, or are at least hard to, do in a nor­mal tex­tural
+ ed­i­tor:</p>
+<ul>
+<li><strong>Syn­tac­tic move­ments</strong> &mdash; Move around in the file in log­i­cal
+por­tions. Like with Vi, but in­stead of talk­ing in words and sen­tences,
+you can now say func­tion and de­c­la­ra­tion.</li>
+<li><strong>Syn­tac­tic edit­ing</strong> &mdash; Edit­ing is just re­mov­ing or adding
+things to a tree. But the three has to be well formed. The tree can make
+qual­i­fied guessed de­pend­ing on where you are in the tree. The
+well-formed­ness also mean that you have to say good­bye to your last
+syn­tax er­ror. This ed­i­tor sim­ply doesn&#39;t al­low you to make syn­tax
+er­rors be­cause they can&#39;t fit in the tree. </li>
+<li><strong>Ad­vanced pretty print­ing</strong> &mdash; Be­cause it is a tree, there is
+re­ally no rea­son that you should be lim­ited to view the code as text.
+Print things as it makes most sense to you.</li>
+</ul>
+<h3 id="hasn-t-it-been-done-before-">Hasn&#39;t it been done be­fore?</h3>
+<p>To my knowl­edge, no. But at­tempts at adding syn­tac­tic edit­ing to other
+ed­i­tors has been made. Most odi­ous ex­am­ples is some­thing like snip­pets
+in­tro­duced in <a href="https://manual.macromates.com/en/snippets">Text­Mate</a>, or 
+refac­tor­ing like in <a href="https://eclipse.org/">Eclipse</a>. But this is more
+in­ser­tions into text than true syn­tax edit­ing. While ex­pand­ing a snip­pet
+you tem­po­rally get the abil­ity to do re­ally cool things, like cre­at­ing
+classes with a few key strokes or au­to­mat­i­cally cre­at­ing a get­ter and 
+set­ter while mak­ing a new at­tribute. But as soon as you ac­cept the
+change the code be­comes text, and you have to edit it man­u­ally again.</p>
+<p>More in­spi­ra­tional for me was two modes to modes for Emacs,
+<a href="https://www.emacswiki.org/emacs/ParEdit">paredit-mode</a> and
+<a href="https://github.com/chrisdone/structured-haskell-mode">struc­tured-haskell-mode</a>. 
+Paredit is a mi­nor mode, that en­ables the user to quickly write Lisp.
+Struc­tured Haskell does the same for, you guessed it, Haskell. 
+They uses spe­cial com­mands to write new ex­pres­sions and move around in
+the source. There is ac­tu­ally a nice YouTube
+<a href="https://www.youtube.com/watch?v=D6h5dFyyUX0">video</a> show­ing
+paredit in all its glory. Even though the two modes are cool, there
+are two ma­jor draw­backs: They only work on Lisp and Haskell, and it is
+way to easy to break out of the mode and break the syn­tax. The last
+thing is a clear side ef­fect of be­ing build on top of a, granted pow­er­ful, tex­tural ed­i­tor. </p>
+<p>I have also been in­spired by
+<a href="https://github.com/cdglabs/ohm">Ohm</a>, which is a parser ex­pres­sion
+gram­mar cre­ator, and it in­spired me to build my in­ner rep­re­sen­ta­tion.
+<!-- TODO: Add stuff from alex group --></p>
+<h3 id="why-would-you-do-such-a-thing-">Why would you do such a thing?</h3>
+<p>I set out with a goal to show that syn­tac­tic edit­ing not only is
+pos­si­ble but also bet­ter than do­ing tex­tural edit­ing. I re­fraced this
+into three high level ques­tions.</p>
+<ol>
+<li>It is pos­si­ble, to cre­ate a min­i­mal vi­able pro­to­type that ed­its
+syn­tax trees in­stead of text?</li>
+<li>How do we nav­i­gate in such a syn­tac­tic ed­i­tor?</li>
+<li>Are ed­its more id­iomatic, or is it more con­fus­ing to work in the
+syn­tac­tic ed­i­tor than work­ing in an nor­mal ed­i­tor?</li>
+</ol>
+<h3 id="i-bet-you-didn-t-do-it-alone-">I bet you didn&#39;t do it alone!</h3>
+<p>No, I had a lot of help. The pro­ject was com­pleted as part of CS 237B
+spring 2016, taught at UCLA. The pro­ject, were de­vel­oped over it­er­a­tions
+with feed­back and valu­able ad­vice from my class­mates and the in­struc­tor, 
+<a href="http://tinlizzie.org/~awarth/">Alex Warth</a>.</p>
+<h2 id="what-did-you-do-">What did you do?!</h2>
+<p>First of all I cre­ated a frame­work that sup­ports a syn­tac­tic ed­i­tor. It
+is a lot of work to write a parser and find a gen­eral way of work­ing
+with syn­tax trees, but more about that in the next sec­tion. Let&#39;s look
+at some of the cool things you can do with the ed­i­tor first. </p>
+<h3 id="movement">Move­ment</h3>
+<p>The most es­sen­tial part of an ed­i­tor is strangely enough not edit­ing, it
+is move­ment. If you can&#39;t move around, you can&#39;t edit. You move around
+with <kbd>Shift</kbd>+<kbd>h</kbd>, <kbd>Shift</kbd>+<kbd>j</kbd>,
+<kbd>Shift</kbd>+<kbd>k</kbd> and <kbd>Shift</kbd>+<kbd>l</kbd>, yes,
+I did say I use Vi. Be­cause we work in a tree, move­ment is now some­what
+dif­fer­ent than in a text ed­i­tor:</p>
+<ul>
+<li><kbd>Shift</kbd>+<kbd>h</kbd> moves to the pre­vi­ous sib­ling.</li>
+<li><kbd>Shift</kbd>+<kbd>j</kbd> moves to the first child</li>
+<li><kbd>Shift</kbd>+<kbd>k</kbd> moves to the par­ent.</li>
+<li><kbd>Shift</kbd>+<kbd>l</kbd> moves to the next sib­ling.</li>
+</ul>
+<p>In a syn­tac­tic ed­i­tor, there is no such thing as a cur­sor, in­stead there
+is a fo­cus on a spe­cific node in the syn­tax tree. This first ex­am­ple
+shows the fo­cus be­ing moved around with the com­mands.</p>
+<figure>
+  <video loop src="report/simple-movement.mov">
+  </video>
+  <div class="caption"><strong>Hover</strong> to see the move­ment <code>J-L-H-K</code>.</div>
+</figure>
+
+<p>Even though that kind of move­ment makes sense for the com­puter, it does
+not make sense for the user. Nav­i­gat­ing through list of num­bers quickly
+be­comes te­dious work. In this ex­am­ple the user want to se­lect the 6th
+digit in the num­ber. </p>
+<figure>
+  <video loop src="report/tedious-movement.mov">
+  </video>
+  <div class="caption">Se­lect­ing the 6th el­e­ment is hard work;
+  <code>J-L-J-L-...</code>.</div>
+</figure>
+
+<p>To counter this, I in­tro­duce as spe­cial kind of move­ment. I call it
+smart move­ment. The pur­pose of smart move­ment is to re­move a spe­cial
+kind of repet­i­tive move­ment. This move­ment hap­pens when you trans­verse
+lists. In syn­tax trees there ex­ist two kinds of lists. Left-re­cur­sive
+lists, where the left most child can be of the same kind as the el­e­ment
+or right-re­cur­sive lists where the right most child can be of the same
+kind. 
+<!--TODO: maybe insert image here-->
+Since lists are a re­oc­cur­ring el­e­ment in syn­tax trees I have cre­ated 
+a new set of smart move­ments.</p>
+<ul>
+<li><kbd>h</kbd> moves to the pre­vi­ous list sib­ling.</li>
+<li><kbd>j</kbd> moves to the first list child</li>
+<li><kbd>k</kbd> moves to the list par­ent.</li>
+<li><kbd>l</kbd> moves to the next list sib­ling.</li>
+</ul>
+<p>If the el­e­ment that is in fo­cus is not a list the move­ment works
+as nor­mal. But if it is a list it works like this:</p>
+<figure>
+  <video loop src="report/smart-movement.mov">
+  </video>
+  <div class="caption">Se­lect­ing the 6th el­e­ment is easy;
+  <code>j-l-l-l-...</code>.</div>
+</figure>
+
+<p>Or like this, if the list is left re­cur­sive:</p>
+<figure>
+  <video loop src="report/plus-smart-movement.mov">
+  </video>
+  <div class="caption">Smart move­ment also works for right re­cur­sive
+  lists; <code>j-l-l-l-...</code>.</div>
+</figure>
+
+<p>And this is every­thing that you need to move around in a syn­tax tree.
+Well, search­ing might be nice, but you can&#39;t have every­thing in life.</p>
+<h3 id="editing">Edit­ing</h3>
+<p>The next most im­por­tant in thing in an ed­i­tor is edit­ing. Edit­ing in 
+a syn­tax tree is a lot dif­fer­ent than in a tex­tural ed­i­tor. The first
+ac­tion that you will learn is the change com­mand. Change takes the
+el­e­ment in fo­cus and re­place it with some­thing that you de­cide.</p>
+<p>To start a change ac­tion, press <kbd>c</kbd>. Type a lit­tle, and 
+then end the ac­tion by press­ing <kbd>en­ter</kbd>. </p>
+<figure>
+  <video loop src="report/editing-change.mov" class="large">
+  </video>
+  <div class="caption">First baby steps, us­ing change.</div>
+</figure>
+
+<p>No­tice that the change ac­tion is smart; not only does it au­to­mat­i­cally
+de­tect that the sec­ond op­er­ant of <code>+</code> is not pre­sent and adds a hole
+&quot;<code>?</code>&quot;, but it also fig­ures out that the nu­mer­a­tor of the frac­tion can
+not be an ad­di­tion with­out sur­round­ing paren­the­sis. On a side node if
+you press <kbd>&darr;</kbd>, the ed­i­tor will con­tinue to pro­duce
+sug­ges­tions. This might be re­ally use­full if you are not fa­mil­iar with
+the lan­guage and want help with the syn­tax. Press­ing <kbd>↑</kbd> will
+get you back again.</p>
+<p>Let&#39;s talk a lit­tle about holes. Real syn­tax trees can not con­tain
+bro­ken pieces of syn­tax, but it is in­her­ently hu­man not to think very
+struc­tured &mdash; or the very least not in syn­tax trees. Peo­ple want to
+do things in an­other or­der, or with an­other goal in mind. So to al­low
+for that, Ash has holes. Holes are like Java&#39;s <code>null</code>. A hole can
+sub­sti­tute any piece of valid syn­tax. Sadly a hole also rep­re­sent
+a bro­ken syn­tax tree so the ed­i­tor will try to do any­thing
+in its power to re­move the holes. See what hap­pens when we try to
+leave a hole in ex­pres­sion &quot;<code>23 +</code>&quot;.</p>
+<figure>
+  <video loop src="report/editing-holes.mov" class="large">
+  </video>
+  <div class="caption">Holes are strange.</div>
+</figure>
+
+<p>As you can see, when the ac­tion is ended, the tool au­to­mat­i­cally jumps
+to first hole it can find, and starts a new change ac­tion.
+<em>But, what hap­pened in the last part?</em>. Well you can in­sert holes while
+typ­ing. Holes can be rep­re­sented dif­fer­ently in dif­fer­ent lan­guage, but
+the de­fault is &quot;<code>?</code>&quot;. This is a pow­er­ful fea­ture be­cause it means that
+you can type in par­tial syn­tax. This be­comes more im­por­tant in an
+minute. But first go to the ed­i­tor and try to type &quot;<code>42+?/13+?+23</code>&quot;,
+press <kbd>en­ter</kbd> and try to mea­sure how fast you can fill out the
+holes with num­bers. Now think about how long this op­er­a­tion would have
+taken you in a tex­tural ed­i­tor. </p>
+<p>So far we can only change parts of the code com­pletely. Even though that
+is nice, when edit­ing larger pro­grams you might not want to throw away
+all, or a part of the code, just be­cause you want to add
+some­thing. Two ac­tions has been cre­ated just for that; ap­pend and
+in­sert. Ap­pend <kbd>a</kbd> fills the first valid hole in the new tree
+with the old fo­cused ex­pres­sion &mdash; in­sert <kbd>i</kbd> fills the last.</p>
+<figure>
+<table>
+<tr>
+<td>
+<img src="report/edit-insert.png" alt="The Expresion">
+</td>
+<td>
+<img src="report/edit-append.png" alt="The Expresion">
+</td>
+</tr>
+<tr>
+<td>In­sert &quot;<code>?+?</code>&quot;</td>
+<td>Ap­pend &quot;<code>?+?</code>&quot; </td>
+</tr>
+</table>
+</figure>
+
+<p><strong>Warn­ing</strong>, <em>this ac­tion do not have au­to­matic paren­the­sis in­ser­tion, or 
+work well with lists... sorry.</em></p>
+<p>The last thing that is es­sen­tial to edit­ing, is to re­move all the
+things bad code you have just writ­ten. There is two ways to delete
+el­e­ments in ash. </p>
+<ul>
+<li><kbd>d</kbd> deletes an el­e­ment. If there is only two el­e­ment in
+the par­ent of the el­e­ment. That el­e­ment will be up­graded to the new main 
+el­e­ments. Else the par­ent will also be deleted.<em>Warn­ing, slightly buggy.</em></li>
+<li><kbd>x</kbd> ex­tract an el­e­ment. This is the op­po­site of delete. It 
+will keep the cur­rent el­e­ment, and re­place it with the par­ent. It is
+pos­si­ble to de­cide be­tween to what layer that the el­e­ment should be
+ex­tracted by press­ing <kbd>&darr;</kbd>.</li>
+</ul>
+<h3 id="multiple-buffers-and-languages">Mul­ti­ple buffers and lan­guages</h3>
+<p>Ash also sup­ports mul­ti­ple buffers, though there is no way for you to 
+see that. To cre­ate a new buffer type &quot;<code>:new &lt;language&gt;</code>&quot;. Right now 
+there is two lan­guages to play around with. <code>math</code> as you are al­ready 
+fa­mil­iar with is a sim­ple lan­guage that can do arith­metic. <code>f</code> is a
+more com­pli­cated func­tional lan­guage, that is al­most, but not quite,
+en­tirely un­like OCaml. Both of these lan­guage has been more or less
+stolen from CS 237A taught at UCLA or from
+<a href="https://github.com/cdglabs/ohm">Ohm</a>. </p>
+<h3 id="pretty-printing">Pretty print­ing</h3>
+<p>Each lan­guage comes with a some build-in pretty print­ers. For the
+lan­guage <code>math</code> there are three pretty print­ers. Each of them can be
+ac­cessed by us­ing <code>:display &lt;printer&gt;</code>. The im­ages be­low are pic­tures
+of the same syn­tax tree be­ing printed with the dif­fer­ent print­ers.</p>
+<figure>
+<table>
+<tr>
+<td>
+<img src="report/display-debug.png" alt="The Expresion">
+</td>
+<td>
+<img src="report/display-simple.png" alt="The Expresion">
+</td>
+<td>
+<img src="report/display-pretty.png" alt="The Expresion">
+</td>
+</tr>
+<tr>
+<td><code>debug</code></td>
+<td><code>simple</code> </td>
+<td><code>pretty</code></td>
+</tr>
+</table>
+</figure>
+
+<p>The two pretty print­ers <code>debug</code> and <code>simple</code> are lan­guage ag­nos­tic ways
+of dis­play­ing syn­tax trees. <code>debug</code> is the dis­play clos­est to the
+rep­re­sen­ta­tion of the in­ter­nal syn­tax tree. The num­bers at each node
+name is the id of the node. <code>simple</code> is just a print of all the to­kens
+in the tree in or­der.</p>
+<p>The most in­ter­est­ing of the three is the <code>pretty</code> printer that ac­cu­rately
+de­picts the <code>math</code> as math and not as a piece of text. Nav­i­ga­tion is
+a lot harder in a pretty printed tree, as up an down has a new mean­ing.
+<em>Play around with it and see what you think.</em></p>
+<h3 id="saving-and-loading-files">Sav­ing and load­ing files</h3>
+<p>Let me an­swer that with a ques­tion; is that re­ally im­por­tant?</p>
+<h2 id="how-is-this-possible-">How is this pos­si­ble?!</h2>
+<p>The en­tire thing is writ­ten in <a href="http://elm-lang.org/">elm</a>, ex­cept for
+some setup code in JavaScript. The code is avail­able at
+<a href="https://github.com/kalhauge/ash">github</a>. Elm is a very cool func­tional
+pro­gram­ing lan­guage for front-end web de­vel­op­ers, and with­out it I don&#39;t
+think that this pro­ject would have been pos­si­ble. Its pure­ness and type
+checker catches most of my mis­takes while I pro­gramed. Also this
+knowl­edge made me more con­fi­dent that when I made rapid changes the
+ed­i­tor still works.</p>
+<p>There went a lot of work into get­ting the ed­i­tor to work as an ed­i­tor,
+but that is not re­ally in­ter­est­ing or unique for a syn­tac­tic ed­i­tor.</p>
+<h3 id="the-grammar">The gram­mar</h3>
+<p>The first im­por­tant in­tro­duc­tion was the Gram­mar, a mod­ule and
+a em­bed­ded DSL that en­ables users to write very sim­ple gram­mar in Elm.
+The gram­mar sys­tem is very in­spired by
+<a href="https://github.com/cdglabs/ohm">Ohm</a> which can rep­re­sent pars­ing
+ex­pres­sion gram­mars, but ash build-in gram­mar  is much less pow­er­ful,
+be­cause it is miss­ing the ex­pres­sions. Be­low is some of the <code>math</code>
+lan­guage, spec­i­fied in the em­bed­ded gram­mar DSL.</p>
+<pre><code class="lang-elm">grammar = 
+  Grammar.grammar &quot;?&quot;
+    [ ( &quot;Exp&quot;
+      , rule 
+        [ [ Ref &quot;AddExp&quot; ] 
+        ]
+      )
+    , ( &quot;AddExp&quot;
+      , rule 
+        [ [ Ref &quot;AddExp&quot;, Lex &quot;+&quot;, Ref &quot;MulExp&quot; ] -- plus
+        , [ Ref &quot;AddExp&quot;, Lex &quot;-&quot;, Ref &quot;MulExp&quot; ] -- minus
+        , [ Ref &quot;MulExp&quot; ]
+        ]
+      )
+    , ( &quot;MulExp&quot;
+      , rule
+        [ [ Ref &quot;MulExp&quot;, Lex &quot;*&quot;, Ref &quot;ExpExp&quot; ] -- times
+        , [ Ref &quot;MulExp&quot;, Lex &quot;/&quot;, Ref &quot;ExpExp&quot; ] -- divide
+        , [ Ref &quot;ExpExp&quot; ]
+        ]
+      )
+    , ...
+    ]
+</code></pre>
+<p>No­tice the <code>&quot;?&quot;</code> in sec­ond line. That is how you spec­ify how the gram­mar
+should parse holes. The holes are added to all the end of all
+ex­pres­sions in all of the rules. </p>
+<h3 id="the-syntax-tree">The syn­tax tree</h3>
+<p>Syn­tax tree is the prod­uct of pars­ing a string with a gram­mar. The
+syn­tax tree is generic, and is should be able to hold all pos­si­ble
+trees. Here is the type de­c­la­ra­tion. It might not mean a lot to you, 
+but the poly­mor­phism of <code>SNode</code> en­abled a lot of cool tree col­lec­tors.</p>
+<pre><code class="lang-elm">type alias SNode a
+  = { kind  : SyntaxKind
+    , terms : List a
+    , size  : Int
+    }
+
+-- Recusive type to please the type checker 
+type SubTree = SubTree (SNode SubTree)
+
+type alias SyntaxTree = SNode SubTree
+</code></pre>
+<p>SNode con­tains tree things a kind, which is a ref­er­ence to an ex­pres­sion
+in a gram­mar some­where, a list of sub nodes, called terms, and a size.
+The size is used to give each node an iden­ti­fier. Id&#39;s are cru­cial, when
+we want to ref­er­ence a cer­tain node. In­stead of giv­ing each node
+a sta­tic id, the id is cal­cu­lated in re­la­tion to where in the tree it
+is. The id&#39;s are as­signed in a depth first man­ner. The prob­lem with this
+dy­namic iden­ti­fier as­sign­ment is that it is not very ef­fi­cient. To find
+the iden­ti­fier of a node the en­tire tree has to be trans­versed to find
+a node with a spe­cific id. To fix this I added the size to the node. The
+size is the to­tal of nodes in the node in­clud­ing it­self. Us­ing this num­ber
+it is pos­si­ble to di­rect the search. Sadly be­cause of the iden­ti­fier
+sys­tem it is nec­es­sary to in­tro­duce tree col­lec­tors. A tree it­er­a­tor
+could it­er­ate the tree and would stop as soon as any value were
+re­turned.</p>
+<pre><code class="lang-elm">type alias TreeIterator a = Int -&gt; SyntaxTree -&gt; Maybe a
+</code></pre>
+<p>A tree col­lec­tor would col­lect there re­sults of call­ing the it­er­a­tor 
+re­cur­sively and re­place the nodes in the terms ar­ray with the re­sults. </p>
+<pre><code class="lang-elm">type alias TreeCollector a = Int -&gt; SNode a -&gt; a
+</code></pre>
+<p>One thing that turned out to be ex­cep­tion­ally hard was to make sure that
+af­ter a tree was changed, code point­ing to nodes in the tree was able
+to up­date the ref­er­ences to some­thing that made sense. The so­lu­tion was
+that, when a tree was up­dated, it also pro­duced a func­tion that could
+up­date any valid iden­ti­fier to a new iden­ti­fier point­ing to the same
+node or at the near­est par­ent node. Gen­er­at­ing this func­tion
+au­to­mat­i­cally for any up­date turned out to be hard and re­sulted in some
+of the
+<a href="https://github.com/kalhauge/ash/blob/master/src/Ash/Command.elm#L27">ugli­est</a>
+code in the his­tory of man.</p>
+<h3 id="the-parser-and-suggester">The parser and sug­gester</h3>
+<p>Cre­at­ing the parser and sug­gester, was rel­a­tive easy, but es­pe­cially the
+sug­gester has some se­ri­ous per­for­mance is­sues. The parser sim­ply re­turns
+a syn­tax tree from a string. The sug­gester re­turns a list of par­tial
+re­sults of pars­ing a string. There can, of cause, in some cases be
+in­fi­nite pos­si­bil­i­ties, there­fore is the re­turned list a lazy list.
+A lazy list, is a list of on de­mand com­pu­ta­tions. This means that all
+sug­ges­tions are not cre­ated in one go, but is de­layed un­til needed.</p>
+<p>The sug­ges­tions are done by pars­ing the en­tire string. If the sug­gester
+reaches the end of the string mid rule, the rest of the ref­er­ences is
+filled with holes. Us­ing this tech­nique the sug­gester can in­fer &quot;<code>let
+? in ?</code>&quot; from &quot;<code>l</code>&quot; alone. Given that the user did not like that, 
+then the next sug­ges­tion is pro­duced by ig­nor­ing the first re­sult and
+con­tin­u­ing in the gram­mar. The de­sign of the gram­mar is di­rectly re­lated
+to the sug­ges­tions the user is get­ting. It&#39;s not al­ways the ideal
+so­lu­tion that is pro­duced by the sug­gester, but the ini­tial guess seams
+to be cor­rect most of the time.</p>
+<h3 id="the-pretty-printer">The pretty printer</h3>
+<p>This was where I re­alised I had done it all wrong. Writ­ing the pretty
+printer was very er­ror prone and not es­pe­cially pretty. Pretty print­ing
+is done by trans­vers­ing the tree and then pro­duc­ing html. The only way
+to get the kind of node it was, was by match­ing with the syn­tax kind.
+The syn­tax kind is a tu­ple of the name of the rule and the num­ber of the
+ex­pres­sion that cre­ated the syn­tax tree. Match­ing on a string is
+in­her­ently hard, and the type checker does not give a lot of help. <a href="https://github.com/kalhauge/ash/blob/master/src/Languages/Math.elm#L82">This
+ex­am­ple</a>
+from <code>math</code>, shows the frag­ile match­ing needed to pretty print the tree.</p>
+<pre><code class="lang-elm">case tree.kind of
+  (&quot;AddExp&quot;, 0) -&gt; tree `take2` \a b -&gt;  
+    grp &quot;add&quot;
+      [ a, operator &quot;+&quot;, b ] 
+
+  (&quot;AddExp&quot;, 1) -&gt; tree `take2` \a b -&gt; 
+    grp &quot;minus&quot;
+      [ a, operator &quot;-&quot;, b ] 
+
+  (&quot;MulExp&quot;, 0) -&gt; tree `take2` \a b -&gt; 
+    grp &quot;multiply&quot;
+      [ a, operator &quot;⋅&quot;, b ] 
+
+  (&quot;MulExp&quot;, 1) -&gt; tree `take2` \a b -&gt; 
+    grp &quot;fraction&quot;
+      [ grp &quot;numerator&quot; [ a ]
+      , grp &quot;denominator&quot; [ b ]
+      ] 
+   ...
+</code></pre>
+<p>Not only do we have to match on strings, which is slow, we are not
+guar­an­teed that the tree is well formed. This means that the <code>take2</code>
+func­tion can fail and will pro­duce mal­formed pretty printed html (it
+will lit­er­ally print &quot;mal­formed&quot;) if the tree is not well formed.</p>
+<p>This prob­lem would of cause also ap­ply to other ar­eas, if the user would
+want to im­ple­ment type check­ing or small step se­man­tics in the ed­i­tor.</p>
+<h2 id="what-were-you-thinking-">What were you think­ing?!</h2>
+<p>Well, I was dri­ven by a sim­ple idea; for com­put­ers to be able to help us
+they need to be able to un­der­stand us. The whole pro­ject has been lead­ing
+up to have an ed­i­tor that is able to write code like in the ex­am­ple be­low.</p>
+<figure>
+  <video loop src="report/edit-fib.mov" class="large">
+  </video>
+  <div class="caption">This is how pro­gram­ming should feel.</div>
+</figure>
+
+<p>I think that this is a much more nat­ural way of writ­ing code, than the
+cur­rent tex­tural ed­i­tors. Get­ting to this point was not easy, and there
+is still a long way to a work­ing ed­i­tor. Be­sides the clear lim­i­ta­tion of
+not be­ing able to open and save files, un­do­ing, and copy-past­ing, there
+is a lot of things to be learned from this pro­to­type. I think that this
+pro­to­type il­lus­trates that mul­ti­lin­gual syn­tax ed­i­tors are pos­si­ble, and
+work­ing with syn­tax trees di­rectly is nat­ural when you get the hang of
+it. The ex­tended ben­e­fit of hav­ing syn­tac­tic rel­e­vant sug­ges­tions, gives
+a nice flow to the process of writ­ing code. Lastly I think that
+syn­tac­tic holes are para­mount for do­ing syn­tac­tic edit­ing. </p>
+<p>The di­rec­tional move­ment  in this pro­to­type is a lit­tle hard to fol­low,
+and es­pe­cially in dif­fer­ent dis­plays. A lot more work has to be done
+to make move­ment user friendly, but the list move­ment was a good start.
+Some­times spe­cial con­structs would be mis­con­ceived as list, which is
+con­fus­ing, and not all tools work on the lists in the same way.
+It might be that in the fu­ture a no­tion of lists has to be build into
+the syn­tax, which also di­rect move­ment. 
+The most con­fus­ing part in the move­ment is when the depth of the tree
+changes vi­sual di­rec­tion. In the <code>math</code> ex­am­ple, the depth of the
+frac­ture is ver­ti­cal, while the depth of the ad­di­tion is hor­i­zon­tal.
+I have heard sug­ges­tions like a mini map dis­play­ing the de­bug tree,
+which could help you with the users bear­ing, or have vi­sual cues like
+color or un­der­lin­ing to show the par­ent and the near­est sib­lings. Even
+though that is it hard to move around in the tree I still think it is
+un­clear, if this is some­thing that you can learn when us­ing the ed­i­tor
+over time, and then you might even get more ef­fi­cient. <em>Please try it
+out and see for you self! Any feed­back will is very ap­pre­ci­ated.</em></p>
+<!--### Concrete vs generic trees-->
+<p>One of the biggest de­sign de­ci­sions was where whether to have sta­t­i­cally 
+de­fined syn­tax trees or dy­nam­i­cally de­fined syn­tax trees. Where
+a sta­tic syn­tax tree de­f­i­n­i­tion would have the ben­e­fit of the type
+checker, both to do easy match­ing and to en­sure that all op­er­a­tions on
+the tree re­turns a valid tree. On the other hand does the dy­nam­i­cally 
+de­fined syn­tax tree en­able op­er­a­tions that work across all lan­guages.
+When start­ing out with the pro­ject I felt that the generic syn­tax tree
+ap­proach was the most sus­tain­able, but af­ter I tried to do lan­guage
+spe­cific ac­tions like pretty print­ing I found that it was al­most
+im­pos­si­ble. It is clear to me that some kind of golden mid­dle way has to
+be found. I see a cou­ple so­lu­tions to solv­ing this. The most in­ter­nal
+way of do­ing it would be to spec­ify some core fea­tures that makes
+a syn­tax tree a syn­tax tree and then im­ple­ment­ing them for each
+lan­guage. This prob­a­bly re­quires some­thing like Haskell&#39;s type classes.
+An­other more dy­namic way would be to keep the dy­nam­i­cally de­fined tree
+and then de­velop a DSL for work­ing with trees. Both of these ap­proaches
+would be in­ter­est­ing.</p>
+<!--### Choice of grammar model-->
+<p>Us­ing a lim­ited PEG as the gram­mar worked out well, but the tight
+cou­pling be­tween the gram­mar and the syn­tax tree were not ideal. If the
+syn­tax tree was sep­a­rated from the gram­mar, it could be able to ex­press
+more things. A PEG can only parse con­text free lan­guages. XML, and 
+there­fore also HTML, is not a con­text free lan­guage. Choos­ing PEG as the
+only gram­mar would force our ed­i­tor to never be able to edit XML. 
+Some gram­mars, from which syn­tax trees are made from, use de­com­po­si­tion,
+and refers to other rules to tran­si­tive in­herit their ex­pres­sions. To en­able
+the user to move around the tree with­out work­ing their way through
+in­fi­nite nodes that only point to other nodes, the tree has to be
+trimmed. I also found some places where the gram­mar was not suited for 
+my sug­ges­tions al­go­rithm, and where the or­der of the rules had to be
+changed to get bet­ter re­sults. All of this sug­gest that the gram­mar
+shouldn&#39;t be the tem­plate of the syn­tax tree, but more be used as
+a parser, that can fill an ex­ist­ing tem­plate.</p>
+<!--### Comments and bad code with syntax errors.-->
+<p>An in­ter­est­ing prob­lem with syn­tac­tic ed­i­tors is some­thing like
+com­ments. For a syn­tac­tic ed­i­tor to be able work with com­ments, it needs
+to be able to parse and un­der­stand the se­man­tic mean­ing of com­ments.
+Cur­rently there are con­ven­tions for where to put com­ments, but they are
+not en­forced by the parser. That needs to change.</p>
+<!--### Code suggestion -->
+<p>One of the cool thing that Ash is able to do is the code sug­ges­tions,
+but the sug­ges­tion en­gine, did not work per­fect and the user could find
+them­selves forced to search through a long list of pos­si­ble end­ings to
+get to the piece of syn­tax they needed. In the early ver­sions of the
+pro­to­type that was the only way to ap­pend or in­sert. I changed that 
+so that it used the holes ap­proach in­stead, but the sug­ges­tions are
+still in there.
+While the sug­ges­tions are valu­able in­for­ma­tion for be­gin­ners, who do not know the
+syn­tax of the lan­guage (<em>Note: To il­lus­trate this point I have not
+writ­ten down the full syn­tax of the two lan­guages here &mdash; did
+you fig­ure out how to code in them?</em>), it might not help ad­vanced users
+as much. For them it could be cool to do things like se­man­tic syn­tax
+trees. The trees would dis­play like the nor­mal syn­tax trees, but have
+build-in se­man­tics. The tree might only be syn­tac­tic cor­rect if it 
+only ac­cess de­fined vari­ables.
+Sug­ges­tions in such a tree would be some­thing like a con­text aware auto
+com­pleter, which would be very handy even for ex­pe­ri­enced pro­gram­mers.
+By ac­ci­dent do the syn­tax holes also feels like the holes used in code
+syn­the­sis, where com­pli­cated heuris­tics would try to fill out holes in
+a pro­gram. This cor­re­la­tion leads me to be­lieve that syn­tac­tic edit­ing
+could be the gate­way drug to em­bed­ded code syn­the­sis.</p>
+<h2 id="yeah-okay-what-s-your-point-man-https-youtu-be-90mmzrll3m4-t-26-">Yeah, okay... <a href="https://youtu.be/90mMZrlL3m4?t=26">What&#39;s your point, man?!</a></h2>
+<p>Code is <strong>not</strong> text. Code is lan­guage and should be treated that way.
+When the com­puter speaks the same lan­guage as you, you can be more
+pro­duc­tive. Syn­tac­tic edit­ing is not only pos­si­ble, it is prac­ti­cal.
+Cur­rently the tech­nol­ogy has a lot of rough cor­ners, but I be­lieve that
+syn­tac­tic edit­ing is the fu­ture, and I hope that I con­vinced you, or at
+least make you ques­tion the way we edit code now.</p>
+
+    </div>
+
     <script type="text/javascript">
-      var ash = Elm.Main.fullscreen()
+      var ash = Elm.Main.embed(document.getElementById("editor"))
       ash.ports.onload.subscribe(function () {  
         // http://stackoverflow.com/questions/31901397/how-to-set-focus-on-an-element-in-elm 
         var observer = new MutationObserver(function(mutations) {
@@ -36,6 +597,17 @@
           }
         }    
       })
+      var figure = $("video").hover(hoverVideo, hideVideo );
+
+      function hoverVideo(e) {  
+        this.play(); 
+      }
+
+      function hideVideo(e) {
+        this.pause(); 
+      }
     </script>
+
+
   </body>
 </html>

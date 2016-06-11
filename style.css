@@ -1,4 +1,141 @@
 
+#content {
+    font-size: 16px;
+    width: 670px;
+    line-height: 25.9px;
+    margin: 0 auto;
+    font-family: Georgia, sans-serif;
+    counter-reset: section;
+}
+
+#content h2 a, #content h2 a:visited{
+    color: black;
+    text-transform: none;
+}
+
+kbd {
+    -moz-border-radius:3px;
+    -moz-box-shadow:0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
+    -webkit-border-radius:3px;
+    -webkit-box-shadow:0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
+    text-indent: 0;
+    background-color:#f7f7f7;
+    border:1px solid #ccc;
+    border-radius:3px;
+    box-shadow:0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
+    color:#333;
+    display:inline-block;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:11px;
+    font-style: normal;
+    line-height:1.4;
+    margin:0 .1em;
+    padding:.1em .6em;
+    text-shadow:0 1px 0 #fff;
+}
+
+#content h1 {
+    text-align: center;
+    font-family: Raleway, sans-serif;
+}
+#content h2 {
+    font-family: Raleway, sans-serif;
+    counter-reset: subsection;
+}
+
+video { 
+    border: 2px solid #999;
+}
+
+video:hover { 
+    border: 2px solid #090;
+}
+
+figure {
+    text-align: center;
+    margin: auto;
+    width: 620px;
+}
+
+
+figure img, figure video{
+    height: auto;
+    width: auto;
+    max-height: 100px;
+    max-width: 500px;
+}
+
+figure video.large {
+    max-height: 500px;
+}
+
+figure table img {
+    max-width: 200px;
+}
+
+figure table {
+    margin: 0 auto;
+}
+
+figure .caption {
+    font-style: italic;
+    font-size: 12px;
+    line-height: 100%;
+}
+
+#content h3 {
+    font-family: Raleway, sans-serif;
+}
+
+#content p { 
+    text-indent: 1em;
+    text-align: justify;
+}
+
+#content pre {
+    line-height: 110%;
+    font-size: 12px;
+    background-color: #fdf6e3;
+    color: #002b36;
+    padding: 10px;
+}
+
+
+#content ul p  { 
+    text-indent: 0;
+}
+
+#content h2:before {
+    counter-increment: section;
+    content: counter(section);
+    margin-right: 1em;
+}
+
+#content h3:before {
+    counter-increment: subsection;
+    content: counter(section) "." counter(subsection);
+    margin-right: 1em;
+}
+
+#content a {
+    text-decoration: none;
+    text-transform: uppercase;
+    font-family: Raleway, sans-serif;
+    color: black;
+    /* font-weight: 600; */
+}
+
+#content a:hover {
+    text-decoration: underline;
+    color: black;
+}
+
+
+#authorship {
+    text-align: center;
+    font-style: italic;
+}
+
 .ash {
     margin: 40px auto;
     border: 1px solid black;
